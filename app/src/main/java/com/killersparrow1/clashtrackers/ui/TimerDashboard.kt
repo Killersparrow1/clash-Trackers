@@ -3,6 +3,7 @@
 package com.killersparrow1.clashtrackers.ui
 
 import com.killersparrow1.clashtrackers.core.formatTimestamp
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -39,6 +40,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -51,6 +56,7 @@ import com.killersparrow1.clashtrackers.core.RowKind
 import com.killersparrow1.clashtrackers.core.SyncLogEntry
 import com.killersparrow1.clashtrackers.core.WidgetModel
 import com.killersparrow1.clashtrackers.sync.SyncRunner
+import com.killersparrow1.clashtrackers.widget.WidgetIcons
 
 @Composable
 fun TimerDashboard(
@@ -270,7 +276,23 @@ private fun TimerCard(timer: DashboardTimer) {
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            Text(SyncRunner.plainText(row.label), style = MaterialTheme.typography.titleLargeEmphasized)
+            // Same building/troop/hero art as the widget (assets/icons); nothing is shown if a file is missing.
+            val context = LocalContext.current
+            val iconPx = with(LocalDensity.current) { 48.dp.roundToPx() }
+            val icon = remember(row.iconIds, row.iconLevel, iconPx) {
+                val icons = WidgetIcons.get(context)
+                row.iconIds.firstNotNullOfOrNull { icons.bitmapForLevel(it, row.iconLevel, iconPx) }?.asImageBitmap()
+            }
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                if (icon != null) {
+                    Image(
+                        bitmap = icon,
+                        contentDescription = null,
+                        modifier = Modifier.size(48.dp).clip(MaterialTheme.shapes.medium),
+                    )
+                }
+                Text(SyncRunner.plainText(row.label), style = MaterialTheme.typography.titleLargeEmphasized)
+            }
             BasicText(
                 if (row.kind == RowKind.RUNNING) Countdown.text(row.remaining) else row.staticStatus,
                 style = MaterialTheme.typography.displaySmallEmphasized.copy(
