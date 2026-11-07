@@ -563,7 +563,8 @@ class BoostAndEventEngineTest {
     @Test fun test27_upgradeCompletingAtBoostExpiration() {
         // Upgrade needs exactly 18,000s work.
         // Boost runs for 1800s at 10x speed = exactly 18,000s work.
-        val job = sampleJob(remaining = 18000L)
+        // Clock Tower only speeds up Builder Base jobs, so this must be a BB_BUILDER job.
+        val job = sampleJob(category = JobCategory.BB_BUILDER, source = JobSource.BB_BUILDING, remaining = 18000L)
         val exp = sampleExport(listOf(job))
         val ct = BoostModifier(
             id = "ct",
