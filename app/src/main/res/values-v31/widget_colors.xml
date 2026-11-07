@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 12+ (Material You): widget text colours follow the wallpaper palette.
+     Same names as values/widget_styles.xml, so every widget style picks them up. -->
+<resources>
+    <color name="w_white">@android:color/system_neutral1_50</color>
+    <color name="w_gold">@android:color/system_accent1_200</color>
+    <color name="w_sub">@android:color/system_neutral2_200</color>
+    <color name="w_goblin">@android:color/system_accent3_200</color>
+    <color name="w_idle">@android:color/system_accent2_200</color>
+    <color name="w_sync_text">@android:color/system_accent1_900</color>
+</resources>
