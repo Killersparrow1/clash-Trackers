@@ -87,7 +87,7 @@ fun SyncLogic.Outcome.describe(names: NameMap): String = when (this) {
         append(" · ${e.regularBuilderJobs.size} builder job")
         if (e.regularBuilderJobs.size != 1) append("s")
         if (goblin > 0) append(" + Goblin")
-        append(" · lab: ").append(e.labJob?.let(names::label) ?: "idle")
+        append(" · lab: ").append(e.labJobs.takeIf { it.isNotEmpty() }?.joinToString(" + ") { names.label(it) } ?: "idle")
         append(" · pet: ").append(e.petJob?.let(names::label) ?: "idle")
         e.builderBoostRemaining?.let { append(" · builder potion ${WidgetModelBuilder.formatRemaining(it)} left") }
     }

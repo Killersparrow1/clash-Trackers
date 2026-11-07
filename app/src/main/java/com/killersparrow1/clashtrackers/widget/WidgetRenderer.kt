@@ -81,7 +81,7 @@ class WidgetRenderer(private val context: Context) {
             rows.take(MAX_BUILDER_ROWS).forEach { rv.addView(container, row(it, compact, liveCountdown, nowMs, elapsed, model.accountTag)) }
         }
         fill(R.id.rows_builders, model.builderRows)
-        fill(R.id.rows_lab, listOf(model.labRow))
+        fill(R.id.rows_lab, model.labRows)
         fill(R.id.rows_pet, listOf(model.petRow))
         // Builder Base section: hidden unless a night village builder or the Star Lab is busy.
         rv.setViewVisibility(R.id.bb_section, if (model.showBuilderBase) View.VISIBLE else View.GONE)

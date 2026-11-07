@@ -84,7 +84,8 @@ data class VillageExport(
     val starLabJobs: List<Job> get() = jobs.filter { it.category == JobCategory.STAR_LAB }
 
     /** The spec says at most one; extras (shouldn't happen) are still kept in [jobs]. */
-    val labJob: Job? get() = labJobs.firstOrNull()
+    /** The regular lab job (the Lab Assistant's default target); the Goblin researcher's job is only used if it is the only one. */
+    val labJob: Job? get() = labJobs.firstOrNull { !it.isGoblin } ?: labJobs.firstOrNull()
     val petJob: Job? get() = petJobs.firstOrNull()
 
     fun helper(dataId: Int): Helper? = helpers.firstOrNull { it.dataId == dataId }

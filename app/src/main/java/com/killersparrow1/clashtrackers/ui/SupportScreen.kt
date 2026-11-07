@@ -187,7 +187,7 @@ private fun widgetPreview(m: WidgetModel): String = SyncRunner.plainText(buildSt
     appendLine("${m.buildersLabel}${if (m.goblinWorking) " + Goblin" else ""}   [${m.bite.text}] [${m.builderPotion.text}]")
     m.builderRows.forEach(::line)
     appendLine("LAB   [${m.researchPotion.text}]")
-    line(m.labRow)
+    m.labRows.forEach(::line)
     appendLine("PETS   [${m.petPotion.text}]")
     line(m.petRow)
     append(m.footerLeft.joinToString("") { it.text }).append("   ").append(m.footerRight)

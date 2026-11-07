@@ -19,7 +19,7 @@ fun WidgetModel.timers(filter: TimerFilter): List<DashboardTimer> {
     if (!hasData) return emptyList()
     val all = mutableListOf<DashboardTimer>()
     all.addAll(builderRows.map { DashboardTimer(TimerFilter.BUILDERS, it) })
-    all.add(DashboardTimer(TimerFilter.LAB, labRow))
+    all.addAll(labRows.map { DashboardTimer(TimerFilter.LAB, it) })
     all.add(DashboardTimer(TimerFilter.PETS, petRow))
     if (showBuilderBase || bbRows.isNotEmpty() || starLabRow != null) {
         all.addAll(bbRows.map { DashboardTimer(TimerFilter.BUILDER_BASE, it) })

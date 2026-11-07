@@ -51,12 +51,16 @@ data class WidgetModel(
     /** Star Laboratory row; null when no Star Lab upgrade is running (free builders/labs get no rows). */
     val starLabRow: WidgetRow? = null,
     val accountTag: String = "",
+    /** Lab jobs after [labRow]: the Goblin researcher works in parallel, so two lab jobs can run at once. */
+    val extraLabRows: List<WidgetRow> = emptyList(),
 ) {
     /** Show the Builder Base section only when there is something running or just finished there. */
     val showBuilderBase: Boolean get() = bbRows.isNotEmpty() || starLabRow != null
     val buildersLabel: String get() = "BUILDERS $buildersBusy/$buildersTotal"
     val title: String get() = townHall?.let { "$playerName TH$it" } ?: playerName
-    val allRows: List<WidgetRow> get() = builderRows + labRow + petRow + bbRows + listOfNotNull(starLabRow)
+    /** Every lab row, soonest finish first (just [labRow] unless the Goblin researcher is also working). */
+    val labRows: List<WidgetRow> get() = listOf(labRow) + extraLabRows
+    val allRows: List<WidgetRow> get() = builderRows + labRows + petRow + bbRows + listOfNotNull(starLabRow)
 }
 
 /** A potion/snack button on a section line: `Bite` / `+1` when idle, minutes left when running. */
@@ -204,7 +208,9 @@ object WidgetModelBuilder {
         // Free builders get no rows; finished jobs stay as "Completed" until the next sync.
         // The Goblin's row disappears once it is done (it is not one of the player's builders).
         val builderRows = sorted(export.builderJobs).filter { !it.isGoblin || running(it) }.map(::row)
-        val labRow = sorted(export.labJobs).firstOrNull()?.let(::row) ?: idleRow("Laboratory", LABORATORY)
+        // Two lab jobs can run at once (regular research + the Goblin researcher): show all of them.
+        val labRowsSorted = sorted(export.labJobs).map(::row)
+        val labRow = labRowsSorted.firstOrNull() ?: idleRow("Laboratory", LABORATORY)
         val petRow = sorted(export.petJobs).firstOrNull()?.let(::row) ?: idleRow("Pet House", PET_HOUSE)
 
         // Builder Base: plain countdowns (no helpers or potions there). Free builders get no rows.
@@ -253,6 +259,7 @@ object WidgetModelBuilder {
             bbRows = bbRows,
             starLabRow = starLabRow,
             accountTag = accountTag,
+            extraLabRows = labRowsSorted.drop(1),
         )
     }
 

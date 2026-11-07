@@ -176,3 +176,39 @@ class WidgetModelTest {
         assertEquals("2d ago", formatAgo(2 * 86400))
     }
 }
+
+/** Two lab jobs at once: a regular research plus the Goblin researcher's (`"extra": true`). */
+class GoblinLabTest {
+    private val json = SampleExports.text("export_2.json").also {
+        require("\"data\":4000000,\"lvl\":10}" in it)
+    }.replaceFirst(
+        "\"data\":4000000,\"lvl\":10}",
+        "\"data\":4000000,\"lvl\":10,\"timer\":50000,\"extra\":true}",
+    )
+    private val state = (SyncLogic.apply(AppState(), json) as SyncLogic.Outcome.Synced).state
+    private val t0 = SampleExports.export2.timestamp
+
+    @Test fun bothLabJobsAreShownSoonestFirst() {
+        val m = WidgetModelBuilder.build(state, AppSettings(), SampleExports.names, SampleExports.times, t0)
+        assertEquals(2, m.labRows.size)
+        // The Goblin's Barbarian (50,000 s) finishes before the regular Dragon (121,885 s).
+        assertEquals(listOf("Barbarian → 11", "Dragon → 13"), m.labRows.map { it.label })
+        assertTrue(m.labRows[0].goblin)
+        assertFalse(m.labRows[1].goblin)
+        assertEquals(m.labRows, listOf(m.labRow) + m.extraLabRows)
+        assertEquals(2, m.allRows.count { it.kind == RowKind.RUNNING && it in m.labRows })
+    }
+
+    @Test fun labAssistantLinksToTheRegularJobNotTheGoblin() {
+        val e = state.export!!
+        assertEquals(2, e.labJobs.size)
+        assertFalse(e.labJob!!.isGoblin)
+        assertEquals(e.labJob!!.key, state.links.labAssistantJobKey)
+    }
+
+    @Test fun syncMessageListsBothLabJobs() {
+        val outcome = SyncLogic.apply(AppState(), json) as SyncLogic.Outcome.Synced
+        val text = outcome.describe(SampleExports.names)
+        assertTrue(text, "lab: Barbarian → 11 + Dragon → 13" in text || "lab: Dragon → 13 + Barbarian → 11" in text)
+    }
+}
