@@ -13,6 +13,8 @@ on:
         default: false
   push:
     branches: [main, builder-base]
+    # Pushing a tag like v1.0.3 also publishes a GitHub Release with the APK attached.
+    tags: ['v*']
 
 permissions:
   contents: write
@@ -78,6 +80,13 @@ jobs:
         with:
           name: ClashTrackers-debug-apk
           path: app/build/outputs/apk/debug/*.apk
+
+      - name: Publish GitHub Release (version tags only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: app/build/outputs/apk/debug/*.apk
+          generate_release_notes: true
 
       - name: Upload test report (on failure)
         if: failure()
