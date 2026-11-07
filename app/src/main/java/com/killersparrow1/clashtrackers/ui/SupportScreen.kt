@@ -1,5 +1,6 @@
 package com.killersparrow1.clashtrackers.ui
 
+import com.killersparrow1.clashtrackers.core.formatTimestamp
 import android.appwidget.AppWidgetManager
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

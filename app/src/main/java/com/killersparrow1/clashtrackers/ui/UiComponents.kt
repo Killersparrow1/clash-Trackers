@@ -14,10 +14,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
 
 @Composable
 internal fun SectionCard(title: String, modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
@@ -33,7 +29,4 @@ internal fun SectionCard(title: String, modifier: Modifier = Modifier, content: 
     }
 }
 
-fun formatTimestamp(epochSec: Long): String =
-    DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)
-        .format(Instant.ofEpochSecond(epochSec).atZone(ZoneId.systemDefault()))
 

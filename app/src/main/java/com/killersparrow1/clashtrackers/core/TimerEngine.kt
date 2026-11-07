@@ -219,10 +219,22 @@ class TimerEngine(val settings: BoostSettings = BoostSettings()) {
         job: Job,
         export: VillageExport,
         links: HelperLinks,
+        boosts: List<BoostUse>,
+        modifiers: List<BoostModifier>,
+        events: List<EventModifier>,
+        t: Long,
+    ): Long =
+        remainingAt(export.timestamp, job.remainingAtT0, boostsFor(job, export, links, boosts, modifiers, events), t)
+
+    // Named-argument overload for BoostAndEventEngineTest (modifiers/events first, boosts optional)
+    fun remainingAt(
+        job: Job,
+        export: VillageExport,
+        links: HelperLinks,
+        t: Long,
         modifiers: List<BoostModifier> = emptyList(),
         events: List<EventModifier> = emptyList(),
         boosts: List<BoostUse> = emptyList(),
-        t: Long,
     ): Long =
         remainingAt(export.timestamp, job.remainingAtT0, boostsFor(job, export, links, boosts, modifiers, events), t)
 

@@ -1,6 +1,6 @@
 package com.killersparrow1.clashtrackers.core
 
-import com.killersparrow1.clashtrackers.ui.formatTimestamp
+import com.killersparrow1.clashtrackers.core.formatTimestamp
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
