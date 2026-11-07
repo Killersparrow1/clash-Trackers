@@ -60,11 +60,13 @@ Redesigned with **Material 3 Expressive**, authentic Clash typography, an advanc
 - **Per-Second Countdowns**: Live ticking chronometers directly on your home screen.
 - **Helper Integration**: Tap `+` to assign the Builder's Apprentice or Lab Assistant and see realistic predicted finish times.
 - **Exact Alarms**: Accurate re-renders at completion edges with no background battery drain.
-- **Per-Widget Account Binding**: Place multiple home-screen widgets and assign each instance to a different account.
+- **Per-Widget Account Binding**: Place the widget as many times as you like. Each time, a picker asks which account that widget should show, so you can keep one widget per account side by side. You can change a widget's account later by reconfiguring it.
 
 ### 👥 Multiple Accounts
-- **Account Switcher**: Seamlessly switch between multiple Clash of Clans player tags within the app.
-- **Rename & Delete**: Easily manage accounts with inline renaming and confirmation-backed deletion.
+- **Saved by Player Tag**: Every Clash of Clans export contains a player tag. Sync an export from another account and the app saves it as its own account; syncing the same account again updates only that account.
+- **Account Switcher**: Switch between your accounts from the Timers screen. Timers, boosts, and events follow the account you pick.
+- **Rename & Delete**: Give each account a name and remove accounts you no longer need (deleting asks for confirmation).
+- **Per-Widget Accounts**: Different widgets can show different accounts at the same time, each with its own live countdowns.
 
 ### 🔒 100% Offline Privacy
 - **Zero Internet Permission**: The app does not request `android.permission.INTERNET`. It cannot send or receive data over the network.
@@ -79,14 +81,15 @@ Redesigned with **Material 3 Expressive**, authentic Clash typography, an advanc
 2. **Open Clash of Clans**: Go to **Settings → Data Export → Copy**.
 3. **Open Clash Trackers**: Tap **Sync from clipboard**.
 4. **Add the Widget**: Long-press your home screen, choose **Widgets → Clash Trackers**, and place it.
-5. **(Optional) Notifications**: Enable finish alerts in **Settings → Notifications** to receive reminders when a builder or lab is free.
+5. **(Optional) Add more accounts**: Switch to your other account in Clash of Clans, copy its export the same way, and tap **Sync from clipboard** again. Each player tag becomes its own account. When you place a widget, choose which account it should show.
+6. **(Optional) Notifications**: Enable finish alerts in **Settings → Notifications** to receive reminders when a builder or lab is free.
 
 ---
 
 ## Architecture & Project Structure
 
 ```
-clash-timers/
+clash-trackers/
 ├── app/
 │   ├── src/main/java/com/killersparrow1/clashtrackers/
 │   │   ├── core/           # Pure Kotlin domain models, parser, & simulation engines
@@ -105,7 +108,7 @@ clash-timers/
 │   │   │   ├── SettingsSection.kt   # Grouped settings & dialog editors
 │   │   │   ├── SupportScreen.kt     # Diagnostics, crash reports, & widget preview
 │   │   │   └── theme/               # MaterialExpressiveTheme & Lilita One Typography
-│   │   └── widget/         # Android RemoteViews widget provider & renderers
+│   │   └── widget/         # Android RemoteViews widget provider, renderers, & WidgetConfigActivity (account picker)
 │   └── src/test/java/com/killersparrow1/clashtrackers/  # Comprehensive unit test suite (30+ test cases)
 └── tools/                  # Asset & icon generators from clash-of-clans-data
 ```
@@ -128,8 +131,8 @@ Requirements:
 
 ```sh
 # Clone your fork
-git clone https://github.com/Killersparrow1/clash-timers.git
-cd clash-timers
+git clone https://github.com/Killersparrow1/clash-trackers.git
+cd clash-trackers
 
 # Run the unit test suite
 ./gradlew :app:testDebugUnitTest
