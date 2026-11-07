@@ -12,7 +12,7 @@ on:
         type: boolean
         default: false
   push:
-    branches: [builder-base]
+    branches: [main, builder-base]
 
 permissions:
   contents: write
