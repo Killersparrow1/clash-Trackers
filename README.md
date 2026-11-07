@@ -1,15 +1,34 @@
-# Clash Trackers
+<p align="center">
+  <img src="docs/screenshots/clash%20trackers%20icon.png" alt="Clash Trackers app icon" width="140">
+</p>
+
+<h1 align="center">Clash Trackers</h1>
+
+<div align="center">
 
 ![Android 8.0+](https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white)
 ![Material 3 Expressive](https://img.shields.io/badge/Material_3-Expressive-6750A4?logo=googlematerial&logoColor=white)
 ![Fully Offline](https://img.shields.io/badge/Privacy-100%25%20Offline-00C853)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
+</div>
+
 A modern, offline Android application and home-screen widget for **Clash of Clans** that tracks your Home Village and Builder Base upgrade countdowns, potions, and special events in real time.
 
 Redesigned with **Material 3 Expressive**, authentic Clash typography, an advanced boost calculation engine, and full Builder Base support.
 
 > **Unofficial Fan Project**: This application is not affiliated with, endorsed, sponsored, or approved by Supercell. See the [Disclaimer](#disclaimer).
+
+---
+
+## Screenshots
+
+<p align="center">
+  <img src="docs/screenshots/potion-active.png" alt="Timers screen in the app, with building and hero icons on every card" width="270">
+  &nbsp;&nbsp;
+  <img src="docs/screenshots/hero.png" alt="Home-screen widget with live countdowns, potions and Builder Base timers" width="340">
+</p>
+<p align="center"><em>Left: the Timers screen. Right: the home-screen widget.</em></p>
 
 ---
 
@@ -143,6 +162,3 @@ This project is licensed under the [MIT License](LICENSE). Game assets, names, a
 ## Disclaimer
 
 This material is unofficial and is not endorsed by Supercell. For more information see Supercell's Fan Content Policy: [www.supercell.com/fan-content-policy](https://www.supercell.com/fan-content-policy).
-# clash-timer-testing
-# clash-timer-testing
-# clash-timer-testing
