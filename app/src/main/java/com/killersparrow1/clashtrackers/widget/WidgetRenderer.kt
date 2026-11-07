@@ -39,6 +39,13 @@ class WidgetRenderer(private val context: Context) {
     private val icons = WidgetIcons.get(context)
     private val density = context.resources.displayMetrics.density
 
+    // Read from resources so Android 12+ can swap in Material You (wallpaper) colours; see values-v31/widget_colors.xml.
+    private val COLOR_WHITE = context.getColor(R.color.w_white)
+    private val COLOR_GOLD = context.getColor(R.color.w_gold)
+    private val COLOR_GOBLIN = context.getColor(R.color.w_goblin)
+    private val COLOR_IDLE = context.getColor(R.color.w_idle)
+    private val COLOR_SYNC_TEXT = context.getColor(R.color.w_sync_text)
+
     fun render(model: WidgetModel, liveCountdown: Boolean, options: Bundle?): RemoteViews {
         val rv = RemoteViews(pkg, R.layout.widget_root)
         val sync = syncIntent()
@@ -249,12 +256,7 @@ class WidgetRenderer(private val context: Context) {
     companion object {
         const val MAX_BUILDER_ROWS = 8
 
-        private const val COLOR_WHITE = 0xFFFFFFFF.toInt()
-        private const val COLOR_GOLD = 0xFFFFD24A.toInt()
-        private const val COLOR_GOBLIN = 0xFF6FD36A.toInt()
-        private const val COLOR_IDLE = 0xFFFFB35C.toInt()
         private const val COLOR_ERROR = 0xFFFF7A7A.toInt()
-        private const val COLOR_SYNC_TEXT = 0xFF5A3500.toInt()
 
         /** Estimated panel height in dp with 30 dp rows (see widget_root.xml / widget_row.xml). */
         fun normalHeightDp(rows: Int): Int = 165 + 33 * rows

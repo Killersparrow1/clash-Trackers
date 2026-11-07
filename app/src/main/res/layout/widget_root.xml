@@ -30,6 +30,7 @@
             <TextView
                 android:id="@+id/who"
                 style="@style/WidgetText"
+                android:fontFamily="@font/lilita_one"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -60,6 +61,7 @@
 
                 <TextView
                     style="@style/WidgetText"
+                    android:fontFamily="@font/lilita_one"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:shadowRadius="0"
@@ -94,6 +96,7 @@
                 <TextView
                     android:id="@+id/builders_label"
                     style="@style/WidgetText.Section"
+                    android:fontFamily="@font/lilita_one"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
@@ -127,6 +130,7 @@
                         <TextView
                             android:id="@+id/pill_bite_text"
                             style="@style/WidgetText.Pill"
+                            android:fontFamily="@font/lilita_one"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Bite" />
@@ -186,6 +190,7 @@
                         <TextView
                             android:id="@+id/pill_bpot_text"
                             style="@style/WidgetText.Pill"
+                            android:fontFamily="@font/lilita_one"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="+1" />
@@ -238,6 +243,7 @@
 
                 <TextView
                     style="@style/WidgetText.Section"
+                    android:fontFamily="@font/lilita_one"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
@@ -271,6 +277,7 @@
                         <TextView
                             android:id="@+id/pill_rpot_text"
                             style="@style/WidgetText.Pill"
+                            android:fontFamily="@font/lilita_one"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="+1" />
@@ -323,6 +330,7 @@
 
                 <TextView
                     style="@style/WidgetText.Section"
+                    android:fontFamily="@font/lilita_one"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
@@ -356,6 +364,7 @@
                         <TextView
                             android:id="@+id/pill_ppot_text"
                             style="@style/WidgetText.Pill"
+                            android:fontFamily="@font/lilita_one"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="+1" />
@@ -403,6 +412,7 @@
 
                 <TextView
                     style="@style/WidgetText.Section"
+                    android:fontFamily="@font/lilita_one"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="4dp"
@@ -435,6 +445,7 @@
                 <TextView
                     android:id="@+id/foot_left"
                     style="@style/WidgetText.Footer"
+                    android:fontFamily="@font/lilita_one"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
@@ -443,6 +454,7 @@
                 <TextView
                     android:id="@+id/foot_right"
                     style="@style/WidgetText.Footer"
+                    android:fontFamily="@font/lilita_one"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp" />
@@ -462,6 +474,7 @@
             <TextView
                 android:id="@+id/empty_text"
                 style="@style/WidgetText"
+                android:fontFamily="@font/lilita_one"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:gravity="center"
@@ -471,6 +484,7 @@
 
             <TextView
                 style="@style/WidgetText.Footer"
+                android:fontFamily="@font/lilita_one"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
