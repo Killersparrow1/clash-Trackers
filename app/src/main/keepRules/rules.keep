@@ -1,7 +1,7 @@
-# Clash Timers: R8 rules for the release build. AGP 9 passes every file in src/main/keepRules to R8.
+# Clash Trackers: R8 rules for the release build. AGP 9 passes every file in src/main/keepRules to R8.
 #
 # How the release is optimised (app/build.gradle.kts, optimization.packageScope): R8 shrinks and
-# renames only androidx.**, kotlin.** and kotlinx.**. The app's own classes (com.kuswa.clashtimer.**)
+# renames only androidx.**, kotlin.** and kotlinx.**. The app's own classes (com.killersparrow1.clashtrackers.**)
 # are compiled as written and never renamed. The rules below still name everything the app needs,
 # so nothing breaks if that scope is ever widened.
 #
@@ -19,27 +19,27 @@
 
 # ---- Entry points named in AndroidManifest.xml ---------------------------------------------------
 # AGP generates keep rules for manifest classes too; listed here so they are explicit.
--keep class com.kuswa.clashtimer.ClashApp { <init>(); }
--keep class com.kuswa.clashtimer.MainActivity { <init>(); }
--keep class com.kuswa.clashtimer.sync.SyncActivity { <init>(); }
--keep class com.kuswa.clashtimer.crash.CrashActivity { <init>(); }
+-keep class com.killersparrow1.clashtrackers.ClashApp { <init>(); }
+-keep class com.killersparrow1.clashtrackers.MainActivity { <init>(); }
+-keep class com.killersparrow1.clashtrackers.sync.SyncActivity { <init>(); }
+-keep class com.killersparrow1.clashtrackers.crash.CrashActivity { <init>(); }
 # The widget provider and the app's single broadcast receiver (taps, alarms, boot).
--keep class com.kuswa.clashtimer.widget.ClashWidgetReceiver { <init>(); }
+-keep class com.killersparrow1.clashtrackers.widget.ClashWidgetReceiver { <init>(); }
 
 # ---- kotlinx.serialization: the app's @Serializable classes ------------------------------------
 # AppState, AppSettings, BoostSettings, BoostType, BoostUse, HelperLinks, SyncLog, SyncLogEntry are stored as JSON
 # in DataStore. The app calls serializer() directly (no reflective lookup), and the bundled rules
 # already cover that; these are the app-package rules from the kotlinx.serialization README, so a
 # reflective serializer<T>() call added later keeps working too.
--keepclassmembers @kotlinx.serialization.Serializable class com.kuswa.clashtimer.** {
+-keepclassmembers @kotlinx.serialization.Serializable class com.killersparrow1.clashtrackers.** {
     *** Companion;
     *** INSTANCE;
     kotlinx.serialization.KSerializer serializer(...);
 }
--if @kotlinx.serialization.Serializable class com.kuswa.clashtimer.**
+-if @kotlinx.serialization.Serializable class com.killersparrow1.clashtrackers.**
 -keep,includedescriptorclasses class <1>$$serializer { *; }
 # BoostType (a @Serializable enum) is written by name.
--keepclassmembers enum com.kuswa.clashtimer.** {
+-keepclassmembers enum com.killersparrow1.clashtrackers.** {
     <fields>;
     public static **[] values();
     public static ** valueOf(java.lang.String);

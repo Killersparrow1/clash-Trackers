@@ -41,7 +41,7 @@
 
         <!-- R8 on/off for this build (app/build.gradle.kts), shown in crash reports. -->
         <meta-data
-            android:name="com.kuswa.clashtimer.R8"
+            android:name="com.killersparrow1.clashtrackers.R8"
             android:value="${r8}" />
 
         <!-- Crash screen (crash/CrashReporter.kt): own process, so it opens even when the main
@@ -50,9 +50,9 @@
             android:name=".crash.CrashActivity"
             android:exported="false"
             android:excludeFromRecents="true"
-            android:label="Clash Timers crash"
+            android:label="Clash Trackers crash"
             android:process=":crash"
-            android:taskAffinity="com.kuswa.clashtimer.crash"
+            android:taskAffinity="com.killersparrow1.clashtrackers.crash"
             android:theme="@style/Theme.ClashTimer" />
 
         <!-- Launched by the widget's Sync button: reads the clipboard once focused, then finishes. -->

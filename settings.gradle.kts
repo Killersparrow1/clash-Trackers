@@ -22,5 +22,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Clash Timer"
+rootProject.name = "Clash Trackers"
 include(":app")

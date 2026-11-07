@@ -19,13 +19,13 @@ val signingProps: Properties? = signingPropsFile.takeIf { it.isFile }?.let { f -
 }
 
 android {
-    namespace = "com.kuswa.clashtimer"
+    namespace = "com.killersparrow1.clashtrackers"
     compileSdk {
         version = release(37)
     }
 
     defaultConfig {
-        applicationId = "com.kuswa.clashtimer"
+        applicationId = "com.killersparrow1.clashtrackers"
         minSdk = 26
         targetSdk = 37
         // Bump both for every release; a lower versionCode can't install over a higher one.
@@ -79,6 +79,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.datastore.preferences)
     testImplementation(libs.junit)
