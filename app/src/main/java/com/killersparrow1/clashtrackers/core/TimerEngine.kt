@@ -196,42 +196,42 @@ class TimerEngine(val settings: BoostSettings = BoostSettings()) {
         )
     }
 
-    fun finishTime(job: Job, export: VillageExport, links: HelperLinks, boosts: List<BoostUse>): Long =
-        finishTime(export.timestamp, job.remainingAtT0, boostsFor(job, export, links, boosts))
-
     fun finishTime(
         job: Job,
         export: VillageExport,
         links: HelperLinks,
-        boosts: List<BoostUse>,
-        modifiers: List<BoostModifier>,
-        events: List<EventModifier>,
+        boosts: List<BoostUse> = emptyList(),
+        modifiers: List<BoostModifier> = emptyList(),
+        events: List<EventModifier> = emptyList(),
     ): Long =
         finishTime(export.timestamp, job.remainingAtT0, boostsFor(job, export, links, boosts, modifiers, events))
-
-    fun remainingAt(job: Job, export: VillageExport, links: HelperLinks, boosts: List<BoostUse>, t: Long): Long =
-        remainingAt(export.timestamp, job.remainingAtT0, boostsFor(job, export, links, boosts), t)
 
     fun remainingAt(
         job: Job,
         export: VillageExport,
         links: HelperLinks,
         boosts: List<BoostUse>,
-        modifiers: List<BoostModifier>,
-        events: List<EventModifier>,
+        t: Long,
+    ): Long =
+        remainingAt(export.timestamp, job.remainingAtT0, boostsFor(job, export, links, boosts), t)
+
+    fun remainingAt(
+        job: Job,
+        export: VillageExport,
+        links: HelperLinks,
+        modifiers: List<BoostModifier> = emptyList(),
+        events: List<EventModifier> = emptyList(),
+        boosts: List<BoostUse> = emptyList(),
         t: Long,
     ): Long =
         remainingAt(export.timestamp, job.remainingAtT0, boostsFor(job, export, links, boosts, modifiers, events), t)
 
-    fun computeAll(export: VillageExport, links: HelperLinks, boosts: List<BoostUse>): List<JobTiming> =
-        export.jobs.map { JobTiming(it, finishTime(it, export, links, boosts)) }
-
     fun computeAll(
         export: VillageExport,
         links: HelperLinks,
-        boosts: List<BoostUse>,
-        modifiers: List<BoostModifier>,
-        events: List<EventModifier>,
+        boosts: List<BoostUse> = emptyList(),
+        modifiers: List<BoostModifier> = emptyList(),
+        events: List<EventModifier> = emptyList(),
     ): List<JobTiming> =
         export.jobs.map { JobTiming(it, finishTime(it, export, links, boosts, modifiers, events)) }
 

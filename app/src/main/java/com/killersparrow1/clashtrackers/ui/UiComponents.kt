@@ -33,7 +33,7 @@ internal fun SectionCard(title: String, modifier: Modifier = Modifier, content: 
     }
 }
 
-internal fun formatTimestamp(epochSec: Long): String =
+fun formatTimestamp(epochSec: Long): String =
     DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT)
         .format(Instant.ofEpochSecond(epochSec).atZone(ZoneId.systemDefault()))
 
