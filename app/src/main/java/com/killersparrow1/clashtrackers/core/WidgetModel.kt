@@ -1,7 +1,5 @@
 package com.killersparrow1.clashtrackers.core
 
-import kotlin.math.ceil
-
 /**
  * When a job counts as finished. The widget rows, the notifications and the alarms all use this.
  *
@@ -51,16 +49,28 @@ data class WidgetModel(
     /** Star Laboratory row; null when no Star Lab upgrade is running (free builders/labs get no rows). */
     val starLabRow: WidgetRow? = null,
     val accountTag: String = "",
+    val widgetTheme: String = "material_you",
     /** Lab jobs after [labRow]: the Goblin researcher works in parallel, so two lab jobs can run at once. */
     val extraLabRows: List<WidgetRow> = emptyList(),
+    /** Localized labels/units used while building; keep for the renderer and the Support preview. */
+    val text: WidgetText = WidgetText.EN,
 ) {
     /** Show the Builder Base section only when there is something running or just finished there. */
     val showBuilderBase: Boolean get() = bbRows.isNotEmpty() || starLabRow != null
-    val buildersLabel: String get() = "BUILDERS $buildersBusy/$buildersTotal"
-    val title: String get() = townHall?.let { "$playerName TH$it" } ?: playerName
+    val buildersLabel: String get() = "${text.builders} $buildersBusy/$buildersTotal"
+    val title: String get() = townHall?.let { "$playerName ${text.formatTownHall(it)}" } ?: playerName
     /** Every lab row, soonest finish first (just [labRow] unless the Goblin researcher is also working). */
     val labRows: List<WidgetRow> get() = listOf(labRow) + extraLabRows
     val allRows: List<WidgetRow> get() = builderRows + labRows + petRow + bbRows + listOfNotNull(starLabRow)
+
+    /** Picks the top [maxRows] soonest finishing running timers across builders, lab, and pets. */
+    fun topTimers(maxRows: Int = 3): Pair<List<WidgetRow>, Int> {
+        val running = (builderRows + labRows + listOf(petRow))
+            .filter { it.kind == RowKind.RUNNING && it.finishAt != null }
+            .sortedBy { it.finishAt }
+        val selected = running.take(maxRows)
+        return selected to maxOf(0, running.size - selected.size)
+    }
 }
 
 /** A potion/snack button on a section line: `Bite` / `+1` when idle, minutes left when running. */
@@ -69,11 +79,12 @@ data class BoostPill(
     val secondsLeft: Long?,
     /** A boost of this type is running or queued, so the small `−` (undo) is shown. */
     val canUndo: Boolean = secondsLeft != null,
+    val localized: WidgetText = WidgetText.EN,
 ) {
     val active: Boolean get() = secondsLeft != null
     val text: String
-        get() = secondsLeft?.let(WidgetModelBuilder::formatPill)
-            ?: if (type == BoostType.BUILDER_BITE) "Bite" else "+1"
+        get() = secondsLeft?.let(localized::formatPill)
+            ?: if (type == BoostType.BUILDER_BITE) localized.bite else localized.plusOne
 }
 
 enum class FooterTone { NORMAL, IDLE, ERROR }
@@ -115,6 +126,7 @@ data class WidgetRow(
     val jobKey: String? = null,
     /** Level being upgraded to, so the widget can pick that level's art (`<id>_<level>.webp`); null = one icon for all levels. */
     val iconLevel: Int? = null,
+    val text: WidgetText = WidgetText.EN,
 ) {
     /** `Inferno Tower → 12`, `Super Wizard Tower (new)`. */
     val label: String
@@ -127,9 +139,9 @@ data class WidgetRow(
     /** Text when the per-second countdown is off (or for previews): `1d 20h`, `Completed`, `Idle`. */
     val staticStatus: String
         get() = when (kind) {
-            RowKind.RUNNING -> WidgetModelBuilder.formatRemaining(remaining)
-            RowKind.COMPLETED -> WidgetModelBuilder.COMPLETED
-            RowKind.IDLE -> WidgetModelBuilder.IDLE
+            RowKind.RUNNING -> text.formatRemaining(remaining)
+            RowKind.COMPLETED -> text.completed
+            RowKind.IDLE -> text.idle
         }
 }
 
@@ -146,10 +158,12 @@ object WidgetModelBuilder {
         times: UpgradeTimes,
         now: Long,
         accountTag: String = "",
+        widgetTheme: String = "material_you",
+        text: WidgetText = WidgetText.EN,
     ): WidgetModel {
         val export = state.export
         val pills = { type: BoostType ->
-            BoostPill(type, boostLeft(state.boosts, type, now), state.boosts.any { it.type == type && it.end > now })
+            BoostPill(type, boostLeft(state.boosts, type, now), state.boosts.any { it.type == type && it.end > now }, text)
         }
         if (export == null) {
             return WidgetModel(
@@ -158,10 +172,12 @@ object WidgetModelBuilder {
                 bite = pills(BoostType.BUILDER_BITE), builderPotion = pills(BoostType.BUILDER_POTION),
                 researchPotion = pills(BoostType.RESEARCH_POTION), petPotion = pills(BoostType.PET_POTION),
                 builderRows = emptyList(),
-                labRow = idleRow("Laboratory", LABORATORY), petRow = idleRow("Pet House", PET_HOUSE),
-                footerLeft = if (state.syncFailed) listOf(FooterPart(SYNC_FAILED, FooterTone.ERROR)) else emptyList(),
+                labRow = idleRow(text.laboratory, LABORATORY, text), petRow = idleRow(text.petHouse, PET_HOUSE, text),
+                footerLeft = if (state.syncFailed) listOf(FooterPart(text.syncFailed, FooterTone.ERROR)) else emptyList(),
                 footerRight = "", syncFailed = state.syncFailed, nextChangeAt = null,
                 accountTag = accountTag,
+                widgetTheme = widgetTheme,
+                text = text,
             )
         }
 
@@ -189,7 +205,7 @@ object WidgetModelBuilder {
             return WidgetRow(
                 kind = if (done) RowKind.COMPLETED else RowKind.RUNNING,
                 name = title,
-                levelText = if (job.isNewBuilding) "(new)" else job.targetLevel.toString(),
+                levelText = if (job.isNewBuilding) text.newSuffix else job.targetLevel.toString(),
                 showArrow = !job.isNewBuilding,
                 iconIds = listOfNotNull(job.dataId, job.typeDataId, job.parentDataId).distinct(),
                 initials = initials(title),
@@ -200,6 +216,7 @@ object WidgetModelBuilder {
                 goblin = job.isGoblin,
                 jobKey = job.key,
                 iconLevel = if (job.source == JobSource.MODULE) null else job.targetLevel,
+                text = text,
             )
         }
 
@@ -210,19 +227,20 @@ object WidgetModelBuilder {
         val builderRows = sorted(export.builderJobs).filter { !it.isGoblin || running(it) }.map(::row)
         // Two lab jobs can run at once (regular research + the Goblin researcher): show all of them.
         val labRowsSorted = sorted(export.labJobs).map(::row)
-        val labRow = labRowsSorted.firstOrNull() ?: idleRow("Laboratory", LABORATORY)
-        val petRow = sorted(export.petJobs).firstOrNull()?.let(::row) ?: idleRow("Pet House", PET_HOUSE)
+        val labRow = labRowsSorted.firstOrNull() ?: idleRow(text.laboratory, LABORATORY, text)
+        val petRow = sorted(export.petJobs).firstOrNull()?.let(::row) ?: idleRow(text.petHouse, PET_HOUSE, text)
 
         // Builder Base: plain countdowns (no helpers or potions there). Free builders get no rows.
         val bbRows = sorted(export.bbBuilderJobs).map(::row)
         val starLabRow = sorted(export.starLabJobs).firstOrNull()?.let(::row)
 
         val footerLeft = if (state.syncFailed) {
-            listOf(FooterPart(SYNC_FAILED, FooterTone.ERROR))
+            listOf(FooterPart(text.syncFailed, FooterTone.ERROR))
         } else {
             helperStatus(
                 apprentice = runningJob(state.links.apprenticeJobKey, export, ::running)?.let { shortName(it, names) },
                 assistant = runningJob(state.links.labAssistantJobKey, export, ::running)?.let { shortName(it, names) },
+                text = text,
             )
         }
 
@@ -253,22 +271,25 @@ object WidgetModelBuilder {
             labRow = labRow,
             petRow = petRow,
             footerLeft = footerLeft,
-            footerRight = "synced ${formatAgo(now - export.timestamp)}",
+            footerRight = "${text.synced} ${text.formatAgo(now - export.timestamp)}",
             syncFailed = state.syncFailed,
             nextChangeAt = edges.filter { it > now }.minOrNull(),
             bbRows = bbRows,
             starLabRow = starLabRow,
             accountTag = accountTag,
+            widgetTheme = widgetTheme,
             extraLabRows = labRowsSorted.drop(1),
+            text = text,
         )
     }
 
     const val LABORATORY = 1000007
     const val PET_HOUSE = 1000068
 
-    private fun idleRow(name: String, iconId: Int) = WidgetRow(
+    private fun idleRow(name: String, iconId: Int, text: WidgetText = WidgetText.EN) = WidgetRow(
         kind = RowKind.IDLE, name = name, levelText = null, showArrow = false, iconIds = listOf(iconId),
         initials = initials(name), finishAt = null, remaining = 0, progress = 1f, button = RowButton.NONE,
+        text = text,
     )
 
     private fun runningJob(key: String?, export: VillageExport, running: (Job) -> Boolean): Job? =
@@ -284,14 +305,18 @@ object WidgetModelBuilder {
      * `Apprentice idle · Assistant idle`, `Apprentice idle · Assistant: Baby Dragon`,
      * `Helpers: King · Baby Dragon`. Idle parts are drawn in orange.
      */
-    fun helperStatus(apprentice: String?, assistant: String?): List<FooterPart> =
+    fun helperStatus(
+        apprentice: String?,
+        assistant: String?,
+        text: WidgetText = WidgetText.EN,
+    ): List<FooterPart> =
         if (apprentice != null && assistant != null) {
-            listOf(FooterPart("Helpers: $apprentice · $assistant"))
+            listOf(FooterPart(text.formatHelpers(apprentice, assistant)))
         } else {
             listOf(
-                apprentice?.let { FooterPart("Apprentice: $it") } ?: FooterPart("Apprentice idle", FooterTone.IDLE),
+                apprentice?.let { FooterPart(text.formatApprentice(it)) } ?: FooterPart(text.apprenticeIdle, FooterTone.IDLE),
                 FooterPart(" · "),
-                assistant?.let { FooterPart("Assistant: $it") } ?: FooterPart("Assistant idle", FooterTone.IDLE),
+                assistant?.let { FooterPart(text.formatAssistant(it)) } ?: FooterPart(text.assistantIdle, FooterTone.IDLE),
             )
         }
 
@@ -313,16 +338,7 @@ object WidgetModelBuilder {
     }
 
     /** Pill text: `42m`, `1h 50m`, `2h`. Minutes are rounded up so a running boost never shows `0m`. */
-    fun formatPill(seconds: Long): String {
-        val minutes = ceil(seconds / 60.0).toLong().coerceAtLeast(1)
-        val h = minutes / 60
-        val m = minutes % 60
-        return when {
-            h == 0L -> "${m}m"
-            m == 0L -> "${h}h"
-            else -> "${h}h ${m}m"
-        }
-    }
+    fun formatPill(seconds: Long): String = WidgetText.EN.formatPill(seconds)
 
     /** Seconds until [formatPill] of a boost with [left] seconds changes. */
     private fun pillEdgeIn(left: Long): Long = left - 60 * ((left - 1) / 60)
@@ -339,28 +355,10 @@ object WidgetModelBuilder {
     }
 
     /** `1d 20h`, `5h 12m`, `12m`. Minutes are rounded up so a running job never shows `0m`. */
-    fun formatRemaining(seconds: Long): String {
-        val minutes = (seconds + 59) / 60
-        val d = minutes / (24 * 60)
-        val h = (minutes / 60) % 24
-        val m = minutes % 60
-        return when {
-            d > 0 -> "${d}d ${h}h"
-            h > 0 -> "${h}h ${m}m"
-            else -> "${m}m"
-        }
-    }
+    fun formatRemaining(seconds: Long): String = WidgetText.EN.formatRemaining(seconds)
 
     /** `just now`, `12m ago`, `4h ago`, `3d ago`. */
-    fun formatAgo(seconds: Long): String {
-        val s = seconds.coerceAtLeast(0)
-        return when {
-            s < 60 -> "just now"
-            s < 3600 -> "${s / 60}m ago"
-            s < 2 * 86400 -> "${s / 3600}h ago"
-            else -> "${s / 86400}d ago"
-        }
-    }
+    fun formatAgo(seconds: Long): String = WidgetText.EN.formatAgo(seconds)
 }
 
 /** When the widget must be re-rendered next. */

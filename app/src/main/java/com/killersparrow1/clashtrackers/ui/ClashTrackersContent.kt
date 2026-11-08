@@ -2,10 +2,14 @@
 
 package com.killersparrow1.clashtrackers.ui
 
+import androidx.annotation.StringRes
+import androidx.compose.ui.res.stringResource
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
@@ -13,6 +17,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationRail
+import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ShortNavigationBar
 import androidx.compose.material3.ShortNavigationBarArrangement
@@ -39,10 +45,10 @@ import com.killersparrow1.clashtrackers.core.AppState
 import com.killersparrow1.clashtrackers.core.SyncLog
 import com.killersparrow1.clashtrackers.core.WidgetModel
 
-private enum class Destination(val label: String, val icon: Int) {
-    TIMERS("Timers", R.drawable.ic_timers),
-    SETTINGS("Settings", R.drawable.ic_settings),
-    SUPPORT("Support", R.drawable.ic_support),
+private enum class Destination(@StringRes val labelRes: Int, val icon: Int) {
+    TIMERS(R.string.nav_timers, R.drawable.ic_timers),
+    SETTINGS(R.string.nav_settings, R.drawable.ic_settings),
+    SUPPORT(R.string.nav_support, R.drawable.ic_support),
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -69,61 +75,81 @@ fun ClashTrackersContent(
     val screenState = rememberSaveableStateHolder()
     BackHandler(enabled = destination != Destination.TIMERS) { destination = Destination.TIMERS }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(title = {
-                Text(
-                    if (destination == Destination.TIMERS) "Clash Trackers" else destination.label,
-                    style = MaterialTheme.typography.titleLargeEmphasized,
-                )
-            })
-        },
-        bottomBar = {
-            ShortNavigationBar(arrangement = ShortNavigationBarArrangement.EqualWeight) {
-                Destination.entries.forEach { entry ->
-                    ShortNavigationBarItem(
-                        selected = destination == entry,
-                        onClick = { destination = entry },
-                        icon = { Icon(painterResource(entry.icon), contentDescription = null) },
-                        label = { Text(entry.label) },
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val wide = maxWidth >= 600.dp
+        Scaffold(
+            topBar = {
+                TopAppBar(title = {
+                    Text(
+                        if (destination == Destination.TIMERS) stringResource(R.string.app_name) else stringResource(destination.labelRes),
+                        style = MaterialTheme.typography.titleLargeEmphasized,
                     )
-                }
-            }
-        },
-        snackbarHost = { SnackbarHost(snackbarHost) },
-    ) { padding ->
-        Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.TopCenter) {
-            Box(Modifier.widthIn(max = 760.dp).fillMaxSize()) {
-                screenState.SaveableStateProvider(destination) {
-                    when (destination) {
-                        Destination.TIMERS -> TimerDashboard(
-                            model = model,
-                            lastSync = log.lastResult,
-                            activeBoostState = state.activeBoosts,
-                            eventSettings = state.eventSettings,
-                            accounts = accounts,
-                            selectedTag = selectedTag,
-                            now = now,
-                            busy = busy,
-                            onSync = onSync,
-                            onUpdateBoosts = { transform ->
-                                onStateChange { s -> s.copy(activeBoosts = transform(s.activeBoosts)) }
-                            },
-                            onUpdateEvents = { transform ->
-                                onStateChange { s -> s.copy(eventSettings = transform(s.eventSettings)) }
-                            },
-                            onSelectAccount = onSelectAccount,
-                            onRenameAccount = onRenameAccount,
-                            onDeleteAccount = onDeleteAccount,
-                        )
-                        Destination.SETTINGS -> LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(16.dp),
-                        ) {
-                            item { SettingsSection(settings, state.export, now, onSettingsChange) }
+                })
+            },
+            bottomBar = {
+                if (!wide) {
+                    ShortNavigationBar(arrangement = ShortNavigationBarArrangement.EqualWeight) {
+                        Destination.entries.forEach { entry ->
+                            ShortNavigationBarItem(
+                                selected = destination == entry,
+                                onClick = { destination = entry },
+                                icon = { Icon(painterResource(entry.icon), contentDescription = null) },
+                                label = { Text(stringResource(entry.labelRes)) },
+                            )
                         }
-                        Destination.SUPPORT -> SupportScreen(state, model, log, timesCount, now)
+                    }
+                }
+            },
+            snackbarHost = { SnackbarHost(snackbarHost) },
+        ) { padding ->
+            Row(Modifier.fillMaxSize().padding(padding)) {
+                if (wide) {
+                    NavigationRail {
+                        Destination.entries.forEach { entry ->
+                            NavigationRailItem(
+                                selected = destination == entry,
+                                onClick = { destination = entry },
+                                icon = { Icon(painterResource(entry.icon), contentDescription = null) },
+                                label = { Text(stringResource(entry.labelRes)) },
+                            )
+                        }
+                    }
+                }
+                Box(Modifier.weight(1f).fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+                    Box(Modifier.widthIn(max = 840.dp).fillMaxSize()) {
+                        screenState.SaveableStateProvider(destination) {
+                            when (destination) {
+                                Destination.TIMERS -> TimerDashboard(
+                                    model = model,
+                                    lastSync = log.lastResult,
+                                    activeBoostState = state.activeBoosts,
+                                    eventSettings = state.eventSettings,
+                                    accounts = accounts,
+                                    selectedTag = selectedTag,
+                                    now = now,
+                                    busy = busy,
+                                    onSync = onSync,
+                                    onUpdateBoosts = { transform ->
+                                        onStateChange { s -> s.copy(activeBoosts = transform(s.activeBoosts)) }
+                                    },
+                                    onUpdateEvents = { transform ->
+                                        onStateChange { s -> s.copy(eventSettings = transform(s.eventSettings)) }
+                                    },
+                                    onSelectAccount = onSelectAccount,
+                                    onRenameAccount = onRenameAccount,
+                                    onDeleteAccount = onDeleteAccount,
+                                    wide = wide,
+                                )
+                                Destination.SETTINGS -> LazyColumn(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentPadding = PaddingValues(16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                                ) {
+                                    item { SettingsSection(settings, state.export, now, onSettingsChange) }
+                                }
+                                Destination.SUPPORT -> SupportScreen(state, model, log, timesCount, now)
+                            }
+                        }
                     }
                 }
             }

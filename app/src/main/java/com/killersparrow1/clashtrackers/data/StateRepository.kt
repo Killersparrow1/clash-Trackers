@@ -18,6 +18,7 @@ import com.killersparrow1.clashtrackers.core.SyncLog
 import com.killersparrow1.clashtrackers.core.SyncLogEntry
 import com.killersparrow1.clashtrackers.core.UpgradeTimes
 import com.killersparrow1.clashtrackers.core.normalizeTag
+import com.killersparrow1.clashtrackers.locale.LanguageManager
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
@@ -41,6 +42,7 @@ class StateRepository(context: Context) {
         val global = GlobalSettings(
             notificationsEnabled = oldSettings.notificationsEnabled,
             liveCountdown = oldSettings.liveCountdown,
+            widgetTheme = oldSettings.widgetTheme,
         )
         prefs[GLOBAL_SETTINGS] = global.encode()
 
@@ -118,6 +120,7 @@ class StateRepository(context: Context) {
             notificationsEnabled = global.notificationsEnabled,
             liveCountdown = global.liveCountdown,
             playerName = acctSettings.playerName,
+            widgetTheme = global.widgetTheme,
         )
     }.distinctUntilChanged()
 
@@ -145,6 +148,7 @@ class StateRepository(context: Context) {
             notificationsEnabled = global.notificationsEnabled,
             liveCountdown = global.liveCountdown,
             playerName = acct.playerName,
+            widgetTheme = global.widgetTheme,
         )
     }
 
@@ -280,6 +284,25 @@ class StateRepository(context: Context) {
         return map.mapKeys { it.key.toIntOrNull() ?: 0 }.filterKeys { it != 0 }
     }
 
+    suspend fun getWidgetTheme(appWidgetId: Int): String {
+        store.edit { ensureMigrated(it) }
+        val prefs = store.data.first()
+        val global = GlobalSettings.decode(prefs[GLOBAL_SETTINGS])
+        val mapJson = prefs[WIDGET_THEME] ?: return global.widgetTheme
+        val map = runCatching { AppState.JSON.decodeFromString<Map<String, String>>(mapJson) }.getOrNull() ?: emptyMap()
+        return map[appWidgetId.toString()] ?: global.widgetTheme
+    }
+
+    suspend fun setWidgetTheme(appWidgetId: Int, theme: String) {
+        store.edit { prefs ->
+            ensureMigrated(prefs)
+            val mapJson = prefs[WIDGET_THEME]
+            val map = (mapJson?.let { runCatching { AppState.JSON.decodeFromString<Map<String, String>>(it) }.getOrNull() } ?: emptyMap()).toMutableMap()
+            map[appWidgetId.toString()] = theme
+            prefs[WIDGET_THEME] = AppState.JSON.encodeToString(map)
+        }
+    }
+
     /** Atomically read-modify-write the app state of the selected account (or create/save if new account). */
     suspend fun <R> updateState(transform: (AppState) -> Pair<AppState, R>): R {
         var result: R? = null
@@ -323,12 +346,14 @@ class StateRepository(context: Context) {
                 notificationsEnabled = global.notificationsEnabled,
                 liveCountdown = global.liveCountdown,
                 playerName = acct.playerName,
+                widgetTheme = global.widgetTheme,
             )
             val next = transform(currentAppSet)
 
             prefs[GLOBAL_SETTINGS] = GlobalSettings(
                 notificationsEnabled = next.notificationsEnabled,
                 liveCountdown = next.liveCountdown,
+                widgetTheme = next.widgetTheme,
             ).encode()
 
             val updatedAcct = AccountSettings(
@@ -360,6 +385,7 @@ class StateRepository(context: Context) {
         val ACCOUNTS_INDEX = stringPreferencesKey("accounts_index_json")
         val GLOBAL_SETTINGS = stringPreferencesKey("global_settings_json")
         val WIDGET_MAPPING = stringPreferencesKey("widget_mapping_json")
+        val WIDGET_THEME = stringPreferencesKey("widget_theme_json")
         val SYNC_LOG = stringPreferencesKey("sync_log_json")
 
         fun stateKey(tag: String) = stringPreferencesKey("state_json_$tag")
@@ -367,14 +393,28 @@ class StateRepository(context: Context) {
     }
 }
 
-/** Bundled `assets/names.json`, loaded once per process. */
+/** Bundled name files per language (`assets/`); anything missing falls back to `names.json` (English). */
 object Names {
-    @Volatile private var cached: NameMap? = null
+    /** Language code → file name. To add a language: create `names_xx.json` and add one line here. */
+    private val LOCALIZED_FILES = mapOf("ru" to "names_ru.json")
+    private val cached = mutableMapOf<String, NameMap>()
 
-    fun get(context: Context): NameMap = cached ?: synchronized(this) {
-        cached ?: context.applicationContext.assets.open("names.json").bufferedReader().use {
-            NameMap.fromJson(it.readText())
-        }.also { cached = it }
+    fun get(context: Context): NameMap {
+        val lang = LanguageManager.language(context)
+        return synchronized(this) { cached.getOrPut(lang) { load(context, lang) } }
+    }
+
+    private fun load(context: Context, lang: String): NameMap {
+        val text = WidgetTexts.get(context)
+        val app = context.applicationContext
+        LOCALIZED_FILES[lang]?.let { file ->
+            runCatching {
+                app.assets.open(file).bufferedReader().use { NameMap.fromJson(it.readText(), text) }
+            }.getOrNull()?.let { return it }
+        }
+        return app.assets.open("names.json").bufferedReader().use {
+            NameMap.fromJson(it.readText(), text)
+        }
     }
 }
 

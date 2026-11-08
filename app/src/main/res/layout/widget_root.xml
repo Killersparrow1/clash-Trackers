@@ -66,7 +66,8 @@
                     android:layout_height="wrap_content"
                     android:shadowRadius="0"
                     android:shadowDy="0"
-                    android:text="Sync"
+                    android:id="@+id/lbl_sync"
+                    android:text="@string/widget_sync"
                     android:textColor="@color/w_sync_text"
                     android:textSize="13dp" />
             </LinearLayout>
@@ -100,7 +101,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="BUILDERS" />
+                    android:text="@string/widget_builders" />
 
                 <LinearLayout
                     android:id="@+id/pill_bite"
@@ -133,7 +134,7 @@
                             android:fontFamily="@font/lilita_one"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Bite" />
+                            android:text="@string/widget_bite" />
                     </LinearLayout>
 
                     <!-- Small "−": undo the last hour. Shown only while a boost of this type runs or is queued. -->
@@ -247,7 +248,8 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="LAB" />
+                    android:id="@+id/lbl_lab"
+                    android:text="@string/widget_lab" />
 
                 <LinearLayout
                     android:id="@+id/pill_rpot"
@@ -334,7 +336,8 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="PETS" />
+                    android:id="@+id/lbl_pets"
+                    android:text="@string/widget_pets" />
 
                 <LinearLayout
                     android:id="@+id/pill_ppot"
@@ -418,7 +421,8 @@
                     android:layout_marginStart="4dp"
                     android:layout_marginTop="4dp"
                     android:layout_marginBottom="3dp"
-                    android:text="BUILDER BASE" />
+                    android:id="@+id/lbl_bb"
+                    android:text="@string/widget_bb" />
 
                 <LinearLayout
                     android:id="@+id/rows_bb"
@@ -479,7 +483,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:singleLine="false"
-                android:text="Copy village data in Clash, then tap Sync"
+                android:text="@string/widget_no_data"
                 android:textSize="15dp" />
 
             <TextView
@@ -488,7 +492,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
-                android:text="Clash: Settings, Data Export, Copy"
+                android:id="@+id/lbl_no_data_hint"
+                android:text="@string/widget_no_data_hint"
                 android:textSize="12dp" />
         </LinearLayout>
     </LinearLayout>

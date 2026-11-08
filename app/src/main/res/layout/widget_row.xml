@@ -30,6 +30,7 @@
         android:orientation="horizontal">
 
         <FrameLayout
+            android:id="@+id/row_icon_slot"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:layout_marginStart="3dp"
@@ -93,7 +94,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:fontFamily="sans-serif"
-                        android:text="GOBLIN"
+                        android:id="@+id/lbl_goblin"
+                        android:text="@string/widget_goblin"
                         android:textColor="#123B0C"
                         android:textSize="9dp"
                         android:textStyle="bold" />

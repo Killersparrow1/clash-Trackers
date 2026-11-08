@@ -2,6 +2,7 @@
 
 package com.killersparrow1.clashtrackers.ui
 
+import androidx.compose.ui.res.stringResource
 import com.killersparrow1.clashtrackers.core.formatTimestamp
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -78,10 +79,10 @@ fun BoostEventSection(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text("Boosts & Events", style = MaterialTheme.typography.titleMediumEmphasized)
+                Text(stringResource(R.string.boosts_title), style = MaterialTheme.typography.titleMediumEmphasized)
                 if (activeModifiers.isNotEmpty() || activeEvents.isNotEmpty()) {
                     Badge(containerColor = MaterialTheme.colorScheme.primaryContainer) {
-                        Text("${activeModifiers.size + activeEvents.size} active", style = MaterialTheme.typography.labelSmall)
+                        Text(stringResource(R.string.boosts_active, activeModifiers.size + activeEvents.size), style = MaterialTheme.typography.labelSmall)
                     }
                 }
             }
@@ -115,12 +116,12 @@ fun BoostEventSection(
                                     Text(event.name, style = MaterialTheme.typography.labelLarge)
                                     val leftSec = (event.endTimestamp - now).coerceAtLeast(0)
                                     Text(
-                                        "${event.timeReductionPercent.toInt()}% speedup · ${Countdown.text(leftSec)} left",
+                                        stringResource(R.string.event_speedup, event.timeReductionPercent.toInt(), Countdown.text(leftSec, stringResource(R.string.time_day_short))),
                                         style = MaterialTheme.typography.bodySmall,
                                     )
                                 }
                                 TextButton(onClick = { showEventConfigDialog = event }) {
-                                    Text("Configure")
+                                    Text(stringResource(R.string.action_configure))
                                 }
                             }
                         }
@@ -130,7 +131,7 @@ fun BoostEventSection(
 
             if (activeModifiers.isEmpty() && activeEvents.isEmpty()) {
                 Text(
-                    "No active speed boosts or events. Tap below to track Clock Tower or Potions.",
+                    stringResource(R.string.boosts_none),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -142,17 +143,17 @@ fun BoostEventSection(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 FilledTonalButton(onClick = { showClockTowerDialog = true }) {
-                    Text("Clock Tower")
+                    Text(stringResource(R.string.clock_tower))
                 }
                 FilledTonalButton(onClick = {
                     onUpdateBoosts { it.addBuilderPotion(now) }
                 }) {
-                    Text("+ Builder Potion")
+                    Text(stringResource(R.string.add_builder_potion))
                 }
                 FilledTonalButton(onClick = {
                     onUpdateBoosts { it.addClockTowerPotion(now) }
                 }) {
-                    Text("+ CT Potion")
+                    Text(stringResource(R.string.add_ct_potion))
                 }
             }
         }
@@ -204,12 +205,12 @@ private fun ActiveBoostItem(mod: BoostModifier, now: Long, onCancel: () -> Unit)
             Column {
                 Text(mod.name, style = MaterialTheme.typography.labelLarge)
                 Text(
-                    "${Countdown.text(leftSec)} left (${mod.multiplier.toInt()}× speed) · saves ~${formatDuration(savedSec)}",
+                    stringResource(R.string.boost_left, Countdown.text(leftSec, stringResource(R.string.time_day_short)), mod.multiplier.toInt(), formatDuration(savedSec)),
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
             TextButton(onClick = onCancel) {
-                Text("Cancel")
+                Text(stringResource(R.string.action_cancel))
             }
         }
     }
@@ -225,27 +226,27 @@ private fun ClockTowerDialog(
     val durationMin = (ClockTowerData.durationSecForLevel(level) / 60).toInt()
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Builder Base Clock Tower") },
+        title = { Text(stringResource(R.string.ct_dialog_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text("Clock Tower provides 10× speed for your Builder Base builders and Star Laboratory.")
-                Text("Select Clock Tower Level: Level $level ($durationMin minutes boost)", style = MaterialTheme.typography.labelLarge)
+                Text(stringResource(R.string.ct_dialog_desc))
+                Text(stringResource(R.string.ct_dialog_level, level, durationMin), style = MaterialTheme.typography.labelLarge)
                 Slider(
                     value = level.toFloat(),
                     onValueChange = { level = it.roundToInt() },
                     valueRange = ClockTowerData.MIN_LEVEL.toFloat()..ClockTowerData.MAX_LEVEL.toFloat(),
                     steps = ClockTowerData.MAX_LEVEL - ClockTowerData.MIN_LEVEL - 1,
                 )
-                Text("Est. time saved: ~${(durationMin * 9) / 60}h ${(durationMin * 9) % 60}m", style = MaterialTheme.typography.bodySmall)
+                Text(stringResource(R.string.ct_dialog_saved, (durationMin * 9) / 60, (durationMin * 9) % 60), style = MaterialTheme.typography.bodySmall)
             }
         },
         confirmButton = {
             TextButton(onClick = { onActivate(level) }) {
-                Text("Activate Boost")
+                Text(stringResource(R.string.ct_activate))
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
         },
     )
 }
@@ -269,10 +270,10 @@ private fun EventConfigDialog(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text("Enable Event")
+                    Text(stringResource(R.string.event_enable))
                     Switch(checked = enabled, onCheckedChange = { enabled = it })
                 }
-                Text("Time Reduction: ${reductionPercent.toInt()}%", style = MaterialTheme.typography.labelMedium)
+                Text(stringResource(R.string.event_reduction, reductionPercent.toInt()), style = MaterialTheme.typography.labelMedium)
                 Slider(
                     value = reductionPercent.toFloat(),
                     onValueChange = { reductionPercent = it.toDouble() },
@@ -287,11 +288,11 @@ private fun EventConfigDialog(
             TextButton(onClick = {
                 onSave(event.copy(enabled = enabled, timeReductionPercent = reductionPercent))
             }) {
-                Text("Save")
+                Text(stringResource(R.string.action_save))
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
         },
     )
 }

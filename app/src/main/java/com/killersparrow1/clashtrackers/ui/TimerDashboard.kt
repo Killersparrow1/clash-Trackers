@@ -2,6 +2,7 @@
 
 package com.killersparrow1.clashtrackers.ui
 
+import androidx.compose.ui.res.stringResource
 import com.killersparrow1.clashtrackers.core.formatTimestamp
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.horizontalScroll
@@ -15,8 +16,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.TextAutoSize
@@ -77,8 +80,10 @@ fun TimerDashboard(
     onRenameAccount: (String, String) -> Unit,
     onDeleteAccount: (String) -> Unit,
     modifier: Modifier = Modifier,
+    wide: Boolean = false,
 ) {
     var filter by rememberSaveable { mutableStateOf(TimerFilter.ALL) }
+    var showHelp by rememberSaveable { mutableStateOf(false) }
     val timers = remember(model, filter) { model.timers(filter) }
 
     Column(modifier.fillMaxSize()) {
@@ -94,38 +99,44 @@ fun TimerDashboard(
                     FilterChip(
                         selected = filter == entry,
                         onClick = { filter = entry },
-                        label = { Text(entry.label) },
+                        label = { Text(stringResource(entry.labelRes)) },
                         modifier = Modifier.heightIn(min = 48.dp),
                     )
                 }
             }
         }
-        LazyColumn(
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(if (wide) 2 else 1),
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             if (model.hasData) {
-                item(key = "village") { VillageSummary(model) }
+                item(key = "village", span = { GridItemSpan(maxLineSpan) }) { VillageSummary(model) }
             } else {
-                item(key = "welcome") {
-                    SectionCard("Your village, at a glance") {
-                        Text("Bring your upgrades into one clear view.", style = MaterialTheme.typography.bodyLarge)
-                        Text("1. Open Clash of Clans.")
-                        Text("2. Go to Settings > Data Export > Copy.")
-                        Text("3. Return here and sync from your clipboard.")
+                item(key = "welcome", span = { GridItemSpan(maxLineSpan) }) {
+                    SectionCard(stringResource(R.string.welcome_title)) {
+                        Text(stringResource(R.string.welcome_sub), style = MaterialTheme.typography.bodyLarge)
+                        Text(stringResource(R.string.welcome_step1))
+                        Text(stringResource(R.string.welcome_step2))
+                        Text(stringResource(R.string.welcome_step3))
                         Text(
-                            "No account or internet connection needed. Your village stays on this phone.",
+                            stringResource(R.string.welcome_privacy),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
+                        TextButton(
+                            onClick = { showHelp = true },
+                            modifier = Modifier.heightIn(min = 48.dp),
+                        ) { Text(stringResource(R.string.help_link)) }
                     }
                 }
             }
 
-            item(key = "sync") { SyncCard(lastSync, busy, onSync) }
+            item(key = "sync", span = { GridItemSpan(maxLineSpan) }) { SyncCard(lastSync, busy, onSync) }
 
-            item(key = "boosts_events") {
+            item(key = "boosts_events", span = { GridItemSpan(maxLineSpan) }) {
                 BoostEventSection(
                     activeBoostState = activeBoostState,
                     eventSettings = eventSettings,
@@ -136,22 +147,22 @@ fun TimerDashboard(
             }
 
             if (model.hasData) {
-                item(key = "heading") {
+                item(key = "heading", span = { GridItemSpan(maxLineSpan) }) {
                     Text(
-                        if (filter == TimerFilter.ALL) "Village upgrades" else "${filter.label} upgrades",
+                        if (filter == TimerFilter.ALL) stringResource(R.string.village_upgrades) else stringResource(R.string.upgrades_filtered, stringResource(filter.labelRes)),
                         style = MaterialTheme.typography.titleMediumEmphasized,
                         modifier = Modifier.padding(top = 8.dp),
                     )
                 }
                 if (timers.isEmpty()) {
-                    item(key = "empty_filter") {
+                    item(key = "empty_filter", span = { GridItemSpan(maxLineSpan) }) {
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
                             shape = MaterialTheme.shapes.large,
                         ) {
                             Text(
-                                "No active timers in ${filter.label}.",
+                                stringResource(R.string.no_timers_in, stringResource(filter.labelRes)),
                                 modifier = Modifier.padding(20.dp),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -165,6 +176,7 @@ fun TimerDashboard(
             }
         }
     }
+    if (showHelp) HelpDialog(onDismiss = { showHelp = false })
 }
 
 @Composable
@@ -199,10 +211,10 @@ private fun AccountSwitcherBar(
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                TextButton(onClick = { showRenameDialog = true }) { Text("Rename") }
+                TextButton(onClick = { showRenameDialog = true }) { Text(stringResource(R.string.action_rename)) }
                 if (accounts.size > 1) {
                     TextButton(onClick = { showDeleteConfirm = true }) {
-                        Text("Delete", color = MaterialTheme.colorScheme.error)
+                        Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error)
                     }
                 }
             }
@@ -224,18 +236,18 @@ private fun AccountSwitcherBar(
     if (showDeleteConfirm && selectedAccount != null) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
-            title = { Text("Delete account ${selectedAccount.tag}?") },
-            text = { Text("This will remove its saved village state, settings, and any home screen widget bindings.") },
+            title = { Text(stringResource(R.string.delete_account_title, selectedAccount.tag)) },
+            text = { Text(stringResource(R.string.delete_account_text)) },
             confirmButton = {
                 TextButton(onClick = {
                     onDelete(selectedAccount.tag)
                     showDeleteConfirm = false
                 }) {
-                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteConfirm = false }) { Text("Cancel") }
+                TextButton(onClick = { showDeleteConfirm = false }) { Text(stringResource(R.string.action_cancel)) }
             },
         )
     }
@@ -252,10 +264,10 @@ private fun VillageSummary(model: WidgetModel) {
             Text(model.playerName, style = MaterialTheme.typography.headlineMedium)
             Text(
                 listOfNotNull(
-                    model.townHall?.let { "Town Hall $it" },
-                    "${model.buildersBusy} of ${model.buildersTotal} builders busy",
-                    if (model.goblinWorking) "Goblin working" else null,
-                    if (model.showBuilderBase) "Builder Base active" else null,
+                    model.townHall?.let { stringResource(R.string.town_hall, it) },
+                    stringResource(R.string.builders_busy, model.buildersBusy, model.buildersTotal),
+                    if (model.goblinWorking) stringResource(R.string.goblin_working) else null,
+                    if (model.showBuilderBase) stringResource(R.string.bb_active) else null,
                 ).joinToString(" · "),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -264,7 +276,7 @@ private fun VillageSummary(model: WidgetModel) {
                 next.row.finishAt?.let { finishAt ->
                     Spacer(Modifier.size(4.dp))
                     Text(
-                        "Next finish: ${next.row.name} (${Countdown.text(next.row.remaining)})",
+                        stringResource(R.string.next_finish, next.row.name, Countdown.text(next.row.remaining, stringResource(R.string.time_day_short))),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.primary,
                     )
@@ -294,23 +306,23 @@ private fun SyncCard(last: SyncLogEntry?, busy: Boolean, onSync: () -> Unit) {
             ) {
                 Column {
                     Text(
-                        if (failed) "Sync failed" else if (last != null) "Last synced" else "Sync village",
+                        stringResource(if (failed) R.string.sync_failed else if (last != null) R.string.sync_last else R.string.sync_village),
                         style = MaterialTheme.typography.titleMedium,
                     )
                     last?.let { Text(formatTimestamp(it.at), style = MaterialTheme.typography.bodySmall) }
                 }
                 if (last != null && !failed) {
                     TextButton(onClick = { showDetails = !showDetails }) {
-                        Text(if (showDetails) "Hide details" else "Sync details")
+                        Text(stringResource(if (showDetails) R.string.hide_details else R.string.sync_details))
                     }
                 }
             }
             if (failed) {
                 last?.let { SelectionContainer { Text(SyncRunner.plainText(it.message), style = MaterialTheme.typography.bodyMedium) } }
-                Text("Copy fresh village data in Clash, then try again.", style = MaterialTheme.typography.bodyMedium)
+                Text(stringResource(R.string.sync_retry_hint), style = MaterialTheme.typography.bodyMedium)
             }
             if (last == null) {
-                Text("Your clipboard is read only when you tap Sync.", style = MaterialTheme.typography.bodyMedium)
+                Text(stringResource(R.string.sync_clip_hint), style = MaterialTheme.typography.bodyMedium)
             }
             Button(
                 onClick = onSync,
@@ -326,13 +338,13 @@ private fun SyncCard(last: SyncLogEntry?, busy: Boolean, onSync: () -> Unit) {
                 }
                 Spacer(Modifier.size(8.dp))
                 Text(
-                    if (busy) "Syncing…" else if (failed) "Retry from clipboard" else "Sync from clipboard",
+                    stringResource(if (busy) R.string.syncing else if (failed) R.string.sync_retry else R.string.sync_from_clipboard),
                     style = ButtonDefaults.textStyleFor(ButtonDefaults.MediumContainerHeight),
                 )
             }
             if (last != null && !failed && showDetails) {
                 SelectionContainer { Text(SyncRunner.plainText(last.message), style = MaterialTheme.typography.bodyMedium) }
-                Text("Copy fresh data in Clash before syncing. The clipboard is read only when you tap Sync.", style = MaterialTheme.typography.bodySmall)
+                Text(stringResource(R.string.sync_copy_hint), style = MaterialTheme.typography.bodySmall)
             }
         }
     }
@@ -348,11 +360,11 @@ private fun TimerCard(timer: DashboardTimer) {
     ) {
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             val categoryLabel = when (timer.category) {
-                TimerFilter.BUILDER_BASE -> "Builder Base"
-                TimerFilter.BUILDERS -> if (row.goblin) "Home Village · Goblin Builder" else "Home Village Builder"
-                TimerFilter.LAB -> "Laboratory"
-                TimerFilter.PETS -> "Pet House"
-                else -> timer.category.label
+                TimerFilter.BUILDER_BASE -> stringResource(R.string.filter_bb)
+                TimerFilter.BUILDERS -> stringResource(if (row.goblin) R.string.cat_goblin_builder else R.string.cat_home_builder)
+                TimerFilter.LAB -> stringResource(R.string.cat_lab)
+                TimerFilter.PETS -> stringResource(R.string.cat_pets)
+                else -> stringResource(timer.category.labelRes)
             }
             Text(
                 categoryLabel,
@@ -376,7 +388,7 @@ private fun TimerCard(timer: DashboardTimer) {
                 Text(SyncRunner.plainText(row.label), style = MaterialTheme.typography.titleLargeEmphasized)
             }
             BasicText(
-                if (row.kind == RowKind.RUNNING) Countdown.text(row.remaining) else row.staticStatus,
+                if (row.kind == RowKind.RUNNING) Countdown.text(row.remaining, stringResource(R.string.time_day_short)) else row.staticStatus,
                 style = MaterialTheme.typography.displaySmallEmphasized.copy(
                     fontFeatureSettings = "tnum",
                     color = MaterialTheme.colorScheme.primary,
@@ -389,22 +401,21 @@ private fun TimerCard(timer: DashboardTimer) {
                     progress = { row.progress.coerceIn(0f, 1f) },
                     modifier = Modifier.fillMaxWidth(),
                 )
-                Text("${(row.progress.coerceIn(0f, 1f) * 100).toInt()}% complete", style = MaterialTheme.typography.bodySmall)
+                Text(stringResource(R.string.percent_complete, (row.progress.coerceIn(0f, 1f) * 100).toInt()), style = MaterialTheme.typography.bodySmall)
             }
             if (row.kind == RowKind.RUNNING) {
                 row.finishAt?.let {
-                    Text("Finishes ${formatTimestamp(it)}", style = MaterialTheme.typography.bodyMedium)
+                    Text(stringResource(R.string.finishes_at, formatTimestamp(it)), style = MaterialTheme.typography.bodyMedium)
                 }
                 val helper = when (row.button) {
-                    RowButton.APPRENTICE -> "Builder's Apprentice assigned"
-                    RowButton.LAB_ASSISTANT -> "Lab Assistant assigned"
+                    RowButton.APPRENTICE -> stringResource(R.string.apprentice_assigned)
+                    RowButton.LAB_ASSISTANT -> stringResource(R.string.assistant_assigned)
                     else -> null
                 }
                 helper?.let { Text(it, style = MaterialTheme.typography.labelLarge) }
             } else {
                 Text(
-                    if (row.kind == RowKind.COMPLETED) "Ready for the next upgrade. Sync after starting it in the game."
-                    else "No upgrade in the saved export.",
+                    stringResource(if (row.kind == RowKind.COMPLETED) R.string.row_completed_hint else R.string.row_empty_hint),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

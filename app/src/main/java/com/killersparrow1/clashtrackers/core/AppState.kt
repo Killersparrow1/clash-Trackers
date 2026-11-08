@@ -71,6 +71,7 @@ data class AccountsIndex(
 data class GlobalSettings(
     val notificationsEnabled: Boolean = true,
     val liveCountdown: Boolean = true,
+    val widgetTheme: String = "material_you",
 ) {
     fun encode(): String = AppState.JSON.encodeToString(serializer(), this)
     companion object {
@@ -112,6 +113,7 @@ data class AppSettings(
      * null = never asked (the prompt shows); blank = asked and left empty ([DEFAULT_PLAYER_NAME]).
      */
     val playerName: String? = null,
+    val widgetTheme: String = "material_you",
 ) {
     /** The name the widget shows: [playerName], or [DEFAULT_PLAYER_NAME] if it is missing or blank. */
     val displayName: String get() = playerName?.trim()?.takeIf { it.isNotEmpty() } ?: DEFAULT_PLAYER_NAME

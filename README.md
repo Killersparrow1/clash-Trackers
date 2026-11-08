@@ -22,13 +22,21 @@ Redesigned with **Material 3 Expressive**, authentic Clash typography, an advanc
 ---
 
 ## Screenshots
-
 <p align="center">
-  <img src="docs/screenshots/potion-active.png" alt="Timers screen in the app, with building and hero icons on every card" width="270">
-  &nbsp;&nbsp;
-  <img src="docs/screenshots/hero.png" alt="Home-screen widget with live countdowns, potions and Builder Base timers" width="340">
+  <img src="docs/screenshots/timer 1.png" alt="Timers screen - main view" width="180">
+  <img src="docs/screenshots/timer 2.png" alt="Timers screen - detailed view" width="180">
+  <img src="docs/screenshots/setting1.png" alt="Settings - account management" width="180">
+  <img src="docs/screenshots/setting 2.png" alt="Settings - detailed options" width="180">
+  <img src="docs/screenshots/support .png" alt="Support & Diagnostics" width="180">
 </p>
-<p align="center"><em>Left: the Timers screen. Right: the home-screen widget.</em></p>
+
+## Widget Themes
+<p align="center">
+  <img src="docs/screenshots/material.jpg" alt="Material You theme" width="150">
+  <img src="docs/screenshots/clash.jpg" alt="Clash theme" width="150">
+  <img src="docs/screenshots/dark.jpg" alt="Dark theme" width="150">
+  <img src="docs/screenshots/light.jpg" alt="Light theme" width="150">
+</p>
 
 ---
 
@@ -58,15 +66,31 @@ Redesigned with **Material 3 Expressive**, authentic Clash typography, an advanc
 
 ### 📱 Live Home Screen Widget
 - **Per-Second Countdowns**: Live ticking chronometers directly on your home screen.
+- **Small and Large Layouts**: Use a compact widget with the soonest running upgrades or the full widget with every timer and progress bar.
+- **Widget Themes**: Pick **Material You**, **Clash**, **Dark** or **Light** as the default, and override the theme for individual widgets.
 - **Helper Integration**: Tap `+` to assign the Builder's Apprentice or Lab Assistant and see realistic predicted finish times.
 - **Exact Alarms**: Accurate re-renders at completion edges with no background battery drain.
-- **Per-Widget Account Binding**: Place the widget as many times as you like. Each time, a picker asks which account that widget should show, so you can keep one widget per account side by side. You can change a widget's account later by reconfiguring it.
+- **Per-Widget Account Binding**: Place the widget as many times as you like. Each time, a picker asks which account that widget should show, so you can keep one widget per account side by side. You can change a widget's account and theme later by reconfiguring it.
+
+### 📐 Adaptive Layout
+- **Phones and Tablets**: The app keeps the bottom navigation on phones and switches to a navigation rail on wider screens.
+- **Two-Column Timers**: Wide screens show the Timers dashboard in two columns, centered at a comfortable reading width.
+
+### ❓ Built-in Help
+- **Step-by-Step Guide**: Open **Support → How to sync** or the link on the empty Timers screen for screenshots and instructions covering export, sync and widget setup.
 
 ### 👥 Multiple Accounts
 - **Saved by Player Tag**: Every Clash of Clans export contains a player tag. Sync an export from another account and the app saves it as its own account; syncing the same account again updates only that account.
 - **Account Switcher**: Switch between your accounts from the Timers screen. Timers, boosts, and events follow the account you pick.
 - **Rename & Delete**: Give each account a name and remove accounts you no longer need (deleting asks for confirmation).
 - **Per-Widget Accounts**: Different widgets can show different accounts at the same time, each with its own live countdowns.
+
+### 🌍 Languages
+- **In-app Language Picker**: Choose a language in **Settings → Language** (or use Android's *App languages* screen on Android 13+). The home-screen widget follows your choice.
+- **Available now**: English and Russian (first Russian draft, native-speaker review welcome).
+- **Fully Localized**: Upgrade and building names (all 250 game IDs: buildings, troops, pets, spells, hero equipment and traps), countdown units such as `1д 20:12:05`, the widget's footer and labels ("Готово", "Помощники: …"), and the Support diagnostics are all translated.
+- **Add your language**: Copy one XML file, optionally one JSON file, and add one line each — no coding needed. See [Adding a language](CONTRIBUTING.md#adding-a-language).
+- **Still English**: The About section body (Supercell's required fan-content wording and licence text), the sync toast summary and the runtime sync-log lines.
 
 ### 🔒 100% Offline Privacy
 - **Zero Internet Permission**: The app does not request `android.permission.INTERNET`. It cannot send or receive data over the network.
@@ -99,17 +123,18 @@ clash-trackers/
 │   │   │   ├── ExportParser.kt      # Clash of Clans clipboard data parser
 │   │   │   ├── Model.kt             # Village export, Job, Helper, & Category models
 │   │   │   ├── TimerEngine.kt       # Multi-interval time-segment simulation engine
-│   │   │   └── WidgetModel.kt       # Widget state preparation & formatting
+│   │   │   ├── WidgetModel.kt       # Widget state preparation & formatting (via WidgetText.kt)
 │   │   ├── data/           # DataStore persistence (StateRepository, Names, Times)
 │   │   ├── ui/             # Jetpack Compose Material 3 Expressive UI
-│   │   │   ├── ClashTimersContent.kt # Root scaffold with ShortNavigationBar
+│   │   │   ├── ClashTrackersContent.kt # Adaptive scaffold with bottom bar or navigation rail
 │   │   │   ├── TimerDashboard.kt    # Upgrade cards, filters, & sync controls
 │   │   │   ├── BoostEventSection.kt # Interactive Clock Tower & potion controls
+│   │   │   ├── HelpDialog.kt        # Setup and sync guide with looping video
 │   │   │   ├── SettingsSection.kt   # Grouped settings & dialog editors
 │   │   │   ├── SupportScreen.kt     # Diagnostics, crash reports, & widget preview
 │   │   │   └── theme/               # MaterialExpressiveTheme & Lilita One Typography
 │   │   └── widget/         # Android RemoteViews widget provider, renderers, & WidgetConfigActivity (account picker)
-│   └── src/test/java/com/killersparrow1/clashtrackers/  # Comprehensive unit test suite (30+ test cases)
+│   └── src/test/java/com/killersparrow1/clashtrackers/  # Comprehensive unit test suite (160+ test cases)
 └── tools/                  # Asset & icon generators from clash-of-clans-data
 ```
 
@@ -160,12 +185,13 @@ cd clash-trackers
 - **Material 3 UI Inspiration**: Adapted from [Hy4ri/clash-timers](https://github.com/Hy4ri/clash-timers/tree/feat/material-app-ui).
 - **Font**: [Lilita One](app/src/main/res/font/lilita_one.ttf) by Juan Montoreano (SIL Open Font License 1.1).
 - **Game Data & Art**: Extracted from [clash-of-clans-data](https://github.com/chiefpansancolt/clash-of-clans-data).
+- **Finished Upgrade Sound**: Game audio from Clash of Clans, © Supercell. Used in this unofficial, non-commercial fan project under Supercell's Fan Content Policy. Source: [Zedge mirror](https://www.zedge.net/notification-sounds/2e5dc20a-223a-460a-8ab7-14ac75b6c127). Not covered by the MIT License.
 
 ---
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE). Game assets, names, and logos are property of Supercell.
+The source code is licensed under the [MIT License](LICENSE). Game assets, names, logos, and audio are property of Supercell and are not covered by the MIT License.
 
 ## Disclaimer
 

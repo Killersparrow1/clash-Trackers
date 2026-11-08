@@ -1,5 +1,6 @@
 package com.killersparrow1.clashtrackers.ui
 
+import com.killersparrow1.clashtrackers.R
 import com.killersparrow1.clashtrackers.core.formatTimestamp
 import android.appwidget.AppWidgetManager
 import androidx.compose.foundation.layout.Arrangement
@@ -21,9 +22,11 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.killersparrow1.clashtrackers.core.AppState
@@ -33,7 +36,6 @@ import com.killersparrow1.clashtrackers.core.RowKind
 import com.killersparrow1.clashtrackers.core.SyncLog
 import com.killersparrow1.clashtrackers.core.SyncLogEntry
 import com.killersparrow1.clashtrackers.core.WidgetModel
-import com.killersparrow1.clashtrackers.core.WidgetModelBuilder
 import com.killersparrow1.clashtrackers.core.WidgetRow
 import com.killersparrow1.clashtrackers.sync.SyncRunner
 import com.killersparrow1.clashtrackers.widget.WidgetAlarm
@@ -51,6 +53,10 @@ fun SupportScreen(state: AppState, model: WidgetModel, log: SyncLog, timesCount:
     var widgetSizes by remember { mutableStateOf("") }
     var refreshBusy by remember { mutableStateOf(false) }
     var refreshError by remember { mutableStateOf<String?>(null) }
+    var showHelp by rememberSaveable { mutableStateOf(false) }
+    // Format strings resolved in the composable; callbacks only fill in the argument.
+    val alarmSettingsErrorText = stringResource(R.string.support_alarm_settings_failed)
+    val refreshFailedText = stringResource(R.string.support_refresh_failed)
     val exactAllowed = remember(now) { WidgetAlarm.canScheduleExact(context) }
 
     // The current state is a key: diagnostics never keep the initial, empty export captured.
@@ -65,21 +71,30 @@ fun SupportScreen(state: AppState, model: WidgetModel, log: SyncLog, timesCount:
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
-            SectionCard("Last crash") { CrashSection() }
+            SectionCard(stringResource(R.string.help_title)) {
+                Text(stringResource(R.string.help_summary), style = MaterialTheme.typography.bodyMedium)
+                OutlinedButton(
+                    onClick = { showHelp = true },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                ) { Text(stringResource(R.string.help_link)) }
+            }
         }
         item {
-            SectionCard("Widget diagnostics") {
+            SectionCard(stringResource(R.string.support_last_crash)) { CrashSection() }
+        }
+        item {
+            SectionCard(stringResource(R.string.support_widget_diagnostics)) {
                 Text(when (widgetCount) {
-                    -1 -> "Widgets placed: unknown"
-                    0 -> "No Clash Trackers widget is on the home screen yet."
-                    else -> "Widgets placed: $widgetCount"
+                    -1 -> stringResource(R.string.support_widgets_unknown)
+                    0 -> stringResource(R.string.support_widgets_none)
+                    else -> stringResource(R.string.support_widgets_count, widgetCount)
                 })
                 if (widgetSizes.isNotEmpty()) Text(widgetSizes, style = MaterialTheme.typography.bodyMedium)
                 Text(
-                    "${WidgetIcons.get(context).available.size} icons · upgrade times for $timesCount items",
+                    stringResource(R.string.support_icons_times, WidgetIcons.get(context).available.size, timesCount),
                     style = MaterialTheme.typography.bodyMedium,
                 )
-                Text(if (exactAllowed) "Exact alarms are allowed." else "Exact alarms are not allowed; updates use a 1-minute window.")
+                Text(if (exactAllowed) stringResource(R.string.support_exact_allowed) else stringResource(R.string.support_exact_not_allowed))
                 if (!exactAllowed && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
                     OutlinedButton(onClick = {
                         runCatching {
@@ -87,8 +102,8 @@ fun SupportScreen(state: AppState, model: WidgetModel, log: SyncLog, timesCount:
                                 android.content.Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
                                     .setData(android.net.Uri.parse("package:${context.packageName}")),
                             )
-                        }.onFailure { refreshError = "Could not open alarm settings: ${it.message}" }
-                    }) { Text("Allow exact alarms") }
+                        }.onFailure { refreshError = alarmSettingsErrorText.format(it.message ?: "") }
+                    }) { Text(stringResource(R.string.support_allow_exact)) }
                 }
                 refreshError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
                 OutlinedButton(
@@ -101,7 +116,7 @@ fun SupportScreen(state: AppState, model: WidgetModel, log: SyncLog, timesCount:
                             } catch (e: CancellationException) {
                                 throw e
                             } catch (e: Exception) {
-                                refreshError = "Widget refresh failed: ${e.message}"
+                                refreshError = refreshFailedText.format(e.message ?: "")
                             } finally {
                                 refreshBusy = false
                             }
@@ -109,28 +124,28 @@ fun SupportScreen(state: AppState, model: WidgetModel, log: SyncLog, timesCount:
                     },
                     enabled = !refreshBusy && widgetCount > 0,
                     modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
-                ) { Text(if (refreshBusy) "Refreshing…" else "Refresh widget") }
-                if (widgetCount == 0) Text("Add the widget from your launcher's widget picker to enable refresh.", style = MaterialTheme.typography.bodySmall)
+                ) { Text(if (refreshBusy) stringResource(R.string.support_refreshing) else stringResource(R.string.support_refresh_widget)) }
+                if (widgetCount == 0) Text(stringResource(R.string.support_add_widget_hint), style = MaterialTheme.typography.bodySmall)
             }
         }
         item {
-            SectionCard("Saved village") {
+            SectionCard(stringResource(R.string.support_saved_village)) {
                 state.export?.let {
-                    Text("Village ${it.tag}")
-                    Text("Export copied ${formatTimestamp(it.timestamp)}")
-                } ?: Text("No village export saved yet. Use Sync on the Timers screen.")
+                    Text(stringResource(R.string.support_village_tag, it.tag))
+                    Text(stringResource(R.string.support_export_copied, formatTimestamp(it.timestamp)))
+                } ?: Text(stringResource(R.string.support_no_export))
             }
         }
         item {
-            SectionCard("Widget text preview") {
+            SectionCard(stringResource(R.string.support_widget_preview)) {
                 SelectionContainer {
                     Text(widgetPreview(model), fontFamily = FontFamily.Monospace, style = MaterialTheme.typography.bodyMedium)
                 }
             }
         }
         item {
-            SectionCard("Recent activity") {
-                if (log.entries.isEmpty()) Text("No activity yet.")
+            SectionCard(stringResource(R.string.support_recent_activity)) {
+                if (log.entries.isEmpty()) Text(stringResource(R.string.support_no_activity))
                 log.entries.forEach { entry ->
                     SelectionContainer {
                         Text(
@@ -142,8 +157,9 @@ fun SupportScreen(state: AppState, model: WidgetModel, log: SyncLog, timesCount:
                 }
             }
         }
-        item { SectionCard("About Clash Trackers") { AboutSection() } }
+        item { SectionCard(stringResource(R.string.support_about)) { AboutSection() } }
     }
+    if (showHelp) HelpDialog(onDismiss = { showHelp = false })
 }
 
 private fun SyncLogEntry.line(): String {
@@ -153,15 +169,19 @@ private fun SyncLogEntry.line(): String {
 
 /** Each placed widget's size as the launcher reports it, and which row size it gets. */
 private fun widgetSizeReport(context: android.content.Context, state: AppState): String {
+    val r = context.resources
     val manager = AppWidgetManager.getInstance(context)
     val rows = (state.export?.jobs?.size ?: 0) + 2
     return WidgetUpdater.widgetIds(context).joinToString("\n") { id ->
         val o = manager.getAppWidgetOptions(id)
         val w = WidgetRenderer.reportedWidthDp(o)
         val h = WidgetRenderer.reportedHeightDp(o)
-        val size = if (w != null && h != null) "${w}×${h} dp" else "size not reported"
-        val rowSize = if (WidgetRenderer.useCompactRows(o, rows)) "compact 25 dp rows" else "30 dp rows"
-        "Widget #$id: $size · $rowSize (30 dp rows need about ${WidgetRenderer.normalHeightDp(rows)} dp)"
+        val size = if (w != null && h != null) r.getString(R.string.support_size_dp, w, h)
+            else r.getString(R.string.support_size_not_reported)
+        val rowSize = if (WidgetRenderer.useCompactRows(o, rows)) r.getString(R.string.support_rows_compact)
+            else r.getString(R.string.support_rows_normal)
+        val need = r.getString(R.string.support_rows_need, rowSize, WidgetRenderer.normalHeightDp(rows))
+        r.getString(R.string.support_widget_size_line, id, size, need)
     }
 }
 
@@ -169,22 +189,23 @@ private fun widgetSizeReport(context: android.content.Context, state: AppState):
 private fun widgetPreview(m: WidgetModel): String = SyncRunner.plainText(buildString {
     appendLine("${m.title}   [Sync]")
     if (!m.hasData) {
-        append(if (m.syncFailed) WidgetModelBuilder.SYNC_FAILED else WidgetModelBuilder.NO_DATA)
+        append(if (m.syncFailed) m.text.syncFailed else m.text.noData)
         return@buildString
     }
     fun line(r: WidgetRow) {
-        val time = if (r.kind == RowKind.RUNNING) Countdown.text(r.remaining) else r.staticStatus
+        val time = if (r.kind == RowKind.RUNNING) Countdown.text(r.remaining, m.text.day) else r.staticStatus
         val button = when (r.button) {
             RowButton.NONE -> ""
             RowButton.LINK -> " [+]"
-            RowButton.APPRENTICE -> " [Apprentice]"
-            RowButton.LAB_ASSISTANT -> " [Assistant]"
+            RowButton.APPRENTICE -> " [${m.text.apprenticeName.substringBefore(": ")}]"
+            RowButton.LAB_ASSISTANT -> " [${m.text.assistantName.substringBefore(": ")}]"
         }
-        val goblin = if (r.goblin) "GOBLIN " else ""
+        val goblin = if (r.goblin) "${m.text.goblin} " else ""
         val label = if (r.kind == RowKind.RUNNING) r.label else r.name // finished rows: name only
         appendLine("  $goblin$label | $time | ${(r.progress * 100).toInt()}%$button")
     }
-    appendLine("${m.buildersLabel}${if (m.goblinWorking) " + Goblin" else ""}   [${m.bite.text}] [${m.builderPotion.text}]")
+    val goblinPart = if (m.goblinWorking) " ${m.text.goblinSuffix}" else ""
+    appendLine("${m.buildersLabel}$goblinPart   [${m.bite.text}] [${m.builderPotion.text}]")
     m.builderRows.forEach(::line)
     appendLine("LAB   [${m.researchPotion.text}]")
     m.labRows.forEach(::line)
