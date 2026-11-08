@@ -41,6 +41,7 @@ class StateRepository(context: Context) {
         val global = GlobalSettings(
             notificationsEnabled = oldSettings.notificationsEnabled,
             liveCountdown = oldSettings.liveCountdown,
+            widgetTheme = oldSettings.widgetTheme,
         )
         prefs[GLOBAL_SETTINGS] = global.encode()
 
@@ -118,6 +119,7 @@ class StateRepository(context: Context) {
             notificationsEnabled = global.notificationsEnabled,
             liveCountdown = global.liveCountdown,
             playerName = acctSettings.playerName,
+            widgetTheme = global.widgetTheme,
         )
     }.distinctUntilChanged()
 
@@ -145,6 +147,7 @@ class StateRepository(context: Context) {
             notificationsEnabled = global.notificationsEnabled,
             liveCountdown = global.liveCountdown,
             playerName = acct.playerName,
+            widgetTheme = global.widgetTheme,
         )
     }
 
@@ -280,6 +283,25 @@ class StateRepository(context: Context) {
         return map.mapKeys { it.key.toIntOrNull() ?: 0 }.filterKeys { it != 0 }
     }
 
+    suspend fun getWidgetTheme(appWidgetId: Int): String {
+        store.edit { ensureMigrated(it) }
+        val prefs = store.data.first()
+        val global = GlobalSettings.decode(prefs[GLOBAL_SETTINGS])
+        val mapJson = prefs[WIDGET_THEME] ?: return global.widgetTheme
+        val map = runCatching { AppState.JSON.decodeFromString<Map<String, String>>(mapJson) }.getOrNull() ?: emptyMap()
+        return map[appWidgetId.toString()] ?: global.widgetTheme
+    }
+
+    suspend fun setWidgetTheme(appWidgetId: Int, theme: String) {
+        store.edit { prefs ->
+            ensureMigrated(prefs)
+            val mapJson = prefs[WIDGET_THEME]
+            val map = (mapJson?.let { runCatching { AppState.JSON.decodeFromString<Map<String, String>>(it) }.getOrNull() } ?: emptyMap()).toMutableMap()
+            map[appWidgetId.toString()] = theme
+            prefs[WIDGET_THEME] = AppState.JSON.encodeToString(map)
+        }
+    }
+
     /** Atomically read-modify-write the app state of the selected account (or create/save if new account). */
     suspend fun <R> updateState(transform: (AppState) -> Pair<AppState, R>): R {
         var result: R? = null
@@ -323,12 +345,14 @@ class StateRepository(context: Context) {
                 notificationsEnabled = global.notificationsEnabled,
                 liveCountdown = global.liveCountdown,
                 playerName = acct.playerName,
+                widgetTheme = global.widgetTheme,
             )
             val next = transform(currentAppSet)
 
             prefs[GLOBAL_SETTINGS] = GlobalSettings(
                 notificationsEnabled = next.notificationsEnabled,
                 liveCountdown = next.liveCountdown,
+                widgetTheme = next.widgetTheme,
             ).encode()
 
             val updatedAcct = AccountSettings(
@@ -360,6 +384,7 @@ class StateRepository(context: Context) {
         val ACCOUNTS_INDEX = stringPreferencesKey("accounts_index_json")
         val GLOBAL_SETTINGS = stringPreferencesKey("global_settings_json")
         val WIDGET_MAPPING = stringPreferencesKey("widget_mapping_json")
+        val WIDGET_THEME = stringPreferencesKey("widget_theme_json")
         val SYNC_LOG = stringPreferencesKey("sync_log_json")
 
         fun stateKey(tag: String) = stringPreferencesKey("state_json_$tag")

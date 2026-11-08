@@ -8,11 +8,19 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ### Added
 
-<<<<<<< HEAD
 - Custom sound for finished upgrades.
-=======
 - Language picker in Settings and a first Russian translation. More languages can be added with one XML file; see CONTRIBUTING.md.
->>>>>>> origin/dev
+- Small home-screen widget layouts with the soonest running upgrades.
+- Widget themes: Material You, Clash, Dark and Light. Choose a default in Settings or override it per widget.
+- Tablet and foldable layouts with a navigation rail and a two-column timers grid.
+- In-app Help guide with step-by-step sync and widget setup instructions.
+- Russian translations for the new widget theme, Help and small-widget texts.
+
+### Fixed
+
+- Small widget row count now follows the actual widget height.
+- The small widget's soonest-timers list only includes running upgrades, not completed rows.
+- The widget "+X more" label now follows the selected language.
 
 ## [1.0.2] - 2026-11-03
 

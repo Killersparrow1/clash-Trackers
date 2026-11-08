@@ -5,6 +5,8 @@
   Keep every %1$s / %1$d placeholder exactly as in values/strings.xml (you may reorder them).
 -->
 <resources>
+    <string name="app_name">Clash Trackers</string>
+    <string name="widget_name">Clash Trackers</string>
     <string name="widget_description">Таймеры строителей, лаборатории и питомцев из экспорта данных деревни</string>
     <string name="action_cancel">Отмена</string>
     <string name="action_close">Закрыть</string>
@@ -135,8 +137,29 @@
     <string name="widget_no_data">Скопируйте данные деревни в Clash и нажмите «Синхр.»</string>
     <string name="widget_no_data_hint">Clash: Настройки, Экспорт данных, Копировать</string>
     <string name="widget_goblin">ГОБЛИН</string>
+    <string name="widget_more">Ещё +%1$d</string>
     <string name="settings_language">Язык</string>
     <string name="language_row">Язык приложения</string>
     <string name="language_system">Как в системе</string>
     <string name="language_desc">Также меняет язык виджета на главном экране.</string>
+    <string name="widget_theme">Тема виджета</string>
+    <string name="widget_theme_material_you">Material You (цвета обоев)</string>
+    <string name="widget_theme_clash">Clash (коричневая)</string>
+    <string name="widget_theme_dark">Темная</string>
+    <string name="widget_theme_light">Светлая</string>
+    <string name="help_title">Как использовать Clash Trackers</string>
+    <string name="help_step1_title">1. Откройте экспорт данных</string>
+    <string name="help_step1_desc">Откройте Clash of Clans > Настройки > Экспорт данных.</string>
+    <string name="help_step2_title">2. Нажмите Копировать</string>
+    <string name="help_step2_desc">Нажмите Копировать для сохранения данных деревни в буфер обмена.</string>
+    <string name="help_step3_title">3. Синхронизируйте</string>
+    <string name="help_step3_desc">Откройте Clash Trackers и нажмите «Синхронизировать из буфера».</string>
+    <string name="help_step4_title">4. Добавьте виджет</string>
+    <string name="help_step4_desc">Добавьте виджет с главного экрана и выберите свой аккаунт.</string>
+    <string name="help_placeholder">Изображение недоступно</string>
+    <string name="help_link">Как синхронизировать</string>
+    <string name="help_summary">Пошаговая инструкция: как экспортировать деревню и добавить виджет на главный экран.</string>
+    <string name="help_next">Далее</string>
+    <string name="help_previous">Назад</string>
+    <string name="help_counter">%1$d / %2$d</string>
 </resources>

@@ -192,7 +192,8 @@ object WidgetUpdater {
                     playerName = acctSettings.playerName,
                 )
 
-                val model = WidgetModelBuilder.build(state, settings, names, Times.get(app), now, tag ?: "")
+                val theme = repo.getWidgetTheme(id)
+                val model = WidgetModelBuilder.build(state, settings, names, Times.get(app), now, tag ?: "", theme)
                 manager.updateAppWidget(id, renderer.render(model, settings.liveCountdown, manager.getAppWidgetOptions(id)))
 
                 WidgetSchedule.nextUpdateMs(model, nowMs, settings.liveCountdown)?.let { nextUpdates.add(it) }

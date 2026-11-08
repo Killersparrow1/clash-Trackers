@@ -1,5 +1,6 @@
 package com.killersparrow1.clashtrackers.ui
 
+import com.killersparrow1.clashtrackers.R
 import com.killersparrow1.clashtrackers.core.formatTimestamp
 import android.appwidget.AppWidgetManager
 import androidx.compose.foundation.layout.Arrangement
@@ -21,9 +22,11 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.killersparrow1.clashtrackers.core.AppState
@@ -51,6 +54,7 @@ fun SupportScreen(state: AppState, model: WidgetModel, log: SyncLog, timesCount:
     var widgetSizes by remember { mutableStateOf("") }
     var refreshBusy by remember { mutableStateOf(false) }
     var refreshError by remember { mutableStateOf<String?>(null) }
+    var showHelp by rememberSaveable { mutableStateOf(false) }
     val exactAllowed = remember(now) { WidgetAlarm.canScheduleExact(context) }
 
     // The current state is a key: diagnostics never keep the initial, empty export captured.
@@ -64,6 +68,15 @@ fun SupportScreen(state: AppState, model: WidgetModel, log: SyncLog, timesCount:
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
+        item {
+            SectionCard(stringResource(R.string.help_title)) {
+                Text(stringResource(R.string.help_summary), style = MaterialTheme.typography.bodyMedium)
+                OutlinedButton(
+                    onClick = { showHelp = true },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                ) { Text(stringResource(R.string.help_link)) }
+            }
+        }
         item {
             SectionCard("Last crash") { CrashSection() }
         }
@@ -144,6 +157,7 @@ fun SupportScreen(state: AppState, model: WidgetModel, log: SyncLog, timesCount:
         }
         item { SectionCard("About Clash Trackers") { AboutSection() } }
     }
+    if (showHelp) HelpDialog(onDismiss = { showHelp = false })
 }
 
 private fun SyncLogEntry.line(): String {

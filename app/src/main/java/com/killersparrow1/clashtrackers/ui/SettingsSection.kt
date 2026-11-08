@@ -155,6 +155,7 @@ fun SettingsSection(
             ) { value -> value?.let { hours -> boosts { it.copy(helperPeriodSec = hours * H) } } }
         }
         SectionCard(stringResource(R.string.settings_section_widget)) {
+            WidgetThemeSetting(settings, onChange)
             SwitchRow(stringResource(R.string.settings_live_countdown), settings.liveCountdown) { on -> onChange { it.copy(liveCountdown = on) } }
             Text(
                 stringResource(R.string.settings_live_desc),
@@ -322,5 +323,48 @@ private fun chooseLanguage(context: Context, tag: String) {
     CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
         delay(600)
         runCatching { SyncRunner.refreshWidgets(app, "language") }
+    }
+}
+
+@Composable
+private fun WidgetThemeSetting(settings: AppSettings, onChange: ((AppSettings) -> AppSettings) -> Unit) {
+    val context = LocalContext.current
+    var open by rememberSaveable { mutableStateOf(false) }
+    val themes = listOf(
+        "material_you" to stringResource(R.string.widget_theme_material_you),
+        "clash" to stringResource(R.string.widget_theme_clash),
+        "dark" to stringResource(R.string.widget_theme_dark),
+        "light" to stringResource(R.string.widget_theme_light),
+    )
+    val currentLabel = themes.firstOrNull { it.first == settings.widgetTheme }?.second ?: stringResource(R.string.widget_theme_material_you)
+
+    SettingRow(stringResource(R.string.widget_theme), currentLabel, null) { open = true }
+    if (open) {
+        AlertDialog(
+            onDismissRequest = { open = false },
+            title = { Text(stringResource(R.string.widget_theme)) },
+            text = {
+                Column {
+                    themes.forEach { (key, name) ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                                .clickable(role = Role.RadioButton) {
+                                    open = false
+                                    onChange { it.copy(widgetTheme = key) }
+                                    CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
+                                        delay(300)
+                                        runCatching { SyncRunner.refreshWidgets(context, "theme") }
+                                    }
+                                },
+                        ) {
+                            RadioButton(selected = settings.widgetTheme == key, onClick = null)
+                            Text(name, modifier = Modifier.padding(start = 12.dp))
+                        }
+                    }
+                }
+            },
+            confirmButton = { TextButton(onClick = { open = false }) { Text(stringResource(R.string.action_cancel)) } },
+        )
     }
 }

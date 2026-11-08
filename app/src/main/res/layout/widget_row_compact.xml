@@ -30,6 +30,7 @@
         android:orientation="horizontal">
 
         <FrameLayout
+            android:id="@+id/row_icon_slot"
             android:layout_width="20dp"
             android:layout_height="20dp"
             android:layout_marginStart="3dp"

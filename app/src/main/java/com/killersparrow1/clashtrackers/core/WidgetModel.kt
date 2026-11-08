@@ -51,6 +51,7 @@ data class WidgetModel(
     /** Star Laboratory row; null when no Star Lab upgrade is running (free builders/labs get no rows). */
     val starLabRow: WidgetRow? = null,
     val accountTag: String = "",
+    val widgetTheme: String = "material_you",
     /** Lab jobs after [labRow]: the Goblin researcher works in parallel, so two lab jobs can run at once. */
     val extraLabRows: List<WidgetRow> = emptyList(),
 ) {
@@ -62,15 +63,13 @@ data class WidgetModel(
     val labRows: List<WidgetRow> get() = listOf(labRow) + extraLabRows
     val allRows: List<WidgetRow> get() = builderRows + labRows + petRow + bbRows + listOfNotNull(starLabRow)
 
-    /** Picks the top [maxRows] soonest finishing timers across builders, lab, and pets (running first, then completed). */
+    /** Picks the top [maxRows] soonest finishing running timers across builders, lab, and pets. */
     fun topTimers(maxRows: Int = 3): Pair<List<WidgetRow>, Int> {
-        val running = allRows.filter { it.kind == RowKind.RUNNING && it.finishAt != null }
+        val running = (builderRows + labRows + listOf(petRow))
+            .filter { it.kind == RowKind.RUNNING && it.finishAt != null }
             .sortedBy { it.finishAt }
-        val completed = allRows.filter { it.kind == RowKind.COMPLETED }
-        val sorted = running + completed
-        val selected = sorted.take(maxRows)
-        val hidden = maxOf(0, sorted.size - selected.size)
-        return selected to hidden
+        val selected = running.take(maxRows)
+        return selected to maxOf(0, running.size - selected.size)
     }
 }
 
@@ -157,6 +156,7 @@ object WidgetModelBuilder {
         times: UpgradeTimes,
         now: Long,
         accountTag: String = "",
+        widgetTheme: String = "material_you",
     ): WidgetModel {
         val export = state.export
         val pills = { type: BoostType ->
@@ -173,6 +173,7 @@ object WidgetModelBuilder {
                 footerLeft = if (state.syncFailed) listOf(FooterPart(SYNC_FAILED, FooterTone.ERROR)) else emptyList(),
                 footerRight = "", syncFailed = state.syncFailed, nextChangeAt = null,
                 accountTag = accountTag,
+                widgetTheme = widgetTheme,
             )
         }
 
@@ -270,6 +271,7 @@ object WidgetModelBuilder {
             bbRows = bbRows,
             starLabRow = starLabRow,
             accountTag = accountTag,
+            widgetTheme = widgetTheme,
             extraLabRows = labRowsSorted.drop(1),
         )
     }

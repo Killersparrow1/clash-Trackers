@@ -16,8 +16,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.TextAutoSize
@@ -78,8 +80,10 @@ fun TimerDashboard(
     onRenameAccount: (String, String) -> Unit,
     onDeleteAccount: (String) -> Unit,
     modifier: Modifier = Modifier,
+    wide: Boolean = false,
 ) {
     var filter by rememberSaveable { mutableStateOf(TimerFilter.ALL) }
+    var showHelp by rememberSaveable { mutableStateOf(false) }
     val timers = remember(model, filter) { model.timers(filter) }
 
     Column(modifier.fillMaxSize()) {
@@ -101,15 +105,17 @@ fun TimerDashboard(
                 }
             }
         }
-        LazyColumn(
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(if (wide) 2 else 1),
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             if (model.hasData) {
-                item(key = "village") { VillageSummary(model) }
+                item(key = "village", span = { GridItemSpan(maxLineSpan) }) { VillageSummary(model) }
             } else {
-                item(key = "welcome") {
+                item(key = "welcome", span = { GridItemSpan(maxLineSpan) }) {
                     SectionCard(stringResource(R.string.welcome_title)) {
                         Text(stringResource(R.string.welcome_sub), style = MaterialTheme.typography.bodyLarge)
                         Text(stringResource(R.string.welcome_step1))
@@ -120,13 +126,17 @@ fun TimerDashboard(
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
+                        TextButton(
+                            onClick = { showHelp = true },
+                            modifier = Modifier.heightIn(min = 48.dp),
+                        ) { Text(stringResource(R.string.help_link)) }
                     }
                 }
             }
 
-            item(key = "sync") { SyncCard(lastSync, busy, onSync) }
+            item(key = "sync", span = { GridItemSpan(maxLineSpan) }) { SyncCard(lastSync, busy, onSync) }
 
-            item(key = "boosts_events") {
+            item(key = "boosts_events", span = { GridItemSpan(maxLineSpan) }) {
                 BoostEventSection(
                     activeBoostState = activeBoostState,
                     eventSettings = eventSettings,
@@ -137,7 +147,7 @@ fun TimerDashboard(
             }
 
             if (model.hasData) {
-                item(key = "heading") {
+                item(key = "heading", span = { GridItemSpan(maxLineSpan) }) {
                     Text(
                         if (filter == TimerFilter.ALL) stringResource(R.string.village_upgrades) else stringResource(R.string.upgrades_filtered, stringResource(filter.labelRes)),
                         style = MaterialTheme.typography.titleMediumEmphasized,
@@ -145,7 +155,7 @@ fun TimerDashboard(
                     )
                 }
                 if (timers.isEmpty()) {
-                    item(key = "empty_filter") {
+                    item(key = "empty_filter", span = { GridItemSpan(maxLineSpan) }) {
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
@@ -166,6 +176,7 @@ fun TimerDashboard(
             }
         }
     }
+    if (showHelp) HelpDialog(onDismiss = { showHelp = false })
 }
 
 @Composable
