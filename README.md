@@ -22,13 +22,13 @@ Redesigned with **Material 3 Expressive**, authentic Clash typography, an advanc
 ---
 
 ## Screenshots
-
 <p align="center">
-  <img src="docs/screenshots/potion-active.png" alt="Timers screen in the app, with building and hero icons on every card" width="270">
-  &nbsp;&nbsp;
-  <img src="docs/screenshots/hero.png" alt="Home-screen widget with live countdowns, potions and Builder Base timers" width="340">
+  <img src="docs/screenshots/timer 1.png" alt="Timers screen - main view" width="180">
+  <img src="docs/screenshots/timer 2.png" alt="Timers screen - detailed view" width="180">
+  <img src="docs/screenshots/setting1.png" alt="Settings - account management" width="180">
+  <img src="docs/screenshots/setting 2.png" alt="Settings - detailed options" width="180">
+  <img src="docs/screenshots/support .png" alt="Support & Diagnostics" width="180">
 </p>
-<p align="center"><em>Left: the Timers screen. Right: the home-screen widget.</em></p>
 
 ## Widget Themes
 <p align="center">
