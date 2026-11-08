@@ -7,6 +7,8 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.media.AudioAttributes
+import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -17,15 +19,23 @@ import com.killersparrow1.clashtrackers.core.FinishNotice
 
 /** "Builder free: Inferno Tower" / "Lab free" / "Pet house free". */
 object Notifier {
-    const val CHANNEL_ID = "finished"
+    const val CHANNEL_ID = "finished_v2"
+    private const val OLD_CHANNEL_ID = "finished"
     private const val CLASH_PACKAGE = "com.supercell.clashofclans"
 
     fun ensureChannel(context: Context) {
         val nm = context.getSystemService(NotificationManager::class.java) ?: return
+        nm.deleteNotificationChannel(OLD_CHANNEL_ID)
         if (nm.getNotificationChannel(CHANNEL_ID) != null) return
+        val audioAttributes = AudioAttributes.Builder()
+            .setUsage(AudioAttributes.USAGE_ALARM)
+            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+            .build()
+        val soundUri = Uri.parse("android.resource://${context.packageName}/${R.raw.finish_sound}")
         nm.createNotificationChannel(
             NotificationChannel(CHANNEL_ID, "Upgrade finished", NotificationManager.IMPORTANCE_HIGH).apply {
                 description = "A builder, the lab or the pet house became free"
+                setSound(soundUri, audioAttributes)
             },
         )
     }

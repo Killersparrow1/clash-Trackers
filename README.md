@@ -160,6 +160,7 @@ cd clash-trackers
 - **Material 3 UI Inspiration**: Adapted from [Hy4ri/clash-timers](https://github.com/Hy4ri/clash-timers/tree/feat/material-app-ui).
 - **Font**: [Lilita One](app/src/main/res/font/lilita_one.ttf) by Juan Montoreano (SIL Open Font License 1.1).
 - **Game Data & Art**: Extracted from [clash-of-clans-data](https://github.com/chiefpansancolt/clash-of-clans-data).
+- **Finished Upgrade Sound**: Custom built-in sound (`finish_sound.ogg`). TODO: add sound source and licence.
 
 ---
 

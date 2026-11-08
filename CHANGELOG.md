@@ -4,6 +4,12 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 1.0.2 is the first version published on GitHub. Earlier versions were shared privately.
 
+## [Unreleased]
+
+### Added
+
+- Custom sound for finished upgrades.
+
 ## [1.0.2] - 2026-11-03
 
 ### Fixed
