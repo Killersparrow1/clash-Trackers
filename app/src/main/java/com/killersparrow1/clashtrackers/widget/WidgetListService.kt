@@ -11,9 +11,18 @@ import kotlinx.coroutines.runBlocking
 /** Feeds the scrolling List widget: section headings and timer rows, rebuilt whenever the widget redraws. */
 class WidgetListService : RemoteViewsService() {
     override fun onGetViewFactory(intent: Intent): RemoteViewsFactory =
-        Factory(applicationContext, intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID))
+        Factory(
+            applicationContext,
+            intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID),
+            intent.getBooleanExtra(EXTRA_SMALL, false),
+        )
 
-    private class Factory(private val context: Context, private val widgetId: Int) : RemoteViewsFactory {
+    companion object {
+        /** Intent extra: the widget is in its small size, so the list is one flat run of compact rows. */
+        const val EXTRA_SMALL = "small"
+    }
+
+    private class Factory(private val context: Context, private val widgetId: Int, private val small: Boolean) : RemoteViewsFactory {
         private var model: WidgetModel? = null
         private var live = true
         private var tiles = false
@@ -36,7 +45,11 @@ class WidgetListService : RemoteViewsService() {
             tiles = runCatching {
                 runBlocking { com.killersparrow1.clashtrackers.data.StateRepository(context).getWidgetStyle(widgetId) }
             }.getOrNull() == com.killersparrow1.clashtrackers.data.StateRepository.WIDGET_STYLE_TILES
-            items = if (tiles) renderer.tileItems(built.first, t) else renderer.listItems(built.first, t)
+            items = when {
+                small -> renderer.smallItems(built.first)
+                tiles -> renderer.tileItems(built.first, t)
+                else -> renderer.listItems(built.first, t)
+            }
         }
 
         override fun onDestroy() {
@@ -52,7 +65,7 @@ class WidgetListService : RemoteViewsService() {
             val t = renderer.themePalette(m.widgetTheme)
             return when (item) {
                 is WidgetRenderer.ListItem.Header -> renderer.headerView(item, m, t)
-                is WidgetRenderer.ListItem.Timer -> renderer.timerView(item.row, m, live, t)
+                is WidgetRenderer.ListItem.Timer -> renderer.timerView(item.row, m, live, t, compact = small)
                 is WidgetRenderer.ListItem.Tiles -> renderer.tilesView(item.rows, m, live, t)
             }
         }

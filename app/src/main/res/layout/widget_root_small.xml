@@ -60,22 +60,13 @@
         android:layout_weight="1"
         android:orientation="vertical">
 
-        <LinearLayout
-            android:id="@+id/rows_small"
+        <ListView
+            android:id="@+id/list"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" />
-
-        <TextView
-            android:id="@+id/foot_more"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:fontFamily="@font/lilita_one"
-            android:gravity="center"
-            android:paddingTop="4dp"
-            android:textColor="@color/w_idle"
-            android:textSize="11sp"
-            android:visibility="gone" />
+            android:layout_height="match_parent"
+            android:divider="@null"
+            android:dividerHeight="0dp"
+            android:scrollbars="none" />
     </LinearLayout>
 
 </LinearLayout>

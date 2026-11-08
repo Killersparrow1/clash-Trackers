@@ -9,6 +9,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 ### Added
 
 - Custom sound for finished upgrades.
+- The small widget size now scrolls through every timer instead of showing 3 and "+N more".
 - The List and Tiles widgets now scroll, so every timer fits however small you make them.
 - A second widget style, Tiles: round progress rings with the building icon in the middle, grouped by Builders, Lab, Pets and Builder Base, with the helper button and the Goblin badge. Choose it when you add or reconfigure a widget; List stays the default.
 - Language picker in Settings and a first Russian translation. More languages can be added with one XML file; see CONTRIBUTING.md.

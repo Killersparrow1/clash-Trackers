@@ -106,11 +106,11 @@ class WidgetRenderer(private val context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val smallSize = android.util.SizeF(250f, 130f)
             val largeSize = android.util.SizeF(250f, 320f)
-            val smallRv = renderSmall(model, liveCountdown, options)
+            val smallRv = renderSmall(model, liveCountdown, options, appWidgetId)
             val largeRv = renderLarge(model, liveCountdown, options, appWidgetId)
             return RemoteViews(mapOf(smallSize to smallRv, largeSize to largeRv))
         } else {
-            return if (isSmall) renderSmall(model, liveCountdown, options) else renderLarge(model, liveCountdown, options, appWidgetId)
+            return if (isSmall) renderSmall(model, liveCountdown, options, appWidgetId) else renderLarge(model, liveCountdown, options, appWidgetId)
         }
     }
 
@@ -154,7 +154,7 @@ class WidgetRenderer(private val context: Context) {
         return rv
     }
 
-    private fun renderSmall(model: WidgetModel, liveCountdown: Boolean, options: Bundle?): RemoteViews {
+    private fun renderSmall(model: WidgetModel, liveCountdown: Boolean, options: Bundle?, appWidgetId: Int): RemoteViews {
         val rv = RemoteViews(pkg, R.layout.widget_root_small)
         val sync = syncIntent()
         val t = palette(model.widgetTheme)
@@ -176,24 +176,13 @@ class WidgetRenderer(private val context: Context) {
         rv.setViewVisibility(R.id.empty, View.GONE)
         rv.setViewVisibility(R.id.content, View.VISIBLE)
 
-        val heightDp = reportedHeightDp(options) ?: 150
-        val maxRows = if (heightDp < 140) 2 else 3
-        val (topRows, hidden) = model.topTimers(maxRows)
-        val nowMs = System.currentTimeMillis()
-        val elapsed = SystemClock.elapsedRealtime()
-
-        rv.removeAllViews(R.id.rows_small)
-        topRows.forEach { r ->
-            rv.addView(R.id.rows_small, row(r, compact = true, liveCountdown, nowMs, elapsed, model.accountTag, t))
-        }
-
-        if (hidden > 0) {
-            rv.setViewVisibility(R.id.foot_more, View.VISIBLE)
-            rv.setTextViewText(R.id.foot_more, lctx.getString(R.string.widget_more, hidden))
-            rv.setTextColor(R.id.foot_more, t.idle)
-        } else {
-            rv.setViewVisibility(R.id.foot_more, View.GONE)
-        }
+        // Every running timer, soonest first, in a scrolling list (WidgetListService, "small" mode).
+        val adapter = Intent(context, WidgetListService::class.java)
+            .putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+            .putExtra(WidgetListService.EXTRA_SMALL, true)
+        adapter.data = Uri.parse(adapter.toUri(Intent.URI_INTENT_SCHEME))
+        rv.setRemoteAdapter(R.id.list, adapter)
+        rv.setPendingIntentTemplate(R.id.list, tapTemplate())
         return rv
     }
 
@@ -480,8 +469,12 @@ class WidgetRenderer(private val context: Context) {
         return v
     }
 
-    fun timerView(r: WidgetRow, model: WidgetModel, live: Boolean, t: Palette): RemoteViews =
-        row(r, false, live, System.currentTimeMillis(), SystemClock.elapsedRealtime(), model.accountTag, t, inList = true)
+    /** Small widget: all running timers, soonest finish first, no section headings. */
+    fun smallItems(model: WidgetModel): List<ListItem> =
+        model.topTimers(Int.MAX_VALUE).first.map { ListItem.Timer(it) }
+
+    fun timerView(r: WidgetRow, model: WidgetModel, live: Boolean, t: Palette, compact: Boolean = false): RemoteViews =
+        row(r, compact, live, System.currentTimeMillis(), SystemClock.elapsedRealtime(), model.accountTag, t, inList = true)
 
     fun themePalette(theme: String): Palette = palette(theme)
 
