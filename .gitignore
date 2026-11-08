@@ -38,3 +38,5 @@ releases/
 /tools/retrace.sh
 /tools/icon_sheet.html
 /tools/icons_missing.txt
+# Intentionally committed: fixed public debug key so updates install over old builds
+!app/debug-signing.keystore

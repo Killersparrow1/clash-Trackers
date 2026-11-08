@@ -38,6 +38,14 @@ android {
     }
 
     signingConfigs {
+        // One fixed key for every debug build (CI and local), so a new APK installs OVER the old one
+        // without uninstalling. This key is public on purpose (not secret); real releases use "release".
+        create("fixedDebug") {
+            storeFile = rootProject.file("app/debug-signing.keystore")
+            storePassword = "android"
+            keyAlias = "clashtrackersdebug"
+            keyPassword = "android"
+        }
         if (signingProps != null) {
             create("release") {
                 storeFile = File(signingProps.getProperty("storeFile"))
@@ -49,6 +57,9 @@ android {
     }
 
     buildTypes {
+        debug {
+            signingConfig = signingConfigs.getByName("fixedDebug")
+        }
         release {
             // Without keystore.properties Gradle builds app-release-unsigned.apk, which phones refuse to install.
             signingConfig = signingConfigs.findByName("release")
