@@ -268,7 +268,6 @@ class WidgetRenderer(private val context: Context) {
         }
         v.setTextColor(R.id.row_chrono, t.text)
         v.setTextColor(R.id.row_text, t.text)
-        v.setInt(R.id.row_clock, "setColorFilter", t.sub)
         v.setInt(R.id.row_check, "setColorFilter", t.goblin)
 
         when (row.kind) {
