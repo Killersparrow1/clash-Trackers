@@ -14,6 +14,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -117,7 +118,7 @@ private fun WidgetConfigScreen(appWidgetId: Int, onSave: (String, String, String
         "light" to stringResource(R.string.widget_theme_light),
     )
 
-    Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    Column(Modifier.fillMaxSize().systemBarsPadding().padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Text(stringResource(R.string.widget_choose_account), style = MaterialTheme.typography.titleLarge)
         if (accounts.isEmpty()) {
             Text(stringResource(R.string.widget_no_accounts))
@@ -154,15 +155,13 @@ private fun WidgetConfigScreen(appWidgetId: Int, onSave: (String, String, String
                             )
                         }
                         Text(stringResource(R.string.widget_theme), style = MaterialTheme.typography.titleMedium)
-                        Row(
-                            Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
+                        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             themes.forEach { (key, label) ->
                                 FilterChip(
                                     selected = selectedTheme == key,
                                     onClick = { selectedTheme = key },
                                     label = { Text(label) },
+                                    modifier = Modifier.fillMaxWidth(),
                                 )
                             }
                         }
