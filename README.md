@@ -176,13 +176,13 @@ cd clash-trackers
 - **Material 3 UI Inspiration**: Adapted from [Hy4ri/clash-timers](https://github.com/Hy4ri/clash-timers/tree/feat/material-app-ui).
 - **Font**: [Lilita One](app/src/main/res/font/lilita_one.ttf) by Juan Montoreano (SIL Open Font License 1.1).
 - **Game Data & Art**: Extracted from [clash-of-clans-data](https://github.com/chiefpansancolt/clash-of-clans-data).
-- **Finished Upgrade Sound**: Custom built-in sound (`finish_sound.ogg`). TODO: add sound source and licence.
+- **Finished Upgrade Sound**: Game audio from Clash of Clans, © Supercell. Used in this unofficial, non-commercial fan project under Supercell's Fan Content Policy. Source: [Zedge mirror](https://www.zedge.net/notification-sounds/2e5dc20a-223a-460a-8ab7-14ac75b6c127). Not covered by the MIT License.
 
 ---
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE). Game assets, names, and logos are property of Supercell.
+The source code is licensed under the [MIT License](LICENSE). Game assets, names, logos, and audio are property of Supercell and are not covered by the MIT License.
 
 ## Disclaimer
 
