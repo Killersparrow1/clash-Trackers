@@ -27,7 +27,7 @@ object Countdown {
     data class Segment(val format: String, val chronometerMs: Long, val nextEdgeMs: Long)
 
     /** Segment for a job finishing at [finishAtSec], rendered at [nowMs]; null once finished. */
-    fun segment(finishAtSec: Long, nowMs: Long): Segment? {
+    fun segment(finishAtSec: Long, nowMs: Long, daySuffix: String = "d"): Segment? {
         val finishMs = finishAtSec * 1000
         val left = finishMs - nowMs
         if (left <= 0) return null
@@ -35,9 +35,9 @@ object Countdown {
         val inDay = left - days * DAY_MS
         val dayBase = days * DAY_MS
         val (format, edgeLeft) = when {
-            days > 0 && inDay >= 10 * HOUR_MS -> "${days}d %s" to dayBase + 10 * HOUR_MS
-            days > 0 && inDay >= HOUR_MS -> "${days}d 0%s" to dayBase + HOUR_MS
-            days > 0 -> "${days}d 00:%s" to dayBase
+            days > 0 && inDay >= 10 * HOUR_MS -> "${days}$daySuffix %s" to dayBase + 10 * HOUR_MS
+            days > 0 && inDay >= HOUR_MS -> "${days}$daySuffix 0%s" to dayBase + HOUR_MS
+            days > 0 -> "${days}$daySuffix 00:%s" to dayBase
             inDay >= HOUR_MS -> "%s" to HOUR_MS
             else -> "0:%s" to 0L
         }
@@ -45,13 +45,14 @@ object Countdown {
     }
 
     /** The same text as a plain string, e.g. for the launcher-screen preview. */
-    fun text(remainingSec: Long): String {
+    fun text(remainingSec: Long, daySuffix: String = "d"): String {
         val s = remainingSec.coerceAtLeast(0)
         val d = s / 86400
         val h = (s % 86400) / 3600
         val m = (s % 3600) / 60
         val sec = s % 60
-        return if (d > 0) String.format(Locale.ROOT, "%dd %02d:%02d:%02d", d, h, m, sec)
+        // Explicit positions: an indexed day + non-indexed h/m/s keeps the args in a stable order.
+        return if (d > 0) String.format(Locale.ROOT, "%1\$d$daySuffix %2\$02d:%3\$02d:%4\$02d", d, h, m, sec)
         else String.format(Locale.ROOT, "%d:%02d:%02d", h, m, sec)
     }
 }

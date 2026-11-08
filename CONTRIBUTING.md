@@ -15,16 +15,17 @@ A few rules keep the project working:
 
 ## Adding a language
 
-The app is translated through normal Android string resources, so adding a language takes three small steps and no Kotlin code.
+The app is translated through normal Android string resources, so the core of a language takes three small steps and no Kotlin code. A full translation adds one optional JSON file.
 
-1. **Copy the English file.** Create `app/src/main/res/values-xx/strings.xml`, where `xx` is the language code (`ru` for Russian, `es` for Spanish, `pt-rBR` for Brazilian Portuguese; see the [Android resource qualifiers](https://developer.android.com/guide/topics/resources/providing-resources#AlternativeResources)). Start from `app/src/main/res/values/strings.xml` and translate the text between the tags.
+1. **Copy the English file.** Create `app/src/main/res/values-xx/strings.xml`, where `xx` is the language code (`ru` for Russian, `es` for Spanish, `pt-rBR` for Brazilian Portuguese; see the [Android resource qualifiers](https://developer.android.com/guide/topics/resources/providing-resources#AlternativeResources)). Start from `app/src/main/res/values/strings.xml` and translate the text between the tags. This file covers the UI **and** the widget: countdown units (`1д 20:12:05`), footer labels ("Completed", "Helpers: …"), and the Support diagnostics all come out of it.
 2. **Keep the placeholders.** Text like `%1$s`, `%1$d` and `%%` is filled in by the app. Keep every placeholder from the English text; you may reorder them (`%2$d ... %1$s`). Use `\'` for an apostrophe and `&amp;` for `&`. Leave `app_name` and `widget_name` out unless you really want to change them.
 3. **Register the language.** Add one line to `app/src/main/res/xml/locales_config.xml`: `<locale android:name="xx" />`. This is what makes the language appear in **Settings > Language** (shown by its own name, for example "Русский") and in Android's own *App languages* screen.
+4. **(Optional) Translate the game names.** The 250 upgrade, building, troop, pet, spell, equipment and trap names live in `app/src/main/assets/names.json` (English). Copy it to `names_xx.json` inside the same `assets/` folder and translate each `"name"` value — the numeric keys are the game's internal IDs and must stay untouched. Then add one line to the `LOCALIZED_FILES` map in `StateRepository.Names` (about 20 lines up in `app/src/main/java/com/killersparrow1/clashtrackers/data/StateRepository.kt`), for example `"es" to "names_es.json"`. If you skip this step, names fall back to English.
+
+In Russian, a crafted-defense stat reads like `Урон · Торт-катапульта` (stat first, building second) because `widget_module_label` reorders the two placeholders — reorder other phrases the same way if your language needs it.
 
 Strings you leave out fall back to English, so a partial translation is fine. `./gradlew :app:testDebugUnitTest` includes `StringsConsistencyTest`, which fails if a translation uses an unknown name, changes the placeholders, or is missing from `locales_config.xml`.
 
-Things that are **not translated yet** (they are built in the app's core code, which has its own tests): upgrade and building names, countdown units such as `1d 20:12:05`, the widget's footer ("synced 2m ago", "Helpers: ..."), "Completed" and "Idle", and the Support tab. Pull requests that move these into string resources are welcome.
-
-Translations written with AI help should say so in a comment at the top of the file, as `values-ru/strings.xml` does, so native speakers know to review them.
+Translations written with AI help should say so in a comment at the top of the file, as `values-ru/strings.xml` and `names_ru.json` do, so native speakers know to review them. The Russian game-name draft uses community-checked terms (Ратуша, Швырятель, Потайная тесла), but specialists are still welcome to fix official wording.
 
 Your contributions are licensed under the MIT License, the same as the project's code.

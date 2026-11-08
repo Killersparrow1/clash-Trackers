@@ -30,6 +30,14 @@ Redesigned with **Material 3 Expressive**, authentic Clash typography, an advanc
 </p>
 <p align="center"><em>Left: the Timers screen. Right: the home-screen widget.</em></p>
 
+## Widget Themes
+<p align="center">
+  <img src="docs/screenshots/material.jpg" alt="Material You theme" width="150">
+  <img src="docs/screenshots/clash.jpg" alt="Clash theme" width="150">
+  <img src="docs/screenshots/dark.jpg" alt="Dark theme" width="150">
+  <img src="docs/screenshots/light.jpg" alt="Light theme" width="150">
+</p>
+
 ---
 
 ## Highlights
@@ -80,8 +88,9 @@ Redesigned with **Material 3 Expressive**, authentic Clash typography, an advanc
 ### 🌍 Languages
 - **In-app Language Picker**: Choose a language in **Settings → Language** (or use Android's *App languages* screen on Android 13+). The home-screen widget follows your choice.
 - **Available now**: English and Russian (first Russian draft, native-speaker review welcome).
-- **Add your language**: Copy one XML file and add one line, no coding needed. See [Adding a language](CONTRIBUTING.md#adding-a-language).
-- **Still English**: Upgrade and building names, countdown units, the widget footer and some Support diagnostics are not translated yet.
+- **Fully Localized**: Upgrade and building names (all 250 game IDs: buildings, troops, pets, spells, hero equipment and traps), countdown units such as `1д 20:12:05`, the widget's footer and labels ("Готово", "Помощники: …"), and the Support diagnostics are all translated.
+- **Add your language**: Copy one XML file, optionally one JSON file, and add one line each — no coding needed. See [Adding a language](CONTRIBUTING.md#adding-a-language).
+- **Still English**: The About section body (Supercell's required fan-content wording and licence text), the sync toast summary and the runtime sync-log lines.
 
 ### 🔒 100% Offline Privacy
 - **Zero Internet Permission**: The app does not request `android.permission.INTERNET`. It cannot send or receive data over the network.
@@ -114,18 +123,18 @@ clash-trackers/
 │   │   │   ├── ExportParser.kt      # Clash of Clans clipboard data parser
 │   │   │   ├── Model.kt             # Village export, Job, Helper, & Category models
 │   │   │   ├── TimerEngine.kt       # Multi-interval time-segment simulation engine
-│   │   │   └── WidgetModel.kt       # Widget state preparation & formatting
+│   │   │   ├── WidgetModel.kt       # Widget state preparation & formatting (via WidgetText.kt)
 │   │   ├── data/           # DataStore persistence (StateRepository, Names, Times)
 │   │   ├── ui/             # Jetpack Compose Material 3 Expressive UI
 │   │   │   ├── ClashTrackersContent.kt # Adaptive scaffold with bottom bar or navigation rail
 │   │   │   ├── TimerDashboard.kt    # Upgrade cards, filters, & sync controls
 │   │   │   ├── BoostEventSection.kt # Interactive Clock Tower & potion controls
-│   │   │   ├── HelpDialog.kt        # Paged setup and sync guide
+│   │   │   ├── HelpDialog.kt        # Setup and sync guide with looping video
 │   │   │   ├── SettingsSection.kt   # Grouped settings & dialog editors
 │   │   │   ├── SupportScreen.kt     # Diagnostics, crash reports, & widget preview
 │   │   │   └── theme/               # MaterialExpressiveTheme & Lilita One Typography
 │   │   └── widget/         # Android RemoteViews widget provider, renderers, & WidgetConfigActivity (account picker)
-│   └── src/test/java/com/killersparrow1/clashtrackers/  # Comprehensive unit test suite (30+ test cases)
+│   └── src/test/java/com/killersparrow1/clashtrackers/  # Comprehensive unit test suite (160+ test cases)
 └── tools/                  # Asset & icon generators from clash-of-clans-data
 ```
 

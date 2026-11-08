@@ -19,6 +19,7 @@ import com.killersparrow1.clashtrackers.core.WidgetSchedule
 import com.killersparrow1.clashtrackers.data.Names
 import com.killersparrow1.clashtrackers.data.StateRepository
 import com.killersparrow1.clashtrackers.data.Times
+import com.killersparrow1.clashtrackers.data.WidgetTexts
 import com.killersparrow1.clashtrackers.notify.Notifier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -127,6 +128,7 @@ object WidgetUpdater {
         val repo = StateRepository(app)
         return try {
             val names = Names.get(app)
+            val widgetText = WidgetTexts.get(app)
             val nowMs = System.currentTimeMillis()
             val now = nowMs / 1000
 
@@ -193,7 +195,7 @@ object WidgetUpdater {
                 )
 
                 val theme = repo.getWidgetTheme(id)
-                val model = WidgetModelBuilder.build(state, settings, names, Times.get(app), now, tag ?: "", theme)
+                val model = WidgetModelBuilder.build(state, settings, names, Times.get(app), now, tag ?: "", theme, widgetText)
                 manager.updateAppWidget(id, renderer.render(model, settings.liveCountdown, manager.getAppWidgetOptions(id)))
 
                 WidgetSchedule.nextUpdateMs(model, nowMs, settings.liveCountdown)?.let { nextUpdates.add(it) }

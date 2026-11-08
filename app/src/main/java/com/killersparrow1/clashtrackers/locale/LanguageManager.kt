@@ -75,6 +75,13 @@ object LanguageManager {
         }
     }
 
+    /** The language code ("ru") behind [current]: the chosen tag, or the phone's default language. */
+    fun language(context: Context): String {
+        val tag = current(context)
+        return if (tag.isNotEmpty()) Locale.forLanguageTag(tag).language
+        else context.resources.configuration.locales[0].language
+    }
+
     /** True if [tag] and the current choice are the same language (so "ru" matches "ru-RU"). */
     fun isSelected(context: Context, tag: String): Boolean {
         val chosen = current(context)

@@ -18,6 +18,7 @@ import com.killersparrow1.clashtrackers.core.SyncLog
 import com.killersparrow1.clashtrackers.core.SyncLogEntry
 import com.killersparrow1.clashtrackers.core.UpgradeTimes
 import com.killersparrow1.clashtrackers.core.normalizeTag
+import com.killersparrow1.clashtrackers.locale.LanguageManager
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
@@ -392,14 +393,28 @@ class StateRepository(context: Context) {
     }
 }
 
-/** Bundled `assets/names.json`, loaded once per process. */
+/** Bundled name files per language (`assets/`); anything missing falls back to `names.json` (English). */
 object Names {
-    @Volatile private var cached: NameMap? = null
+    /** Language code → file name. To add a language: create `names_xx.json` and add one line here. */
+    private val LOCALIZED_FILES = mapOf("ru" to "names_ru.json")
+    private val cached = mutableMapOf<String, NameMap>()
 
-    fun get(context: Context): NameMap = cached ?: synchronized(this) {
-        cached ?: context.applicationContext.assets.open("names.json").bufferedReader().use {
-            NameMap.fromJson(it.readText())
-        }.also { cached = it }
+    fun get(context: Context): NameMap {
+        val lang = LanguageManager.language(context)
+        return synchronized(this) { cached.getOrPut(lang) { load(context, lang) } }
+    }
+
+    private fun load(context: Context, lang: String): NameMap {
+        val text = WidgetTexts.get(context)
+        val app = context.applicationContext
+        LOCALIZED_FILES[lang]?.let { file ->
+            runCatching {
+                app.assets.open(file).bufferedReader().use { NameMap.fromJson(it.readText(), text) }
+            }.getOrNull()?.let { return it }
+        }
+        return app.assets.open("names.json").bufferedReader().use {
+            NameMap.fromJson(it.readText(), text)
+        }
     }
 }
 

@@ -40,6 +40,7 @@ import com.killersparrow1.clashtrackers.core.WidgetModelBuilder
 import com.killersparrow1.clashtrackers.data.Names
 import com.killersparrow1.clashtrackers.data.StateRepository
 import com.killersparrow1.clashtrackers.data.Times
+import com.killersparrow1.clashtrackers.data.WidgetTexts
 import com.killersparrow1.clashtrackers.sync.SyncRunner
 import com.killersparrow1.clashtrackers.ui.ClashTrackersContent
 import com.killersparrow1.clashtrackers.ui.PlayerNameDialog
@@ -76,6 +77,7 @@ private fun ClashTimersApp() {
     val repo = remember { StateRepository(context) }
     val names = remember { Names.get(context) }
     val times = remember { Times.get(context) }
+    val widgetText = remember { WidgetTexts.get(context) }
     val scope = rememberCoroutineScope()
     val snackbar = remember { SnackbarHostState() }
     var retry by remember { mutableIntStateOf(0) }
@@ -124,7 +126,7 @@ private fun ClashTimersApp() {
         }
         is LoadState.Ready -> {
             val (state, settings, log) = loaded.data
-            val model = remember(state, settings, now) { WidgetModelBuilder.build(state, settings, names, times, now, selectedTag ?: "") }
+            val model = remember(state, settings, now) { WidgetModelBuilder.build(state, settings, names, times, now, selectedTag ?: "", text = widgetText) }
             val changeSettings: ((AppSettings) -> AppSettings) -> Unit = { change ->
                 scope.launch {
                     try {

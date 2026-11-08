@@ -276,7 +276,7 @@ private fun VillageSummary(model: WidgetModel) {
                 next.row.finishAt?.let { finishAt ->
                     Spacer(Modifier.size(4.dp))
                     Text(
-                        stringResource(R.string.next_finish, next.row.name, Countdown.text(next.row.remaining)),
+                        stringResource(R.string.next_finish, next.row.name, Countdown.text(next.row.remaining, stringResource(R.string.time_day_short))),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.primary,
                     )
@@ -388,7 +388,7 @@ private fun TimerCard(timer: DashboardTimer) {
                 Text(SyncRunner.plainText(row.label), style = MaterialTheme.typography.titleLargeEmphasized)
             }
             BasicText(
-                if (row.kind == RowKind.RUNNING) Countdown.text(row.remaining) else row.staticStatus,
+                if (row.kind == RowKind.RUNNING) Countdown.text(row.remaining, stringResource(R.string.time_day_short)) else row.staticStatus,
                 style = MaterialTheme.typography.displaySmallEmphasized.copy(
                     fontFeatureSettings = "tnum",
                     color = MaterialTheme.colorScheme.primary,

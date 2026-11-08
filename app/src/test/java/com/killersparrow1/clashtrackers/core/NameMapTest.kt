@@ -79,4 +79,27 @@ class NameMapTest {
         assertEquals(1, m.size)
         assertEquals("A", m.name(1))
     }
+
+    /** `names_ru.json` must translate every ID of `names.json`, one to one. */
+    @Test fun russianNamesCoverEveryId() {
+        fun ids(text: String): Collection<String> {
+            val root = Json.parseToJsonElement(text).jsonObject
+            return (root["names"] as? JsonObject ?: root).keys
+        }
+        val en = SampleExports.file("src/main/assets/names.json", "app/src/main/assets/names.json").readText()
+        val ru = SampleExports.file("src/main/assets/names_ru.json", "app/src/main/assets/names_ru.json").readText()
+        assertEquals(ids(en), ids(ru))
+        val enMap = NameMap.fromJson(en)
+        // The Russian resource order (`widget_module_label`) goes in explicitly: no Android resources here.
+        val ruMap = NameMap.fromJson(ru, WidgetText(moduleLabel = "%2\$s · %1\$s"))
+        assertEquals(enMap.size, ruMap.size)
+        // Each ID has a non-English translation.
+        for (id in ids(en).mapNotNull(String::toIntOrNull).sorted()) {
+            assertTrue("no Russian name for $id", ruMap.has(id))
+            assertTrue("ID $id not translated", ruMap.name(id) != enMap.name(id))
+        }
+        assertEquals("Ратуша", ruMap.name(1000001))
+        val module = Job(JobCategory.BUILDER, JobSource.MODULE, 102000040, 8, 100, false, 1000051, 103000013)
+        assertEquals("Урон · Торт-катапульта", ruMap.title(module))
+    }
 }

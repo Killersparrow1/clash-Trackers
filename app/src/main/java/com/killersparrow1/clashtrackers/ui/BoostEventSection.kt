@@ -116,7 +116,7 @@ fun BoostEventSection(
                                     Text(event.name, style = MaterialTheme.typography.labelLarge)
                                     val leftSec = (event.endTimestamp - now).coerceAtLeast(0)
                                     Text(
-                                        stringResource(R.string.event_speedup, event.timeReductionPercent.toInt(), Countdown.text(leftSec)),
+                                        stringResource(R.string.event_speedup, event.timeReductionPercent.toInt(), Countdown.text(leftSec, stringResource(R.string.time_day_short))),
                                         style = MaterialTheme.typography.bodySmall,
                                     )
                                 }
@@ -205,7 +205,7 @@ private fun ActiveBoostItem(mod: BoostModifier, now: Long, onCancel: () -> Unit)
             Column {
                 Text(mod.name, style = MaterialTheme.typography.labelLarge)
                 Text(
-                    stringResource(R.string.boost_left, Countdown.text(leftSec), mod.multiplier.toInt(), formatDuration(savedSec)),
+                    stringResource(R.string.boost_left, Countdown.text(leftSec, stringResource(R.string.time_day_short)), mod.multiplier.toInt(), formatDuration(savedSec)),
                     style = MaterialTheme.typography.bodySmall,
                 )
             }

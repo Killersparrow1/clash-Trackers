@@ -28,7 +28,6 @@ import com.killersparrow1.clashtrackers.core.RowButton
 import com.killersparrow1.clashtrackers.core.RowKind
 import com.killersparrow1.clashtrackers.core.WidgetActions
 import com.killersparrow1.clashtrackers.core.WidgetModel
-import com.killersparrow1.clashtrackers.core.WidgetModelBuilder
 import com.killersparrow1.clashtrackers.core.WidgetRow
 import com.killersparrow1.clashtrackers.locale.LanguageManager
 import com.killersparrow1.clashtrackers.sync.SyncActivity
@@ -132,7 +131,7 @@ class WidgetRenderer(private val context: Context) {
             rv.setViewVisibility(R.id.content, View.GONE)
             rv.setViewVisibility(R.id.empty, View.VISIBLE)
             rv.setOnClickPendingIntent(R.id.empty, sync)
-            rv.setTextViewText(R.id.empty_text, if (model.syncFailed) WidgetModelBuilder.SYNC_FAILED else lctx.getString(R.string.widget_no_data))
+            rv.setTextViewText(R.id.empty_text, if (model.syncFailed) model.text.syncFailed else model.text.noData)
             rv.setTextColor(R.id.empty_text, t.text)
             rv.setTextViewText(R.id.lbl_no_data_hint, lctx.getString(R.string.widget_no_data_hint))
             rv.setTextColor(R.id.lbl_no_data_hint, t.sub)
@@ -197,7 +196,7 @@ class WidgetRenderer(private val context: Context) {
             rv.setViewVisibility(R.id.content, View.GONE)
             rv.setViewVisibility(R.id.empty, View.VISIBLE)
             rv.setOnClickPendingIntent(R.id.empty, sync)
-            rv.setTextViewText(R.id.empty_text, if (model.syncFailed) WidgetModelBuilder.SYNC_FAILED else lctx.getString(R.string.widget_no_data))
+            rv.setTextViewText(R.id.empty_text, if (model.syncFailed) model.text.syncFailed else model.text.noData)
             rv.setTextColor(R.id.empty_text, t.text)
             return rv
         }
@@ -276,7 +275,7 @@ class WidgetRenderer(private val context: Context) {
             RowKind.RUNNING -> {
                 v.setProgressBar(R.id.row_fill, 1000, (row.progress * 1000).roundToInt(), false)
                 icons.bitmap("clock", (12 * density).roundToInt())?.let { v.setImageViewBitmap(R.id.row_clock, it) }
-                val segment = if (live) row.finishAt?.let { Countdown.segment(it, nowMs) } else null
+                val segment = if (live) row.finishAt?.let { Countdown.segment(it, nowMs, model.text.day) } else null
                 if (segment != null) {
                     v.setChronometer(R.id.row_chrono, elapsed + segment.chronometerMs, segment.format, true)
                     v.setChronometerCountDown(R.id.row_chrono, true)
@@ -366,7 +365,7 @@ class WidgetRenderer(private val context: Context) {
         val sb = SpannableStringBuilder(model.buildersLabel)
         if (model.goblinWorking) {
             val start = sb.length
-            sb.append(" + Goblin")
+            sb.append(" ${model.text.goblinSuffix}")
             sb.setSpan(ForegroundColorSpan(t.goblin), start, sb.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         }
         return sb
