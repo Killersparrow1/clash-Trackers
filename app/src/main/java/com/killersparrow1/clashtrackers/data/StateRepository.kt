@@ -222,7 +222,16 @@ class StateRepository(context: Context) {
         store.edit { prefs ->
             ensureMigrated(prefs)
             val current = AppState.decode(prefs[stateKey(norm)])
-            prefs[stateKey(norm)] = transform(current).encode()
+            val updated = transform(current)
+            prefs[stateKey(norm)] = updated.encode()
+            // Remember the Town Hall level on the account list (shown as the account picture).
+            val th = updated.export?.townHallLevel
+            val index = AccountsIndex.decode(prefs[ACCOUNTS_INDEX])
+            if (th != null && index.accounts.any { it.tag == norm && it.townHall != th }) {
+                prefs[ACCOUNTS_INDEX] = index.copy(
+                    accounts = index.accounts.map { if (it.tag == norm) it.copy(townHall = th) else it },
+                ).encode()
+            }
         }
     }
 
