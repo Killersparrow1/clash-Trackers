@@ -1,5 +1,7 @@
 package com.killersparrow1.clashtrackers.ui
 
+import com.killersparrow1.clashtrackers.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.imePadding
@@ -36,10 +38,10 @@ fun PlayerNameDialog(current: String?, firstLaunch: Boolean, onDone: (String) ->
     AlertDialog(
         modifier = Modifier.imePadding(),
         onDismissRequest = onDismiss,
-        title = { Text(if (firstLaunch) "Welcome, Chief!" else "Player name") },
+        title = { Text(stringResource(if (firstLaunch) R.string.welcome_chief else R.string.settings_player_name)) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("What name should the app and widget show? Leave it empty to use \"${AppSettings.DEFAULT_PLAYER_NAME}\".")
+                Text(stringResource(R.string.player_name_prompt, AppSettings.DEFAULT_PLAYER_NAME))
                 OutlinedTextField(
                     value = text,
                     onValueChange = { text = it.take(AppSettings.MAX_PLAYER_NAME) },
@@ -53,9 +55,9 @@ fun PlayerNameDialog(current: String?, firstLaunch: Boolean, onDone: (String) ->
                 )
             }
         },
-        confirmButton = { TextButton(onClick = save) { Text("Save") } },
+        confirmButton = { TextButton(onClick = save) { Text(stringResource(R.string.action_save)) } },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text(if (firstLaunch) "Skip" else "Cancel") }
+            TextButton(onClick = onDismiss) { Text(stringResource(if (firstLaunch) R.string.action_skip else R.string.action_cancel)) }
         },
     )
 }

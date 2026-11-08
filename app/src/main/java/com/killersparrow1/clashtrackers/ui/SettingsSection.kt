@@ -1,5 +1,17 @@
 package com.killersparrow1.clashtrackers.ui
 
+import android.app.Activity
+import android.content.ContextWrapper
+import androidx.compose.material3.RadioButton
+import com.killersparrow1.clashtrackers.locale.LanguageManager
+import com.killersparrow1.clashtrackers.sync.SyncRunner
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import com.killersparrow1.clashtrackers.R
+import androidx.compose.ui.res.stringResource
 import android.Manifest
 import android.content.Context
 import android.content.Intent
@@ -63,92 +75,95 @@ fun SettingsSection(
     var confirmReset by rememberSaveable { mutableStateOf(false) }
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        Text("Changes save automatically.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        SectionCard("Your village") {
-            SettingRow("Player name", settings.displayName, "Shown in the app and on your widget") { editName = true }
+        Text(stringResource(R.string.settings_autosave), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        SectionCard(stringResource(R.string.settings_section_village)) {
+            SettingRow(stringResource(R.string.settings_player_name), settings.displayName, stringResource(R.string.settings_player_name_desc)) { editName = true }
         }
-        SectionCard("Notifications") {
-            SwitchRow("Upgrade finish alerts", settings.notificationsEnabled) { on ->
+        SectionCard(stringResource(R.string.settings_language)) {
+            LanguageSetting()
+        }
+        SectionCard(stringResource(R.string.settings_section_notifications)) {
+            SwitchRow(stringResource(R.string.settings_finish_alerts), settings.notificationsEnabled) { on ->
                 onChange { it.copy(notificationsEnabled = on) }
                 if (on && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !Notifier.allowed(context)) {
                     askPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
                 }
             }
-            Text("Get an alert when a builder, the laboratory or the pet house is free.", style = MaterialTheme.typography.bodyMedium)
+            Text(stringResource(R.string.settings_alert_desc), style = MaterialTheme.typography.bodyMedium)
             if (settings.notificationsEnabled && !notificationsAllowed) {
-                Text("Notifications are blocked by Android.", color = MaterialTheme.colorScheme.error)
+                Text(stringResource(R.string.settings_notif_blocked), color = MaterialTheme.colorScheme.error)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     OutlinedButton(onClick = { askPermission.launch(Manifest.permission.POST_NOTIFICATIONS) }) {
-                        Text("Allow notifications")
+                        Text(stringResource(R.string.settings_allow_notif))
                     }
                 }
-                OutlinedButton(onClick = { openNotificationSettings(context); permissionTick++ }) { Text("Notification settings") }
+                OutlinedButton(onClick = { openNotificationSettings(context); permissionTick++ }) { Text(stringResource(R.string.settings_notif_settings)) }
             }
             Text(
-                "For reliable alerts after a reboot, allow Auto-start and unrestricted battery use in Android app settings.",
+                stringResource(R.string.settings_battery_hint),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            OutlinedButton(onClick = { openAppSettings(context) }) { Text("Battery and auto-start settings") }
+            OutlinedButton(onClick = { openAppSettings(context) }) { Text(stringResource(R.string.settings_battery_btn)) }
         }
-        SectionCard("Builders") {
+        SectionCard(stringResource(R.string.settings_section_builders)) {
             val derived = export?.derivedTotalBuilders ?: AppSettings.DEFAULT_TOTAL_BUILDERS
             NumberSetting(
-                title = "Total builders",
+                title = stringResource(R.string.settings_total_builders),
                 value = settings.totalBuildersOverride,
                 automatic = derived,
                 range = 1..10,
-                unit = "Builders",
-                description = "Automatic uses Builder's Huts and B.O.B's Hut from the export.",
-                automaticLabel = "Use automatic builder count",
+                unit = stringResource(R.string.unit_builders),
+                description = stringResource(R.string.settings_builders_desc),
+                automaticLabel = stringResource(R.string.settings_auto_builders),
             ) { value -> onChange { it.copy(totalBuildersOverride = value) } }
-            SwitchRow("Boost the Goblin Builder too", b.boostsApplyToGoblin) { on ->
+            SwitchRow(stringResource(R.string.settings_boost_goblin), b.boostsApplyToGoblin) { on ->
                 boosts { it.copy(boostsApplyToGoblin = on) }
             }
         }
-        SectionCard("Potions and snacks") {
-            Text("Hours saved for each hour of use. For example, 9 hours saved means 10× speed.", style = MaterialTheme.typography.bodyMedium)
-            HoursSetting("Builder potion", b.builderPotionSavingSec, 1..47) { value -> boosts { it.copy(builderPotionSavingSec = value) } }
-            HoursSetting("Builder Bite", b.builderBiteSavingSec, 1..23) { value -> boosts { it.copy(builderBiteSavingSec = value) } }
-            HoursSetting("Research potion", b.researchPotionSavingSec, 1..47) { value -> boosts { it.copy(researchPotionSavingSec = value) } }
-            HoursSetting("Pet potion", b.petPotionSavingSec, 1..47) { value -> boosts { it.copy(petPotionSavingSec = value) } }
+        SectionCard(stringResource(R.string.settings_section_potions)) {
+            Text(stringResource(R.string.settings_potions_desc), style = MaterialTheme.typography.bodyMedium)
+            HoursSetting(stringResource(R.string.potion_builder), b.builderPotionSavingSec, 1..47) { value -> boosts { it.copy(builderPotionSavingSec = value) } }
+            HoursSetting(stringResource(R.string.potion_bite), b.builderBiteSavingSec, 1..23) { value -> boosts { it.copy(builderBiteSavingSec = value) } }
+            HoursSetting(stringResource(R.string.potion_research), b.researchPotionSavingSec, 1..47) { value -> boosts { it.copy(researchPotionSavingSec = value) } }
+            HoursSetting(stringResource(R.string.potion_pet), b.petPotionSavingSec, 1..47) { value -> boosts { it.copy(petPotionSavingSec = value) } }
         }
-        SectionCard("Helpers") {
-            Text("Automatic savings use the helper's level in your village export.", style = MaterialTheme.typography.bodyMedium)
+        SectionCard(stringResource(R.string.settings_section_helpers)) {
+            Text(stringResource(R.string.settings_helpers_desc), style = MaterialTheme.typography.bodyMedium)
             NumberSetting(
-                title = "Builder's Apprentice",
+                title = stringResource(R.string.helper_apprentice),
                 value = b.apprenticeSavingSecOverride?.div(H)?.toInt(),
                 automatic = export?.helper(GameIds.HELPER_BUILDERS_APPRENTICE)?.level,
                 range = 1..24,
-                unit = "Hours saved per session",
-                automaticLabel = "Use helper level from export",
+                unit = stringResource(R.string.unit_hours_per_session),
+                automaticLabel = stringResource(R.string.settings_auto_helper),
             ) { value -> boosts { it.copy(apprenticeSavingSecOverride = value?.times(H)) } }
             NumberSetting(
-                title = "Lab Assistant",
+                title = stringResource(R.string.helper_lab_assistant),
                 value = b.labAssistantSavingSecOverride?.div(H)?.toInt(),
                 automatic = export?.helper(GameIds.HELPER_LAB_ASSISTANT)?.level,
                 range = 1..24,
-                unit = "Hours saved per session",
-                automaticLabel = "Use helper level from export",
+                unit = stringResource(R.string.unit_hours_per_session),
+                automaticLabel = stringResource(R.string.settings_auto_helper),
             ) { value -> boosts { it.copy(labAssistantSavingSecOverride = value?.times(H)) } }
             NumberSetting(
-                title = "Helper session interval",
+                title = stringResource(R.string.settings_helper_interval),
                 value = (b.helperPeriodSec / H).toInt(),
                 range = 2..48,
-                unit = "Hours",
-                description = "Time between helper sessions; the default is 23 hours.",
+                unit = stringResource(R.string.unit_hours),
+                description = stringResource(R.string.settings_interval_desc),
             ) { value -> value?.let { hours -> boosts { it.copy(helperPeriodSec = hours * H) } } }
         }
-        SectionCard("Widget compatibility") {
-            SwitchRow("Live seconds countdown", settings.liveCountdown) { on -> onChange { it.copy(liveCountdown = on) } }
+        SectionCard(stringResource(R.string.settings_section_widget)) {
+            SwitchRow(stringResource(R.string.settings_live_countdown), settings.liveCountdown) { on -> onChange { it.copy(liveCountdown = on) } }
             Text(
-                "Only affects the home-screen widget. Turn this off if your launcher does not display countdowns correctly.",
+                stringResource(R.string.settings_live_desc),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
         OutlinedButton(onClick = { confirmReset = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
-            Text("Reset settings")
+            Text(stringResource(R.string.settings_reset))
         }
     }
     if (editName) {
@@ -162,15 +177,15 @@ fun SettingsSection(
     if (confirmReset) {
         AlertDialog(
             onDismissRequest = { confirmReset = false },
-            title = { Text("Reset settings?") },
-            text = { Text("Restore builder, boost, helper and notification defaults. Your name, saved village and widget countdown preference will stay unchanged.") },
+            title = { Text(stringResource(R.string.settings_reset_title)) },
+            text = { Text(stringResource(R.string.settings_reset_text)) },
             confirmButton = {
                 TextButton(onClick = {
                     onChange { AppSettings(liveCountdown = it.liveCountdown, playerName = it.playerName) }
                     confirmReset = false
-                }) { Text("Reset") }
+                }) { Text(stringResource(R.string.action_reset)) }
             },
-            dismissButton = { TextButton(onClick = { confirmReset = false }) { Text("Cancel") } },
+            dismissButton = { TextButton(onClick = { confirmReset = false }) { Text(stringResource(R.string.action_cancel)) } },
         )
     }
 }
@@ -181,8 +196,8 @@ private fun HoursSetting(title: String, seconds: Long, range: IntRange, onSet: (
         title = title,
         value = (seconds / H).toInt(),
         range = range,
-        unit = "Hours saved",
-        description = "${seconds / H + 1}× speed",
+        unit = stringResource(R.string.unit_hours_saved),
+        description = stringResource(R.string.speed_x, seconds / H + 1),
     ) { value -> value?.let { onSet(it * H) } }
 }
 
@@ -199,9 +214,9 @@ private fun NumberSetting(
 ) {
     var editing by rememberSaveable { mutableStateOf(false) }
     val valueLabel = when {
-        value != null -> "$value ${unit.lowercase()}"
-        automatic != null -> "Automatic · $automatic ${unit.lowercase()}"
-        else -> "Automatic · helper not found in export"
+        value != null -> stringResource(R.string.value_unit, value, unit.lowercase())
+        automatic != null -> stringResource(R.string.automatic_value, automatic, unit.lowercase())
+        else -> stringResource(R.string.automatic_missing)
     }
     SettingRow(title, valueLabel, description) { editing = true }
     if (editing) {
@@ -227,7 +242,7 @@ private fun SettingRow(title: String, value: String, description: String? = null
                 description?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
             }
         },
-        modifier = Modifier.fillMaxWidth().clickable(role = Role.Button, onClickLabel = "Edit $title", onClick = onClick),
+        modifier = Modifier.fillMaxWidth().clickable(role = Role.Button, onClickLabel = stringResource(R.string.edit_title, title), onClick = onClick),
         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
     )
 }
@@ -255,4 +270,57 @@ fun openAppSettings(context: Context) {
     val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}"))
         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     runCatching { context.startActivity(intent) }
+}
+
+
+/** Language picker: "System default" plus every language listed in res/xml/locales_config.xml. */
+@Composable
+private fun LanguageSetting() {
+    val context = LocalContext.current
+    var open by rememberSaveable { mutableStateOf(false) }
+    val systemLabel = stringResource(R.string.language_system)
+    val languages = remember { LanguageManager.available(context) }
+    val options = listOf(LanguageManager.SYSTEM to systemLabel) + languages
+    val currentLabel = options.firstOrNull { LanguageManager.isSelected(context, it.first) }?.second ?: systemLabel
+    SettingRow(stringResource(R.string.language_row), currentLabel, stringResource(R.string.language_desc)) { open = true }
+    if (open) {
+        AlertDialog(
+            onDismissRequest = { open = false },
+            title = { Text(stringResource(R.string.settings_language)) },
+            text = {
+                Column {
+                    options.forEach { (tag, name) ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                                .clickable(role = Role.RadioButton) {
+                                    open = false
+                                    chooseLanguage(context, tag)
+                                },
+                        ) {
+                            RadioButton(selected = LanguageManager.isSelected(context, tag), onClick = null)
+                            Text(name, modifier = Modifier.padding(start = 12.dp))
+                        }
+                    }
+                }
+            },
+            confirmButton = { TextButton(onClick = { open = false }) { Text(stringResource(R.string.action_cancel)) } },
+        )
+    }
+}
+
+private fun chooseLanguage(context: Context, tag: String) {
+    val app = context.applicationContext
+    LanguageManager.set(context, tag)
+    // Android 13+ recreates the activity itself; older versions need it done here.
+    if (Build.VERSION.SDK_INT < 33) {
+        var c: Context = context
+        while (c is ContextWrapper && c !is Activity) c = c.baseContext
+        (c as? Activity)?.recreate()
+    }
+    // Redraw the home-screen widgets in the new language (after the new locale is in effect).
+    CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
+        delay(600)
+        runCatching { SyncRunner.refreshWidgets(app, "language") }
+    }
 }

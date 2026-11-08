@@ -2,6 +2,8 @@
 
 package com.killersparrow1.clashtrackers.widget
 
+import com.killersparrow1.clashtrackers.R
+import androidx.compose.ui.res.stringResource
 import android.appwidget.AppWidgetManager
 import android.content.Intent
 import android.os.Bundle
@@ -35,6 +37,10 @@ import com.killersparrow1.clashtrackers.ui.theme.ClashTimerTheme
 import kotlinx.coroutines.launch
 
 class WidgetConfigActivity : ComponentActivity() {
+    override fun attachBaseContext(newBase: android.content.Context) {
+        super.attachBaseContext(com.killersparrow1.clashtrackers.locale.LanguageManager.wrap(newBase))
+    }
+
     private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -82,10 +88,10 @@ private fun WidgetConfigScreen(onSelect: (String) -> Unit, onCancel: () -> Unit)
     val accounts by repo.accounts.collectAsState(initial = emptyList())
 
     Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        Text("Choose account for widget", style = MaterialTheme.typography.titleLarge)
+        Text(stringResource(R.string.widget_choose_account), style = MaterialTheme.typography.titleLarge)
         if (accounts.isEmpty()) {
-            Text("No accounts found. Sync data in the app first.")
-            Button(onClick = onCancel) { Text("Close") }
+            Text(stringResource(R.string.widget_no_accounts))
+            Button(onClick = onCancel) { Text(stringResource(R.string.action_close)) }
         } else {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.weight(1f)) {
                 items(accounts) { acct ->
@@ -101,7 +107,7 @@ private fun WidgetConfigScreen(onSelect: (String) -> Unit, onCancel: () -> Unit)
                 }
             }
             Button(onClick = onCancel, modifier = Modifier.align(Alignment.End)) {
-                Text("Cancel")
+                Text(stringResource(R.string.action_cancel))
             }
         }
     }

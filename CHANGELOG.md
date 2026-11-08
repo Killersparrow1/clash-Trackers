@@ -8,7 +8,11 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ### Added
 
+<<<<<<< HEAD
 - Custom sound for finished upgrades.
+=======
+- Language picker in Settings and a first Russian translation. More languages can be added with one XML file; see CONTRIBUTING.md.
+>>>>>>> origin/dev
 
 ## [1.0.2] - 2026-11-03
 
