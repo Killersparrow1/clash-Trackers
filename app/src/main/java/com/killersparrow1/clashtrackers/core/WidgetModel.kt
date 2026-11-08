@@ -61,6 +61,17 @@ data class WidgetModel(
     /** Every lab row, soonest finish first (just [labRow] unless the Goblin researcher is also working). */
     val labRows: List<WidgetRow> get() = listOf(labRow) + extraLabRows
     val allRows: List<WidgetRow> get() = builderRows + labRows + petRow + bbRows + listOfNotNull(starLabRow)
+
+    /** Picks the top [maxRows] soonest finishing timers across builders, lab, and pets (running first, then completed). */
+    fun topTimers(maxRows: Int = 3): Pair<List<WidgetRow>, Int> {
+        val running = allRows.filter { it.kind == RowKind.RUNNING && it.finishAt != null }
+            .sortedBy { it.finishAt }
+        val completed = allRows.filter { it.kind == RowKind.COMPLETED }
+        val sorted = running + completed
+        val selected = sorted.take(maxRows)
+        val hidden = maxOf(0, sorted.size - selected.size)
+        return selected to hidden
+    }
 }
 
 /** A potion/snack button on a section line: `Bite` / `+1` when idle, minutes left when running. */

@@ -7,6 +7,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.SystemClock
 import android.text.SpannableStringBuilder
@@ -20,27 +21,26 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.IdRes
 import com.killersparrow1.clashtrackers.R
 import com.killersparrow1.clashtrackers.core.BoostPill
-import com.killersparrow1.clashtrackers.core.WidgetActions
 import com.killersparrow1.clashtrackers.core.Countdown
 import com.killersparrow1.clashtrackers.core.Finish
 import com.killersparrow1.clashtrackers.core.FooterTone
 import com.killersparrow1.clashtrackers.core.RowButton
 import com.killersparrow1.clashtrackers.core.RowKind
+import com.killersparrow1.clashtrackers.core.WidgetActions
 import com.killersparrow1.clashtrackers.core.WidgetModel
 import com.killersparrow1.clashtrackers.core.WidgetModelBuilder
 import com.killersparrow1.clashtrackers.core.WidgetRow
+import com.killersparrow1.clashtrackers.locale.LanguageManager
 import com.killersparrow1.clashtrackers.sync.SyncActivity
 import kotlin.math.roundToInt
 
 /** Maps a [WidgetModel] onto `widget_root.xml` + one `widget_row*.xml` per row. */
 class WidgetRenderer(private val context: Context) {
 
-    /** Strings in the language picked in the app (RemoteViews layouts would use the phone's language). */
-    private val lctx = com.killersparrow1.clashtrackers.locale.LanguageManager.wrap(context)
-
     private val pkg = context.packageName
     private val icons = WidgetIcons.get(context)
     private val density = context.resources.displayMetrics.density
+    private val lctx get() = LanguageManager.wrap(context)
 
     // Read from resources so Android 12+ can swap in Material You (wallpaper) colours; see values-v31/widget_colors.xml.
     private val COLOR_WHITE = context.getColor(R.color.w_white)
@@ -50,6 +50,21 @@ class WidgetRenderer(private val context: Context) {
     private val COLOR_SYNC_TEXT = context.getColor(R.color.w_sync_text)
 
     fun render(model: WidgetModel, liveCountdown: Boolean, options: Bundle?): RemoteViews {
+        val heightDp = reportedHeightDp(options) ?: 320
+        val isSmall = heightDp < 200
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val smallSize = android.util.SizeF(250f, 130f)
+            val largeSize = android.util.SizeF(250f, 320f)
+            val smallRv = renderSmall(model, liveCountdown)
+            val largeRv = renderLarge(model, liveCountdown, options)
+            return RemoteViews(mapOf(smallSize to smallRv, largeSize to largeRv))
+        } else {
+            return if (isSmall) renderSmall(model, liveCountdown) else renderLarge(model, liveCountdown, options)
+        }
+    }
+
+    private fun renderLarge(model: WidgetModel, liveCountdown: Boolean, options: Bundle?): RemoteViews {
         val rv = RemoteViews(pkg, R.layout.widget_root)
         val sync = syncIntent()
         rv.setOnClickPendingIntent(R.id.header, sync)
@@ -103,6 +118,43 @@ class WidgetRenderer(private val context: Context) {
         return rv
     }
 
+    private fun renderSmall(model: WidgetModel, liveCountdown: Boolean): RemoteViews {
+        val rv = RemoteViews(pkg, R.layout.widget_root_small)
+        val sync = syncIntent()
+        rv.setOnClickPendingIntent(R.id.header, sync)
+        rv.setOnClickPendingIntent(R.id.sync_button, sync)
+        rv.setTextViewText(R.id.who, title(model))
+
+        if (!model.hasData) {
+            rv.setViewVisibility(R.id.content, View.GONE)
+            rv.setViewVisibility(R.id.empty, View.VISIBLE)
+            rv.setOnClickPendingIntent(R.id.empty, sync)
+            rv.setTextViewText(R.id.empty_text, if (model.syncFailed) WidgetModelBuilder.SYNC_FAILED else lctx.getString(R.string.widget_no_data))
+            return rv
+        }
+        rv.setViewVisibility(R.id.empty, View.GONE)
+        rv.setViewVisibility(R.id.content, View.VISIBLE)
+
+        val heightDp = reportedHeightDp(null) ?: 150
+        val maxRows = if (heightDp < 140) 2 else 3
+        val (topRows, hidden) = model.topTimers(maxRows)
+        val nowMs = System.currentTimeMillis()
+        val elapsed = SystemClock.elapsedRealtime()
+
+        rv.removeAllViews(R.id.rows_small)
+        topRows.forEach { r ->
+            rv.addView(R.id.rows_small, row(r, compact = true, liveCountdown, nowMs, elapsed, model.accountTag))
+        }
+
+        if (hidden > 0) {
+            rv.setViewVisibility(R.id.foot_more, View.VISIBLE)
+            rv.setTextViewText(R.id.foot_more, "+$hidden more")
+        } else {
+            rv.setViewVisibility(R.id.foot_more, View.GONE)
+        }
+        return rv
+    }
+
     private fun row(model: WidgetRow, compact: Boolean, live: Boolean, nowMs: Long, elapsed: Long, accountTag: String): RemoteViews {
         // The model already marks a row done Finish.GRACE_SEC early. This also covers a model built a
         // moment before this render, so a chronometer is never started at or past its finish.
@@ -111,7 +163,7 @@ class WidgetRenderer(private val context: Context) {
         } else {
             model
         }
-        val v =RemoteViews(pkg, if (compact) R.layout.widget_row_compact else R.layout.widget_row)
+        val v = RemoteViews(pkg, if (compact) R.layout.widget_row_compact else R.layout.widget_row)
         val iconPx = ((if (compact) 20 else 24) * density).roundToInt()
 
         val icon = row.iconIds.firstNotNullOfOrNull { icons.bitmapForLevel(it, row.iconLevel, iconPx) }
@@ -125,7 +177,6 @@ class WidgetRenderer(private val context: Context) {
 
         if (row.goblin) {
             v.setViewVisibility(R.id.row_goblin, View.VISIBLE)
-            v.setTextViewText(R.id.lbl_goblin, lctx.getString(R.string.widget_goblin))
             icons.bitmap("goblin", (11 * density).roundToInt())?.let {
                 v.setImageViewBitmap(R.id.row_goblin_icon, it)
                 v.setViewVisibility(R.id.row_goblin_icon, View.VISIBLE)

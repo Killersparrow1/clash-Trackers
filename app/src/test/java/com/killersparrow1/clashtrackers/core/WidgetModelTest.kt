@@ -175,6 +175,23 @@ class WidgetModelTest {
         assertEquals("47h ago", formatAgo(47 * 3600))
         assertEquals("2d ago", formatAgo(2 * 86400))
     }
+
+    @Test fun topTimersSelectionAndSorting() {
+        val m = build(t0 + 3600)
+        val (selected, hidden) = m.topTimers(2)
+        assertEquals(2, selected.size)
+        assertTrue(selected[0].finishAt!! <= selected[1].finishAt!!)
+        assertTrue(hidden > 0)
+
+        val (allSelected, allHidden) = m.topTimers(100)
+        assertEquals(m.allRows.size, allSelected.size)
+        assertEquals(0, allHidden)
+
+        val empty = build(0, AppState())
+        val (emptySelected, emptyHidden) = empty.topTimers(3)
+        assertTrue(emptySelected.isEmpty())
+        assertEquals(0, emptyHidden)
+    }
 }
 
 /** Two lab jobs at once: a regular research plus the Goblin researcher's (`"extra": true`). */
