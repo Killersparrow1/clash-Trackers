@@ -23,6 +23,8 @@ All notable changes to this project are listed here. The format is based on [Kee
 ### Fixed
 
 - Small widget row count now follows the actual widget height.
+- Widget setup screen no longer hides its title under the status bar, and the theme choices are listed vertically.
+- The notification icon is now the new stopwatch image.
 - The small widget's soonest-timers list only includes running upgrades, not completed rows.
 - The widget "+X more" label now follows the selected language.
 
