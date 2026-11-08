@@ -15,14 +15,15 @@
     android:paddingBottom="7dp">
 
     <FrameLayout
-        android:layout_width="48dp"
+        android:layout_width="match_parent"
         android:layout_height="48dp">
 
         <ProgressBar
             android:id="@+id/tile_ring"
             style="@android:style/Widget.ProgressBar.Horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center"
             android:indeterminate="false"
             android:indeterminateOnly="false"
             android:max="1000"
@@ -34,19 +35,59 @@
         <TextView
             android:id="@+id/tile_initials"
             style="@style/WidgetSmallSans"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center"
             android:textColor="#CFC3B0"
             android:textSize="12dp"
             android:textStyle="bold" />
 
         <ImageView
             android:id="@+id/tile_icon"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center"
             android:padding="8dp"
             android:scaleType="fitCenter"
             android:visibility="gone" />
+
+        <!-- Event Goblin's job: small goblin head at the top-left of the ring. -->
+        <ImageView
+            android:id="@+id/tile_goblin"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_gravity="top|start"
+            android:scaleType="fitCenter"
+            android:visibility="gone" />
+
+        <!-- Green + (link helper) / gold helper badge at the top-right of the ring. -->
+        <FrameLayout
+            android:id="@+id/tile_btn"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="top|end"
+            android:background="@drawable/btn_plus"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/tile_btn_text"
+                style="@style/WidgetSmallSans"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fontFamily="sans-serif"
+                android:text="+"
+                android:textColor="#FFFFFF"
+                android:textSize="16dp"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/tile_btn_icon"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="2dp"
+                android:scaleType="fitCenter"
+                android:visibility="gone" />
+        </FrameLayout>
     </FrameLayout>
 
     <TextView

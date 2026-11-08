@@ -265,16 +265,29 @@ class WidgetRenderer(private val context: Context) {
 
         val nowMs = System.currentTimeMillis()
         val elapsed = SystemClock.elapsedRealtime()
-        // Only busy or just-finished timers get a tile; free builders and labs are left out.
-        val rows = model.allRows.filter { it.kind != RowKind.IDLE }.take(MAX_TILES)
+        // Sections like the List style. Free builders/labs/pets get no tile; empty sections are skipped.
         rv.removeAllViews(R.id.tiles)
-        rows.chunked(TILES_PER_ROW).forEach { chunk ->
-            val line = RemoteViews(pkg, R.layout.widget_tile_row)
-            chunk.forEach { line.addView(R.id.tile_row, tile(it, live, nowMs, elapsed, t)) }
-            repeat(TILES_PER_ROW - chunk.size) {
-                line.addView(R.id.tile_row, RemoteViews(pkg, R.layout.widget_tile).also { f -> f.setViewVisibility(R.id.tile, View.INVISIBLE) })
+        fun section(title: CharSequence, rows: List<WidgetRow>) {
+            val shown = rows.filter { it.kind != RowKind.IDLE }.take(MAX_TILES)
+            if (shown.isEmpty()) return
+            val head = RemoteViews(pkg, R.layout.widget_tile_section)
+            head.setTextViewText(R.id.tile_section, title)
+            head.setTextColor(R.id.tile_section, t.gold)
+            rv.addView(R.id.tiles, head)
+            shown.chunked(TILES_PER_ROW).forEach { chunk ->
+                val line = RemoteViews(pkg, R.layout.widget_tile_row)
+                chunk.forEach { line.addView(R.id.tile_row, tile(it, live, nowMs, elapsed, model.accountTag, t)) }
+                repeat(TILES_PER_ROW - chunk.size) {
+                    line.addView(R.id.tile_row, RemoteViews(pkg, R.layout.widget_tile).also { f -> f.setViewVisibility(R.id.tile, View.INVISIBLE) })
+                }
+                rv.addView(R.id.tiles, line)
             }
-            rv.addView(R.id.tiles, line)
+        }
+        section(buildersLabel(model, t), model.builderRows)
+        section(lctx.getString(R.string.widget_lab), model.labRows)
+        section(lctx.getString(R.string.widget_pets), listOf(model.petRow))
+        if (model.showBuilderBase) {
+            section(lctx.getString(R.string.widget_bb), model.bbRows + listOfNotNull(model.starLabRow))
         }
         rv.setTextViewText(R.id.foot_left, footer(model, t))
         rv.setTextColor(R.id.foot_left, t.sub)
@@ -283,7 +296,7 @@ class WidgetRenderer(private val context: Context) {
         return rv
     }
 
-    private fun tile(model: WidgetRow, live: Boolean, nowMs: Long, elapsed: Long, t: Palette): RemoteViews {
+    private fun tile(model: WidgetRow, live: Boolean, nowMs: Long, elapsed: Long, accountTag: String, t: Palette): RemoteViews {
         val row = if (model.kind == RowKind.RUNNING && model.finishAt != null && Finish.isDone(model.finishAt, nowMs / 1000)) {
             model.copy(kind = RowKind.COMPLETED, button = RowButton.NONE, remaining = 0, progress = 1f)
         } else {
@@ -299,6 +312,33 @@ class WidgetRenderer(private val context: Context) {
         } else {
             v.setTextViewText(R.id.tile_initials, row.initials)
             v.setTextColor(R.id.tile_initials, t.sub)
+        }
+        if (row.goblin) {
+            icons.bitmap("goblin", (20 * density).roundToInt())?.let {
+                v.setImageViewBitmap(R.id.tile_goblin, it)
+                v.setViewVisibility(R.id.tile_goblin, View.VISIBLE)
+            }
+        }
+        if (row.button != RowButton.NONE && row.jobKey != null) {
+            v.setViewVisibility(R.id.tile_btn, View.VISIBLE)
+            v.setOnClickPendingIntent(R.id.tile_btn, tapIntent(WidgetActions.HELPER, row.jobKey, accountTag))
+            when (row.button) {
+                RowButton.LINK -> v.setInt(R.id.tile_btn, "setBackgroundResource", t.plusButton)
+                else -> {
+                    v.setInt(R.id.tile_btn, "setBackgroundResource", t.helperButton)
+                    val name = if (row.button == RowButton.APPRENTICE) "apprentice" else "lab_assistant"
+                    val badge = icons.bitmap(name, (20 * density).roundToInt())
+                    if (badge != null) {
+                        v.setImageViewBitmap(R.id.tile_btn_icon, badge)
+                        v.setViewVisibility(R.id.tile_btn_icon, View.VISIBLE)
+                        v.setViewVisibility(R.id.tile_btn_text, View.GONE)
+                    } else {
+                        v.setTextViewText(R.id.tile_btn_text, "H")
+                        v.setTextColor(R.id.tile_btn_text, t.syncText)
+                        v.setTextViewTextSize(R.id.tile_btn_text, android.util.TypedValue.COMPLEX_UNIT_DIP, 10f)
+                    }
+                }
+            }
         }
         v.setTextViewText(R.id.tile_name, row.name)
         v.setTextColor(R.id.tile_name, t.text)
