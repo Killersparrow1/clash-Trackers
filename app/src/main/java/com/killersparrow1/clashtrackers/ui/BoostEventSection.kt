@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Badge
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -131,7 +130,7 @@ fun BoostEventSection(
 
             if (activeModifiers.isEmpty() && activeEvents.isEmpty()) {
                 Text(
-                    "No active speed boosts or events. Tap below to track Clock Tower, Potions, or Hammer Jam.",
+                    "No active speed boosts or events. Tap below to track Clock Tower or Potions.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -154,26 +153,6 @@ fun BoostEventSection(
                     onUpdateBoosts { it.addClockTowerPotion(now) }
                 }) {
                     Text("+ CT Potion")
-                }
-            }
-
-            // Event toggles overview
-            Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text("Special Events", style = MaterialTheme.typography.labelMedium)
-            }
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                eventSettings.events.forEach { event ->
-                    AssistChip(
-                        onClick = { showEventConfigDialog = event },
-                        label = { Text("${event.name}: ${if (event.enabled) "On" else "Off"}") },
-                    )
                 }
             }
         }
