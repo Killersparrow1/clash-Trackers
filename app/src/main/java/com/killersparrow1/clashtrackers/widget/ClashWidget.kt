@@ -221,7 +221,7 @@ object WidgetUpdater {
                 val model = WidgetModelBuilder.build(state, settings, names, Times.get(app), now, tag ?: "", theme, widgetText)
                 val style = repo.getWidgetStyle(id)
                 manager.updateAppWidget(id, renderer.render(model, settings.liveCountdown, manager.getAppWidgetOptions(id), style, id))
-                if (style != StateRepository.WIDGET_STYLE_TILES) manager.notifyAppWidgetViewDataChanged(id, com.killersparrow1.clashtrackers.R.id.list)
+                manager.notifyAppWidgetViewDataChanged(id, com.killersparrow1.clashtrackers.R.id.list)
 
                 WidgetSchedule.nextUpdateMs(model, nowMs, settings.liveCountdown)?.let { nextUpdates.add(it) }
             }

@@ -16,6 +16,7 @@ class WidgetListService : RemoteViewsService() {
     private class Factory(private val context: Context, private val widgetId: Int) : RemoteViewsFactory {
         private var model: WidgetModel? = null
         private var live = true
+        private var tiles = false
         private var items: List<WidgetRenderer.ListItem> = emptyList()
         private lateinit var renderer: WidgetRenderer
 
@@ -31,7 +32,11 @@ class WidgetListService : RemoteViewsService() {
             }
             model = built.first
             live = built.second
-            items = renderer.listItems(built.first, renderer.themePalette(built.first.widgetTheme))
+            val t = renderer.themePalette(built.first.widgetTheme)
+            tiles = runCatching {
+                runBlocking { com.killersparrow1.clashtrackers.data.StateRepository(context).getWidgetStyle(widgetId) }
+            }.getOrNull() == com.killersparrow1.clashtrackers.data.StateRepository.WIDGET_STYLE_TILES
+            items = if (tiles) renderer.tileItems(built.first, t) else renderer.listItems(built.first, t)
         }
 
         override fun onDestroy() {
@@ -48,11 +53,12 @@ class WidgetListService : RemoteViewsService() {
             return when (item) {
                 is WidgetRenderer.ListItem.Header -> renderer.headerView(item, m, t)
                 is WidgetRenderer.ListItem.Timer -> renderer.timerView(item.row, m, live, t)
+                is WidgetRenderer.ListItem.Tiles -> renderer.tilesView(item.rows, m, live, t)
             }
         }
 
         override fun getLoadingView(): RemoteViews? = null
-        override fun getViewTypeCount(): Int = 2
+        override fun getViewTypeCount(): Int = 3
         override fun getItemId(position: Int): Long = position.toLong()
         override fun hasStableIds(): Boolean = false
     }
