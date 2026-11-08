@@ -102,6 +102,9 @@ class WidgetRenderer(private val context: Context) {
     fun render(model: WidgetModel, liveCountdown: Boolean, options: Bundle?, style: String = "list", appWidgetId: Int = 0): RemoteViews {
         val heightDp = reportedHeightDp(options) ?: 320
         val isSmall = heightDp < 200
+        if (style == com.killersparrow1.clashtrackers.data.StateRepository.WIDGET_STYLE_TILES) {
+            return renderLarge(model, liveCountdown, options, appWidgetId)
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val smallSize = android.util.SizeF(250f, 130f)
@@ -143,6 +146,7 @@ class WidgetRenderer(private val context: Context) {
         // The sections and rows live in a scrolling list filled by WidgetListService (see listItems/headerView/rowView).
         val adapter = Intent(context, WidgetListService::class.java)
             .putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+            .putExtra(WidgetListService.EXTRA_COLS, tileColumns(options))
         adapter.data = Uri.parse(adapter.toUri(Intent.URI_INTENT_SCHEME))
         rv.setRemoteAdapter(R.id.list, adapter)
         rv.setPendingIntentTemplate(R.id.list, tapTemplate())
@@ -269,6 +273,26 @@ class WidgetRenderer(private val context: Context) {
         }
         val v = RemoteViews(pkg, if (compact) R.layout.widget_row_compact else R.layout.widget_row)
         val iconPx = ((if (compact) 20 else 24) * density).roundToInt()
+        if (inList) {
+            // A scrolling list reuses row views, so put every optional piece back to the layout's default first.
+            v.setViewVisibility(R.id.row_icon, View.GONE)
+            v.setViewVisibility(R.id.row_initials, View.VISIBLE)
+            v.setViewVisibility(R.id.row_goblin, View.GONE)
+            v.setViewVisibility(R.id.row_goblin_icon, View.GONE)
+            v.setViewVisibility(R.id.row_level, View.VISIBLE)
+            v.setViewVisibility(R.id.row_fill, View.VISIBLE)
+            v.setViewVisibility(R.id.row_clock, View.VISIBLE)
+            v.setViewVisibility(R.id.row_chrono, View.VISIBLE)
+            v.setViewVisibility(R.id.row_text, View.GONE)
+            v.setViewVisibility(R.id.row_check, View.GONE)
+            v.setViewVisibility(R.id.row_btn, View.VISIBLE)
+            v.setViewVisibility(R.id.row_btn_icon, View.GONE)
+            v.setViewVisibility(R.id.row_btn_text, View.VISIBLE)
+            v.setTextViewText(R.id.row_btn_text, "+")
+            v.setTextColor(R.id.row_btn_text, 0xFFFFFFFF.toInt())
+            v.setTextViewTextSize(R.id.row_btn_text, android.util.TypedValue.COMPLEX_UNIT_DIP, 15f)
+            v.setInt(R.id.row_btn, "setBackgroundResource", t.plusButton)
+        }
         v.setInt(R.id.row, "setBackgroundResource", if (row.kind == RowKind.RUNNING) t.rowSlot else t.rowDone)
         v.setInt(R.id.row_icon_slot, "setBackgroundResource", t.iconSlot)
 
@@ -422,11 +446,11 @@ class WidgetRenderer(private val context: Context) {
     }
 
     /** Tiles style: the same section headings, then each section's busy or just-finished timers, 3 tiles per list item. */
-    fun tileItems(model: WidgetModel, t: Palette): List<ListItem> {
+    fun tileItems(model: WidgetModel, t: Palette, cols: Int = TILES_PER_ROW): List<ListItem> {
         val items = mutableListOf<ListItem>()
         fun section(title: CharSequence, pills: List<Int>, rows: List<WidgetRow>) {
             items += ListItem.Header(title, pills)
-            rows.filter { it.kind != RowKind.IDLE }.take(MAX_TILES).chunked(TILES_PER_ROW).forEach { items += ListItem.Tiles(it) }
+            rows.filter { it.kind != RowKind.IDLE }.take(MAX_TILES).chunked(cols).forEach { items += ListItem.Tiles(it) }
         }
         section(buildersLabel(model, t), listOf(PILL_BITE, PILL_BUILDER), model.builderRows)
         section(lctx.getString(R.string.widget_lab), listOf(PILL_RESEARCH), model.labRows)
@@ -437,12 +461,14 @@ class WidgetRenderer(private val context: Context) {
         return items
     }
 
-    fun tilesView(rows: List<WidgetRow>, model: WidgetModel, live: Boolean, t: Palette): RemoteViews {
+    fun tilesView(rows: List<WidgetRow>, model: WidgetModel, live: Boolean, t: Palette, cols: Int = TILES_PER_ROW): RemoteViews {
         val line = RemoteViews(pkg, R.layout.widget_tile_row)
+        // Reused list rows keep their old children, so empty the row before adding this one's tiles.
+        line.removeAllViews(R.id.tile_row)
         val nowMs = System.currentTimeMillis()
         val elapsed = SystemClock.elapsedRealtime()
         rows.forEach { line.addView(R.id.tile_row, tile(it, live, nowMs, elapsed, model.accountTag, t)) }
-        repeat(TILES_PER_ROW - rows.size) {
+        repeat(cols - rows.size) {
             line.addView(R.id.tile_row, RemoteViews(pkg, R.layout.widget_tile).also { f -> f.setViewVisibility(R.id.tile, View.INVISIBLE) })
         }
         return line
@@ -462,6 +488,7 @@ class WidgetRenderer(private val context: Context) {
             PILL_PET -> pill(v, PillIds(R.id.pill_ppot, R.id.pill_ppot_add, R.id.pill_ppot_undo, R.id.pill_ppot_icon, R.id.pill_ppot_text),
                 model.petPotion, "pet_potion", R.drawable.ic_pet_potion, model.accountTag, t, true)
         }
+        for (box in listOf(R.id.pill_bite, R.id.pill_bpot, R.id.pill_rpot, R.id.pill_ppot)) v.setViewVisibility(box, View.GONE)
         for (slot in h.pills) {
             val box = when (slot) { PILL_BITE -> R.id.pill_bite; PILL_BUILDER -> R.id.pill_bpot; PILL_RESEARCH -> R.id.pill_rpot; else -> R.id.pill_ppot }
             v.setViewVisibility(box, View.VISIBLE)
@@ -543,6 +570,10 @@ class WidgetRenderer(private val context: Context) {
 
         fun reportedWidthDp(options: Bundle?): Int? =
             options?.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH)?.takeIf { it > 0 }
+
+        /** Tiles per row: about one per 82 dp of widget width (3 on a normal 4-cell widget), 2 to 5. */
+        fun tileColumns(options: Bundle?): Int =
+            (((reportedWidthDp(options) ?: 290) - 20) / 82).coerceIn(2, 5)
 
         /** 25 dp rows when the launcher says 30 dp rows won't fit. */
         fun useCompactRows(options: Bundle?, rows: Int): Boolean =

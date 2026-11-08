@@ -15,14 +15,18 @@ class WidgetListService : RemoteViewsService() {
             applicationContext,
             intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID),
             intent.getBooleanExtra(EXTRA_SMALL, false),
+            intent.getIntExtra(EXTRA_COLS, WidgetRenderer.TILES_PER_ROW),
         )
 
     companion object {
         /** Intent extra: the widget is in its small size, so the list is one flat run of compact rows. */
         const val EXTRA_SMALL = "small"
+
+        /** Intent extra: how many tiles fit side by side at the widget's current width. */
+        const val EXTRA_COLS = "cols"
     }
 
-    private class Factory(private val context: Context, private val widgetId: Int, private val small: Boolean) : RemoteViewsFactory {
+    private class Factory(private val context: Context, private val widgetId: Int, private val small: Boolean, private val cols: Int) : RemoteViewsFactory {
         private var model: WidgetModel? = null
         private var live = true
         private var tiles = false
@@ -47,7 +51,7 @@ class WidgetListService : RemoteViewsService() {
             }.getOrNull() == com.killersparrow1.clashtrackers.data.StateRepository.WIDGET_STYLE_TILES
             items = when {
                 small -> renderer.smallItems(built.first)
-                tiles -> renderer.tileItems(built.first, t)
+                tiles -> renderer.tileItems(built.first, t, cols)
                 else -> renderer.listItems(built.first, t)
             }
         }
@@ -66,7 +70,7 @@ class WidgetListService : RemoteViewsService() {
             return when (item) {
                 is WidgetRenderer.ListItem.Header -> renderer.headerView(item, m, t)
                 is WidgetRenderer.ListItem.Timer -> renderer.timerView(item.row, m, live, t, compact = small)
-                is WidgetRenderer.ListItem.Tiles -> renderer.tilesView(item.rows, m, live, t)
+                is WidgetRenderer.ListItem.Tiles -> renderer.tilesView(item.rows, m, live, t, cols)
             }
         }
 
