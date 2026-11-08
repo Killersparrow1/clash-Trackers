@@ -4,6 +4,12 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 1.0.2 is the first version published on GitHub. Earlier versions were shared privately.
 
+## [Unreleased]
+
+### Added
+
+- Language picker in Settings and a first Russian translation. More languages can be added with one XML file; see CONTRIBUTING.md.
+
 ## [1.0.2] - 2026-11-03
 
 ### Fixed

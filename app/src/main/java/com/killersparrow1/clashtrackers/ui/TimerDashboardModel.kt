@@ -1,15 +1,17 @@
 package com.killersparrow1.clashtrackers.ui
 
+import com.killersparrow1.clashtrackers.R
+import androidx.annotation.StringRes
 import com.killersparrow1.clashtrackers.core.RowKind
 import com.killersparrow1.clashtrackers.core.WidgetModel
 import com.killersparrow1.clashtrackers.core.WidgetRow
 
-enum class TimerFilter(val label: String) {
-    ALL("All"),
-    BUILDERS("Builders"),
-    LAB("Lab"),
-    PETS("Pets"),
-    BUILDER_BASE("Builder Base"),
+enum class TimerFilter(@StringRes val labelRes: Int) {
+    ALL(R.string.filter_all),
+    BUILDERS(R.string.filter_builders),
+    LAB(R.string.filter_lab),
+    PETS(R.string.filter_pets),
+    BUILDER_BASE(R.string.filter_bb),
 }
 
 data class DashboardTimer(val category: TimerFilter, val row: WidgetRow)

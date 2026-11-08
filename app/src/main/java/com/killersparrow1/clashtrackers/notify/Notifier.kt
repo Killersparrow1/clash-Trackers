@@ -24,8 +24,8 @@ object Notifier {
         val nm = context.getSystemService(NotificationManager::class.java) ?: return
         if (nm.getNotificationChannel(CHANNEL_ID) != null) return
         nm.createNotificationChannel(
-            NotificationChannel(CHANNEL_ID, "Upgrade finished", NotificationManager.IMPORTANCE_HIGH).apply {
-                description = "A builder, the lab or the pet house became free"
+            NotificationChannel(CHANNEL_ID, com.killersparrow1.clashtrackers.locale.LanguageManager.wrap(context).getString(R.string.notif_channel), NotificationManager.IMPORTANCE_HIGH).apply {
+                description = com.killersparrow1.clashtrackers.locale.LanguageManager.wrap(context).getString(R.string.notif_channel_desc)
             },
         )
     }

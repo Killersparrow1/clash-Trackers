@@ -2,6 +2,8 @@
 
 package com.killersparrow1.clashtrackers.ui
 
+import androidx.annotation.StringRes
+import androidx.compose.ui.res.stringResource
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -39,10 +41,10 @@ import com.killersparrow1.clashtrackers.core.AppState
 import com.killersparrow1.clashtrackers.core.SyncLog
 import com.killersparrow1.clashtrackers.core.WidgetModel
 
-private enum class Destination(val label: String, val icon: Int) {
-    TIMERS("Timers", R.drawable.ic_timers),
-    SETTINGS("Settings", R.drawable.ic_settings),
-    SUPPORT("Support", R.drawable.ic_support),
+private enum class Destination(@StringRes val labelRes: Int, val icon: Int) {
+    TIMERS(R.string.nav_timers, R.drawable.ic_timers),
+    SETTINGS(R.string.nav_settings, R.drawable.ic_settings),
+    SUPPORT(R.string.nav_support, R.drawable.ic_support),
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -73,7 +75,7 @@ fun ClashTrackersContent(
         topBar = {
             TopAppBar(title = {
                 Text(
-                    if (destination == Destination.TIMERS) "Clash Trackers" else destination.label,
+                    if (destination == Destination.TIMERS) stringResource(R.string.app_name) else stringResource(destination.labelRes),
                     style = MaterialTheme.typography.titleLargeEmphasized,
                 )
             })
@@ -85,7 +87,7 @@ fun ClashTrackersContent(
                         selected = destination == entry,
                         onClick = { destination = entry },
                         icon = { Icon(painterResource(entry.icon), contentDescription = null) },
-                        label = { Text(entry.label) },
+                        label = { Text(stringResource(entry.labelRes)) },
                     )
                 }
             }

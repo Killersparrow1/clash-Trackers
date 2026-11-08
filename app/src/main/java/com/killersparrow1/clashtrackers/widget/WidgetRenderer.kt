@@ -35,6 +35,9 @@ import kotlin.math.roundToInt
 /** Maps a [WidgetModel] onto `widget_root.xml` + one `widget_row*.xml` per row. */
 class WidgetRenderer(private val context: Context) {
 
+    /** Strings in the language picked in the app (RemoteViews layouts would use the phone's language). */
+    private val lctx = com.killersparrow1.clashtrackers.locale.LanguageManager.wrap(context)
+
     private val pkg = context.packageName
     private val icons = WidgetIcons.get(context)
     private val density = context.resources.displayMetrics.density
@@ -52,18 +55,23 @@ class WidgetRenderer(private val context: Context) {
         rv.setOnClickPendingIntent(R.id.header, sync)
         rv.setOnClickPendingIntent(R.id.sync_button, sync)
         rv.setTextViewText(R.id.who, title(model))
+        rv.setTextViewText(R.id.lbl_sync, lctx.getString(R.string.widget_sync))
 
         if (!model.hasData) {
             rv.setViewVisibility(R.id.content, View.GONE)
             rv.setViewVisibility(R.id.empty, View.VISIBLE)
             rv.setOnClickPendingIntent(R.id.empty, sync)
-            rv.setTextViewText(R.id.empty_text, if (model.syncFailed) WidgetModelBuilder.SYNC_FAILED else WidgetModelBuilder.NO_DATA)
+            rv.setTextViewText(R.id.empty_text, if (model.syncFailed) WidgetModelBuilder.SYNC_FAILED else lctx.getString(R.string.widget_no_data))
+            rv.setTextViewText(R.id.lbl_no_data_hint, lctx.getString(R.string.widget_no_data_hint))
             return rv
         }
         rv.setViewVisibility(R.id.empty, View.GONE)
         rv.setViewVisibility(R.id.content, View.VISIBLE)
 
         rv.setTextViewText(R.id.builders_label, buildersLabel(model))
+        rv.setTextViewText(R.id.lbl_lab, lctx.getString(R.string.widget_lab))
+        rv.setTextViewText(R.id.lbl_pets, lctx.getString(R.string.widget_pets))
+        rv.setTextViewText(R.id.lbl_bb, lctx.getString(R.string.widget_bb))
         pill(rv, PillIds(R.id.pill_bite, R.id.pill_bite_add, R.id.pill_bite_undo, R.id.pill_bite_icon, R.id.pill_bite_text),
             model.bite, "builder_bite", R.drawable.ic_builder_bite, model.accountTag)
         pill(rv, PillIds(R.id.pill_bpot, R.id.pill_bpot_add, R.id.pill_bpot_undo, R.id.pill_bpot_icon, R.id.pill_bpot_text),
@@ -117,6 +125,7 @@ class WidgetRenderer(private val context: Context) {
 
         if (row.goblin) {
             v.setViewVisibility(R.id.row_goblin, View.VISIBLE)
+            v.setTextViewText(R.id.lbl_goblin, lctx.getString(R.string.widget_goblin))
             icons.bitmap("goblin", (11 * density).roundToInt())?.let {
                 v.setImageViewBitmap(R.id.row_goblin_icon, it)
                 v.setViewVisibility(R.id.row_goblin_icon, View.VISIBLE)

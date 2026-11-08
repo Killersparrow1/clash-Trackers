@@ -1,5 +1,7 @@
 package com.killersparrow1.clashtrackers.ui
 
+import com.killersparrow1.clashtrackers.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.imePadding
@@ -45,7 +47,7 @@ fun SettingValueDialog(
                     label = { Text(unit) },
                     singleLine = true,
                     isError = value == null,
-                    supportingText = { Text("Enter a whole number from ${range.first} to ${range.last}.") },
+                    supportingText = { Text(stringResource(R.string.enter_number, range.first, range.last)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
                     keyboardActions = KeyboardActions(onDone = { value?.let(onSave) }),
                 )
@@ -55,8 +57,8 @@ fun SettingValueDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = { value?.let(onSave) }, enabled = value != null) { Text("Save") }
+            TextButton(onClick = { value?.let(onSave) }, enabled = value != null) { Text(stringResource(R.string.action_save)) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
 }

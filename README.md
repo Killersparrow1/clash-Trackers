@@ -68,6 +68,12 @@ Redesigned with **Material 3 Expressive**, authentic Clash typography, an advanc
 - **Rename & Delete**: Give each account a name and remove accounts you no longer need (deleting asks for confirmation).
 - **Per-Widget Accounts**: Different widgets can show different accounts at the same time, each with its own live countdowns.
 
+### 🌍 Languages
+- **In-app Language Picker**: Choose a language in **Settings → Language** (or use Android's *App languages* screen on Android 13+). The home-screen widget follows your choice.
+- **Available now**: English and Russian (first Russian draft, native-speaker review welcome).
+- **Add your language**: Copy one XML file and add one line, no coding needed. See [Adding a language](CONTRIBUTING.md#adding-a-language).
+- **Still English**: Upgrade and building names, countdown units, the widget footer and the Support tab are not translated yet.
+
 ### 🔒 100% Offline Privacy
 - **Zero Internet Permission**: The app does not request `android.permission.INTERNET`. It cannot send or receive data over the network.
 - **No Accounts & No Ads**: Completely private; your village data never leaves your device.
