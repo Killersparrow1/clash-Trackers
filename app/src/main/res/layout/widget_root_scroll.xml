@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Scrolling List style: header, a ListView (section headers + timer rows, filled by WidgetListService),
+     footer. Same ids as widget_root.xml where they overlap. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/transparent">
+
+    <LinearLayout
+        android:id="@+id/panel"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/widget_panel"
+        android:orientation="vertical"
+        android:padding="10dp">
+
+        <LinearLayout android:id="@+id/header" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal" android:paddingStart="4dp" android:paddingTop="2dp" android:paddingEnd="4dp" android:paddingBottom="6dp">
+            <TextView android:id="@+id/who" style="@style/WidgetText" android:fontFamily="@font/lilita_one" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:shadowColor="#73000000" android:shadowDy="2" android:shadowRadius="0.01" android:ellipsize="end" android:text="Chief" android:textSize="17dp" />
+            <LinearLayout android:id="@+id/sync_button" android:layout_width="wrap_content" android:layout_height="wrap_content" android:background="@drawable/btn_sync" android:gravity="center_vertical" android:orientation="horizontal" android:paddingStart="10dp" android:paddingTop="4dp" android:paddingEnd="10dp" android:paddingBottom="6dp">
+                <ImageView android:layout_width="13dp" android:layout_height="13dp" android:layout_marginEnd="5dp" android:src="@drawable/ic_sync" />
+                <TextView style="@style/WidgetText" android:fontFamily="@font/lilita_one" android:layout_width="wrap_content" android:layout_height="wrap_content" android:shadowRadius="0" android:shadowDy="0" android:id="@+id/lbl_sync" android:text="@string/widget_sync" android:textColor="@color/w_sync_text" android:textSize="13dp" />
+            </LinearLayout>
+        </LinearLayout>
+        
+                
+                
+
+        <LinearLayout
+            android:id="@+id/content"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <ListView
+                android:id="@+id/list"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:divider="@null"
+                android:dividerHeight="0dp"
+                android:scrollbars="none" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingStart="4dp"
+                android:paddingTop="6dp"
+                android:paddingEnd="4dp">
+
+                <TextView
+                    android:id="@+id/foot_left"
+                    style="@style/WidgetText.Footer"
+                    android:fontFamily="@font/lilita_one"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:ellipsize="end" />
+
+                <TextView
+                    android:id="@+id/foot_right"
+                    style="@style/WidgetText.Footer"
+                    android:fontFamily="@font/lilita_one"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout android:id="@+id/empty" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:minHeight="140dp" android:orientation="vertical" android:padding="12dp">
+            <TextView android:id="@+id/empty_text" style="@style/WidgetText" android:fontFamily="@font/lilita_one" android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="center" android:singleLine="false" android:text="@string/widget_no_data" android:textSize="15dp" />
+            <TextView style="@style/WidgetText.Footer" android:fontFamily="@font/lilita_one" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:id="@+id/lbl_no_data_hint" android:text="@string/widget_no_data_hint" android:textSize="12dp" />
+        </LinearLayout>
+            
+    </LinearLayout>
+</FrameLayout>

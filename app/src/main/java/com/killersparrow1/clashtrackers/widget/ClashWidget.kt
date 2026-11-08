@@ -116,6 +116,29 @@ class ClashWidgetReceiver : AppWidgetProvider() {
 
 object WidgetUpdater {
 
+    /** The model one placed widget shows right now (also used by the scrolling list's service), or null with no data. */
+    suspend fun modelFor(context: Context, id: Int): Pair<com.killersparrow1.clashtrackers.core.WidgetModel, Boolean> {
+        val app = context.applicationContext
+        val repo = StateRepository(app)
+        val accounts = repo.accounts.first()
+        val tag = repo.getWidgetAccount(id) ?: repo.selectedAccountTag.first() ?: accounts.firstOrNull()?.tag
+        val state = if (tag != null) repo.getAccountState(tag) else repo.currentState()
+        val acctSettings = if (tag != null) repo.getAccountSettings(tag) else AccountSettings()
+        val global = repo.currentSettings()
+        val settings = AppSettings(
+            totalBuildersOverride = acctSettings.totalBuildersOverride,
+            boosts = acctSettings.boosts,
+            notificationsEnabled = global.notificationsEnabled,
+            liveCountdown = global.liveCountdown,
+            playerName = acctSettings.playerName,
+        )
+        val model = WidgetModelBuilder.build(
+            state, settings, Names.get(app), Times.get(app), System.currentTimeMillis() / 1000, tag ?: "",
+            repo.getWidgetTheme(id), WidgetTexts.get(app),
+        )
+        return model to settings.liveCountdown
+    }
+
     fun widgetIds(context: Context): IntArray =
         AppWidgetManager.getInstance(context).getAppWidgetIds(ComponentName(context, ClashWidgetReceiver::class.java))
 
@@ -196,7 +219,9 @@ object WidgetUpdater {
 
                 val theme = repo.getWidgetTheme(id)
                 val model = WidgetModelBuilder.build(state, settings, names, Times.get(app), now, tag ?: "", theme, widgetText)
-                manager.updateAppWidget(id, renderer.render(model, settings.liveCountdown, manager.getAppWidgetOptions(id)))
+                val style = repo.getWidgetStyle(id)
+                manager.updateAppWidget(id, renderer.render(model, settings.liveCountdown, manager.getAppWidgetOptions(id), style, id))
+                manager.notifyAppWidgetViewDataChanged(id, com.killersparrow1.clashtrackers.R.id.list)
 
                 WidgetSchedule.nextUpdateMs(model, nowMs, settings.liveCountdown)?.let { nextUpdates.add(it) }
             }

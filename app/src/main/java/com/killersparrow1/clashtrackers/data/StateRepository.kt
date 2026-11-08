@@ -222,7 +222,16 @@ class StateRepository(context: Context) {
         store.edit { prefs ->
             ensureMigrated(prefs)
             val current = AppState.decode(prefs[stateKey(norm)])
-            prefs[stateKey(norm)] = transform(current).encode()
+            val updated = transform(current)
+            prefs[stateKey(norm)] = updated.encode()
+            // Remember the Town Hall level on the account list (shown as the account picture).
+            val th = updated.export?.townHallLevel
+            val index = AccountsIndex.decode(prefs[ACCOUNTS_INDEX])
+            if (th != null && index.accounts.any { it.tag == norm && it.townHall != th }) {
+                prefs[ACCOUNTS_INDEX] = index.copy(
+                    accounts = index.accounts.map { if (it.tag == norm) it.copy(townHall = th) else it },
+                ).encode()
+            }
         }
     }
 
@@ -265,9 +274,28 @@ class StateRepository(context: Context) {
         }
     }
 
+    /** Look of one placed widget: [WIDGET_STYLE_LIST] (default) or [WIDGET_STYLE_TILES]. */
+    suspend fun getWidgetStyle(appWidgetId: Int): String {
+        val json = store.data.first()[WIDGET_STYLES] ?: return WIDGET_STYLE_LIST
+        val map = runCatching { AppState.JSON.decodeFromString<Map<String, String>>(json) }.getOrNull() ?: emptyMap()
+        return map[appWidgetId.toString()] ?: WIDGET_STYLE_LIST
+    }
+
+    suspend fun setWidgetStyle(appWidgetId: Int, style: String) {
+        store.edit { prefs ->
+            val map = (prefs[WIDGET_STYLES]?.let { runCatching { AppState.JSON.decodeFromString<Map<String, String>>(it) }.getOrNull() } ?: emptyMap()).toMutableMap()
+            map[appWidgetId.toString()] = style
+            prefs[WIDGET_STYLES] = AppState.JSON.encodeToString(map)
+        }
+    }
+
     suspend fun removeWidgetAccount(appWidgetId: Int) {
         store.edit { prefs ->
             ensureMigrated(prefs)
+            prefs[WIDGET_STYLES]?.let { json ->
+                val styles = (runCatching { AppState.JSON.decodeFromString<Map<String, String>>(json) }.getOrNull() ?: emptyMap()).toMutableMap()
+                if (styles.remove(appWidgetId.toString()) != null) prefs[WIDGET_STYLES] = AppState.JSON.encodeToString(styles)
+            }
             val mapJson = prefs[WIDGET_MAPPING] ?: return@edit
             val map = (runCatching { AppState.JSON.decodeFromString<Map<String, String>>(mapJson) }.getOrNull() ?: emptyMap()).toMutableMap()
             if (map.remove(appWidgetId.toString()) != null) {
@@ -386,6 +414,9 @@ class StateRepository(context: Context) {
         val GLOBAL_SETTINGS = stringPreferencesKey("global_settings_json")
         val WIDGET_MAPPING = stringPreferencesKey("widget_mapping_json")
         val WIDGET_THEME = stringPreferencesKey("widget_theme_json")
+        val WIDGET_STYLES = stringPreferencesKey("widget_styles_json")
+        const val WIDGET_STYLE_LIST = "list"
+        const val WIDGET_STYLE_TILES = "tiles"
         val SYNC_LOG = stringPreferencesKey("sync_log_json")
 
         fun stateKey(tag: String) = stringPreferencesKey("state_json_$tag")

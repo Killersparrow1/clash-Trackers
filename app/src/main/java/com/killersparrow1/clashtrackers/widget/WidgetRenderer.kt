@@ -50,7 +50,7 @@ class WidgetRenderer(private val context: Context) {
     private val COLOR_ERROR = context.getColor(R.color.w_error)
     private val COLOR_SYNC_TEXT = context.getColor(R.color.w_sync_text)
 
-    private data class Palette(
+    data class Palette(
         @param:DrawableRes val panel: Int,
         @param:DrawableRes val rowSlot: Int,
         @param:DrawableRes val rowDone: Int,
@@ -99,23 +99,26 @@ class WidgetRenderer(private val context: Context) {
         )
     }
 
-    fun render(model: WidgetModel, liveCountdown: Boolean, options: Bundle?): RemoteViews {
+    fun render(model: WidgetModel, liveCountdown: Boolean, options: Bundle?, style: String = "list", appWidgetId: Int = 0): RemoteViews {
         val heightDp = reportedHeightDp(options) ?: 320
         val isSmall = heightDp < 200
+        if (style == com.killersparrow1.clashtrackers.data.StateRepository.WIDGET_STYLE_TILES) {
+            return renderLarge(model, liveCountdown, options, appWidgetId)
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val smallSize = android.util.SizeF(250f, 130f)
             val largeSize = android.util.SizeF(250f, 320f)
-            val smallRv = renderSmall(model, liveCountdown, options)
-            val largeRv = renderLarge(model, liveCountdown, options)
+            val smallRv = renderSmall(model, liveCountdown, options, appWidgetId)
+            val largeRv = renderLarge(model, liveCountdown, options, appWidgetId)
             return RemoteViews(mapOf(smallSize to smallRv, largeSize to largeRv))
         } else {
-            return if (isSmall) renderSmall(model, liveCountdown, options) else renderLarge(model, liveCountdown, options)
+            return if (isSmall) renderSmall(model, liveCountdown, options, appWidgetId) else renderLarge(model, liveCountdown, options, appWidgetId)
         }
     }
 
-    private fun renderLarge(model: WidgetModel, liveCountdown: Boolean, options: Bundle?): RemoteViews {
-        val rv = RemoteViews(pkg, R.layout.widget_root)
+    private fun renderLarge(model: WidgetModel, liveCountdown: Boolean, options: Bundle?, appWidgetId: Int): RemoteViews {
+        val rv = RemoteViews(pkg, R.layout.widget_root_scroll)
         val sync = syncIntent()
         val t = palette(model.widgetTheme)
         rv.setInt(R.id.panel, "setBackgroundResource", t.panel)
@@ -140,39 +143,13 @@ class WidgetRenderer(private val context: Context) {
         rv.setViewVisibility(R.id.empty, View.GONE)
         rv.setViewVisibility(R.id.content, View.VISIBLE)
 
-        rv.setTextViewText(R.id.builders_label, buildersLabel(model, t))
-        rv.setTextColor(R.id.builders_label, t.gold)
-        rv.setTextViewText(R.id.lbl_lab, lctx.getString(R.string.widget_lab))
-        rv.setTextColor(R.id.lbl_lab, t.gold)
-        rv.setTextViewText(R.id.lbl_pets, lctx.getString(R.string.widget_pets))
-        rv.setTextColor(R.id.lbl_pets, t.gold)
-        rv.setTextViewText(R.id.lbl_bb, lctx.getString(R.string.widget_bb))
-        rv.setTextColor(R.id.lbl_bb, t.gold)
-        pill(rv, PillIds(R.id.pill_bite, R.id.pill_bite_add, R.id.pill_bite_undo, R.id.pill_bite_icon, R.id.pill_bite_text),
-            model.bite, "builder_bite", R.drawable.ic_builder_bite, model.accountTag, t)
-        pill(rv, PillIds(R.id.pill_bpot, R.id.pill_bpot_add, R.id.pill_bpot_undo, R.id.pill_bpot_icon, R.id.pill_bpot_text),
-            model.builderPotion, "builder_potion", R.drawable.ic_builder_potion, model.accountTag, t)
-        pill(rv, PillIds(R.id.pill_rpot, R.id.pill_rpot_add, R.id.pill_rpot_undo, R.id.pill_rpot_icon, R.id.pill_rpot_text),
-            model.researchPotion, "research_potion", R.drawable.ic_research_potion, model.accountTag, t)
-        pill(rv, PillIds(R.id.pill_ppot, R.id.pill_ppot_add, R.id.pill_ppot_undo, R.id.pill_ppot_icon, R.id.pill_ppot_text),
-            model.petPotion, "pet_potion", R.drawable.ic_pet_potion, model.accountTag, t)
-
-        val compact = useCompactRows(options, model.allRows.size)
-        val nowMs = System.currentTimeMillis()
-        val elapsed = SystemClock.elapsedRealtime()
-        fun fill(@IdRes container: Int, rows: List<WidgetRow>) {
-            rv.removeAllViews(container)
-            rows.take(MAX_BUILDER_ROWS).forEach { rv.addView(container, row(it, compact, liveCountdown, nowMs, elapsed, model.accountTag, t)) }
-        }
-        fill(R.id.rows_builders, model.builderRows)
-        fill(R.id.rows_lab, model.labRows)
-        fill(R.id.rows_pet, listOf(model.petRow))
-        // Builder Base section: hidden unless a night village builder or the Star Lab is busy.
-        rv.setViewVisibility(R.id.bb_section, if (model.showBuilderBase) View.VISIBLE else View.GONE)
-        if (model.showBuilderBase) {
-            fill(R.id.rows_bb, model.bbRows)
-            fill(R.id.rows_starlab, listOfNotNull(model.starLabRow))
-        }
+        // The sections and rows live in a scrolling list filled by WidgetListService (see listItems/headerView/rowView).
+        val adapter = Intent(context, WidgetListService::class.java)
+            .putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+            .putExtra(WidgetListService.EXTRA_COLS, tileColumns(options))
+        adapter.data = Uri.parse(adapter.toUri(Intent.URI_INTENT_SCHEME))
+        rv.setRemoteAdapter(R.id.list, adapter)
+        rv.setPendingIntentTemplate(R.id.list, tapTemplate())
 
         rv.setTextViewText(R.id.foot_left, footer(model, t))
         rv.setTextColor(R.id.foot_left, t.sub)
@@ -181,7 +158,7 @@ class WidgetRenderer(private val context: Context) {
         return rv
     }
 
-    private fun renderSmall(model: WidgetModel, liveCountdown: Boolean, options: Bundle?): RemoteViews {
+    private fun renderSmall(model: WidgetModel, liveCountdown: Boolean, options: Bundle?, appWidgetId: Int): RemoteViews {
         val rv = RemoteViews(pkg, R.layout.widget_root_small)
         val sync = syncIntent()
         val t = palette(model.widgetTheme)
@@ -203,28 +180,90 @@ class WidgetRenderer(private val context: Context) {
         rv.setViewVisibility(R.id.empty, View.GONE)
         rv.setViewVisibility(R.id.content, View.VISIBLE)
 
-        val heightDp = reportedHeightDp(options) ?: 150
-        val maxRows = if (heightDp < 140) 2 else 3
-        val (topRows, hidden) = model.topTimers(maxRows)
-        val nowMs = System.currentTimeMillis()
-        val elapsed = SystemClock.elapsedRealtime()
-
-        rv.removeAllViews(R.id.rows_small)
-        topRows.forEach { r ->
-            rv.addView(R.id.rows_small, row(r, compact = true, liveCountdown, nowMs, elapsed, model.accountTag, t))
-        }
-
-        if (hidden > 0) {
-            rv.setViewVisibility(R.id.foot_more, View.VISIBLE)
-            rv.setTextViewText(R.id.foot_more, lctx.getString(R.string.widget_more, hidden))
-            rv.setTextColor(R.id.foot_more, t.idle)
-        } else {
-            rv.setViewVisibility(R.id.foot_more, View.GONE)
-        }
+        // Every running timer, soonest first, in a scrolling list (WidgetListService, "small" mode).
+        val adapter = Intent(context, WidgetListService::class.java)
+            .putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+            .putExtra(WidgetListService.EXTRA_SMALL, true)
+        adapter.data = Uri.parse(adapter.toUri(Intent.URI_INTENT_SCHEME))
+        rv.setRemoteAdapter(R.id.list, adapter)
+        rv.setPendingIntentTemplate(R.id.list, tapTemplate())
         return rv
     }
 
-    private fun row(model: WidgetRow, compact: Boolean, live: Boolean, nowMs: Long, elapsed: Long, accountTag: String, t: Palette): RemoteViews {
+    private fun tile(model: WidgetRow, live: Boolean, nowMs: Long, elapsed: Long, accountTag: String, t: Palette): RemoteViews {
+        val row = if (model.kind == RowKind.RUNNING && model.finishAt != null && Finish.isDone(model.finishAt, nowMs / 1000)) {
+            model.copy(kind = RowKind.COMPLETED, button = RowButton.NONE, remaining = 0, progress = 1f)
+        } else {
+            model
+        }
+        val v = RemoteViews(pkg, R.layout.widget_tile)
+        v.setInt(R.id.tile, "setBackgroundResource", t.rowSlot)
+        val icon = row.iconIds.firstNotNullOfOrNull { icons.bitmapForLevel(it, row.iconLevel, (34 * density).roundToInt()) }
+        if (icon != null) {
+            v.setImageViewBitmap(R.id.tile_icon, icon)
+            v.setViewVisibility(R.id.tile_icon, View.VISIBLE)
+            v.setViewVisibility(R.id.tile_initials, View.GONE)
+        } else {
+            v.setTextViewText(R.id.tile_initials, row.initials)
+            v.setTextColor(R.id.tile_initials, t.sub)
+        }
+        if (row.goblin) {
+            icons.bitmap("goblin", (20 * density).roundToInt())?.let {
+                v.setImageViewBitmap(R.id.tile_goblin, it)
+                v.setViewVisibility(R.id.tile_goblin, View.VISIBLE)
+            }
+        }
+        if (row.button != RowButton.NONE && row.jobKey != null) {
+            v.setViewVisibility(R.id.tile_btn, View.VISIBLE)
+            tap(v, R.id.tile_btn, WidgetActions.HELPER, row.jobKey, accountTag, true)
+            when (row.button) {
+                RowButton.LINK -> v.setInt(R.id.tile_btn, "setBackgroundResource", t.plusButton)
+                else -> {
+                    v.setInt(R.id.tile_btn, "setBackgroundResource", t.helperButton)
+                    val name = if (row.button == RowButton.APPRENTICE) "apprentice" else "lab_assistant"
+                    val badge = icons.bitmap(name, (20 * density).roundToInt())
+                    if (badge != null) {
+                        v.setImageViewBitmap(R.id.tile_btn_icon, badge)
+                        v.setViewVisibility(R.id.tile_btn_icon, View.VISIBLE)
+                        v.setViewVisibility(R.id.tile_btn_text, View.GONE)
+                    } else {
+                        v.setTextViewText(R.id.tile_btn_text, "H")
+                        v.setTextColor(R.id.tile_btn_text, t.syncText)
+                        v.setTextViewTextSize(R.id.tile_btn_text, android.util.TypedValue.COMPLEX_UNIT_DIP, 10f)
+                    }
+                }
+            }
+        }
+        v.setTextViewText(R.id.tile_name, row.name)
+        v.setTextColor(R.id.tile_name, t.text)
+        val level = row.levelText?.takeIf { row.kind == RowKind.RUNNING }
+        if (level != null) {
+            v.setTextViewText(R.id.tile_level, (if (row.showArrow) "\u2192 " else "") + level)
+            v.setTextColor(R.id.tile_level, t.sub)
+        } else {
+            v.setViewVisibility(R.id.tile_level, View.GONE)
+        }
+        v.setTextColor(R.id.tile_chrono, t.gold)
+        v.setTextColor(R.id.tile_text, t.gold)
+
+        val segment = if (row.kind == RowKind.RUNNING && live) row.finishAt?.let { Countdown.segment(it, nowMs, row.text.day) } else null
+        if (row.kind == RowKind.RUNNING) {
+            v.setProgressBar(R.id.tile_ring, 1000, (row.progress * 1000).roundToInt(), false)
+        } else {
+            v.setProgressBar(R.id.tile_ring, 1000, 1000, false)
+        }
+        if (segment != null) {
+            v.setChronometer(R.id.tile_chrono, elapsed + segment.chronometerMs, segment.format, true)
+            v.setChronometerCountDown(R.id.tile_chrono, true)
+        } else {
+            v.setViewVisibility(R.id.tile_chrono, View.GONE)
+            v.setViewVisibility(R.id.tile_text, View.VISIBLE)
+            v.setTextViewText(R.id.tile_text, row.staticStatus)
+        }
+        return v
+    }
+
+    private fun row(model: WidgetRow, compact: Boolean, live: Boolean, nowMs: Long, elapsed: Long, accountTag: String, t: Palette, inList: Boolean = false): RemoteViews {
         // The model already marks a row done Finish.GRACE_SEC early. This also covers a model built a
         // moment before this render, so a chronometer is never started at or past its finish.
         val row = if (model.kind == RowKind.RUNNING && model.finishAt != null && Finish.isDone(model.finishAt, nowMs / 1000)) {
@@ -234,6 +273,26 @@ class WidgetRenderer(private val context: Context) {
         }
         val v = RemoteViews(pkg, if (compact) R.layout.widget_row_compact else R.layout.widget_row)
         val iconPx = ((if (compact) 20 else 24) * density).roundToInt()
+        if (inList) {
+            // A scrolling list reuses row views, so put every optional piece back to the layout's default first.
+            v.setViewVisibility(R.id.row_icon, View.GONE)
+            v.setViewVisibility(R.id.row_initials, View.VISIBLE)
+            v.setViewVisibility(R.id.row_goblin, View.GONE)
+            v.setViewVisibility(R.id.row_goblin_icon, View.GONE)
+            v.setViewVisibility(R.id.row_level, View.VISIBLE)
+            v.setViewVisibility(R.id.row_fill, View.VISIBLE)
+            v.setViewVisibility(R.id.row_clock, View.VISIBLE)
+            v.setViewVisibility(R.id.row_chrono, View.VISIBLE)
+            v.setViewVisibility(R.id.row_text, View.GONE)
+            v.setViewVisibility(R.id.row_check, View.GONE)
+            v.setViewVisibility(R.id.row_btn, View.VISIBLE)
+            v.setViewVisibility(R.id.row_btn_icon, View.GONE)
+            v.setViewVisibility(R.id.row_btn_text, View.VISIBLE)
+            v.setTextViewText(R.id.row_btn_text, "+")
+            v.setTextColor(R.id.row_btn_text, 0xFFFFFFFF.toInt())
+            v.setTextViewTextSize(R.id.row_btn_text, android.util.TypedValue.COMPLEX_UNIT_DIP, 15f)
+            v.setInt(R.id.row_btn, "setBackgroundResource", t.plusButton)
+        }
         v.setInt(R.id.row, "setBackgroundResource", if (row.kind == RowKind.RUNNING) t.rowSlot else t.rowDone)
         v.setInt(R.id.row_icon_slot, "setBackgroundResource", t.iconSlot)
 
@@ -295,7 +354,7 @@ class WidgetRenderer(private val context: Context) {
         }
 
         if (row.button != RowButton.NONE && row.jobKey != null) {
-            v.setOnClickPendingIntent(R.id.row_btn, tapIntent(WidgetActions.HELPER, row.jobKey, accountTag))
+            tap(v, R.id.row_btn, WidgetActions.HELPER, row.jobKey, accountTag, inList)
         }
         when (row.button) {
             RowButton.NONE -> v.setViewVisibility(R.id.row_btn, View.INVISIBLE)
@@ -323,29 +382,128 @@ class WidgetRenderer(private val context: Context) {
         @param:IdRes val icon: Int, @param:IdRes val text: Int,
     )
 
-    private fun pill(rv: RemoteViews, ids: PillIds, pill: BoostPill, asset: String, @DrawableRes fallback: Int, accountTag: String, t: Palette) {
+    private fun pill(rv: RemoteViews, ids: PillIds, pill: BoostPill, asset: String, @DrawableRes fallback: Int, accountTag: String, t: Palette, inList: Boolean = false) {
         val bmp = icons.bitmap(asset, (14 * density).roundToInt())
         if (bmp != null) rv.setImageViewBitmap(ids.icon, bmp) else rv.setImageViewResource(ids.icon, fallback)
         rv.setTextViewText(ids.text, pill.text)
         rv.setTextColor(ids.text, if (pill.active) t.gold else t.text)
         rv.setInt(ids.box, "setBackgroundResource", if (pill.active || pill.canUndo) t.pillOn else t.pillOff)
-        rv.setOnClickPendingIntent(ids.add, tapIntent(WidgetActions.ADD_BOOST, pill.type.name, accountTag))
+        tap(rv, ids.add, WidgetActions.ADD_BOOST, pill.type.name, accountTag, inList)
         rv.setViewVisibility(ids.undo, if (pill.canUndo) View.VISIBLE else View.GONE)
-        if (pill.canUndo) rv.setOnClickPendingIntent(ids.undo, tapIntent(WidgetActions.UNDO_BOOST, pill.type.name, accountTag))
+        if (pill.canUndo) tap(rv, ids.undo, WidgetActions.UNDO_BOOST, pill.type.name, accountTag, inList)
     }
+
+    private fun tapUri(action: String, arg: String, accountTag: String): Uri =
+        Uri.Builder().scheme("clashtracker").authority("tap").appendPath(action).appendPath(arg)
+            .appendQueryParameter("account", accountTag).build()
 
     /**
      * Broadcast to [ClashWidgetReceiver] for a button tap, handled in the background (no activity, no popup).
      * The URI makes every action + argument a distinct PendingIntent.
      */
     private fun tapIntent(action: String, arg: String, accountTag: String): PendingIntent {
-        val uri = Uri.Builder().scheme("clashtracker").authority("tap").appendPath(action).appendPath(arg)
-            .appendQueryParameter("account", accountTag).build()
         val intent = Intent(context, ClashWidgetReceiver::class.java)
             .setAction(ClashWidgetReceiver.ACTION_TAP)
-            .setData(uri)
+            .setData(tapUri(action, arg, accountTag))
         return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
     }
+
+    /** Buttons inside a scrolling list can't carry their own PendingIntent: they fill in this template's URI instead. */
+    private fun tapTemplate(): PendingIntent {
+        val intent = Intent(context, ClashWidgetReceiver::class.java).setAction(ClashWidgetReceiver.ACTION_TAP)
+        return PendingIntent.getBroadcast(context, 7, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE)
+    }
+
+    private fun tap(v: RemoteViews, @IdRes id: Int, action: String, arg: String, accountTag: String, inList: Boolean) {
+        if (inList) v.setOnClickFillInIntent(id, Intent().setData(tapUri(action, arg, accountTag)))
+        else v.setOnClickPendingIntent(id, tapIntent(action, arg, accountTag))
+    }
+
+    /** One entry of the scrolling list: a section heading (with its potion pills) or a timer row. */
+    sealed class ListItem {
+        class Header(val title: CharSequence, val pills: List<Int>) : ListItem()
+        class Timer(val row: WidgetRow) : ListItem()
+        /** Up to [TILES_PER_ROW] tiles side by side (Tiles style). */
+        class Tiles(val rows: List<WidgetRow>) : ListItem()
+    }
+
+    /** Pill slots a section heading can show, in the order [headerView] knows them. */
+    private val pillSlots = listOf(PILL_BITE, PILL_BUILDER, PILL_RESEARCH, PILL_PET)
+
+    fun listItems(model: WidgetModel, t: Palette): List<ListItem> {
+        val items = mutableListOf<ListItem>()
+        fun section(title: CharSequence, pills: List<Int>, rows: List<WidgetRow>) {
+            items += ListItem.Header(title, pills)
+            rows.take(MAX_BUILDER_ROWS).forEach { items += ListItem.Timer(it) }
+        }
+        section(buildersLabel(model, t), listOf(PILL_BITE, PILL_BUILDER), model.builderRows)
+        section(lctx.getString(R.string.widget_lab), listOf(PILL_RESEARCH), model.labRows)
+        section(lctx.getString(R.string.widget_pets), listOf(PILL_PET), listOf(model.petRow))
+        if (model.showBuilderBase) {
+            section(lctx.getString(R.string.widget_bb), emptyList(), model.bbRows + listOfNotNull(model.starLabRow))
+        }
+        return items
+    }
+
+    /** Tiles style: the same section headings, then each section's busy or just-finished timers, 3 tiles per list item. */
+    fun tileItems(model: WidgetModel, t: Palette, cols: Int = TILES_PER_ROW): List<ListItem> {
+        val items = mutableListOf<ListItem>()
+        fun section(title: CharSequence, pills: List<Int>, rows: List<WidgetRow>) {
+            items += ListItem.Header(title, pills)
+            rows.filter { it.kind != RowKind.IDLE }.take(MAX_TILES).chunked(cols).forEach { items += ListItem.Tiles(it) }
+        }
+        section(buildersLabel(model, t), listOf(PILL_BITE, PILL_BUILDER), model.builderRows)
+        section(lctx.getString(R.string.widget_lab), listOf(PILL_RESEARCH), model.labRows)
+        section(lctx.getString(R.string.widget_pets), listOf(PILL_PET), listOf(model.petRow))
+        if (model.showBuilderBase) {
+            section(lctx.getString(R.string.widget_bb), emptyList(), model.bbRows + listOfNotNull(model.starLabRow))
+        }
+        return items
+    }
+
+    fun tilesView(rows: List<WidgetRow>, model: WidgetModel, live: Boolean, t: Palette, cols: Int = TILES_PER_ROW): RemoteViews {
+        val line = RemoteViews(pkg, R.layout.widget_tile_row)
+        // Reused list rows keep their old children, so empty the row before adding this one's tiles.
+        line.removeAllViews(R.id.tile_row)
+        val nowMs = System.currentTimeMillis()
+        val elapsed = SystemClock.elapsedRealtime()
+        rows.forEach { line.addView(R.id.tile_row, tile(it, live, nowMs, elapsed, model.accountTag, t)) }
+        repeat(cols - rows.size) {
+            line.addView(R.id.tile_row, RemoteViews(pkg, R.layout.widget_tile).also { f -> f.setViewVisibility(R.id.tile, View.INVISIBLE) })
+        }
+        return line
+    }
+
+    fun headerView(h: ListItem.Header, model: WidgetModel, t: Palette): RemoteViews {
+        val v = RemoteViews(pkg, R.layout.widget_list_header)
+        v.setTextViewText(R.id.hdr_label, h.title)
+        v.setTextColor(R.id.hdr_label, t.gold)
+        for (slot in h.pills) when (slot) {
+            PILL_BITE -> pill(v, PillIds(R.id.pill_bite, R.id.pill_bite_add, R.id.pill_bite_undo, R.id.pill_bite_icon, R.id.pill_bite_text),
+                model.bite, "builder_bite", R.drawable.ic_builder_bite, model.accountTag, t, true)
+            PILL_BUILDER -> pill(v, PillIds(R.id.pill_bpot, R.id.pill_bpot_add, R.id.pill_bpot_undo, R.id.pill_bpot_icon, R.id.pill_bpot_text),
+                model.builderPotion, "builder_potion", R.drawable.ic_builder_potion, model.accountTag, t, true)
+            PILL_RESEARCH -> pill(v, PillIds(R.id.pill_rpot, R.id.pill_rpot_add, R.id.pill_rpot_undo, R.id.pill_rpot_icon, R.id.pill_rpot_text),
+                model.researchPotion, "research_potion", R.drawable.ic_research_potion, model.accountTag, t, true)
+            PILL_PET -> pill(v, PillIds(R.id.pill_ppot, R.id.pill_ppot_add, R.id.pill_ppot_undo, R.id.pill_ppot_icon, R.id.pill_ppot_text),
+                model.petPotion, "pet_potion", R.drawable.ic_pet_potion, model.accountTag, t, true)
+        }
+        for (box in listOf(R.id.pill_bite, R.id.pill_bpot, R.id.pill_rpot, R.id.pill_ppot)) v.setViewVisibility(box, View.GONE)
+        for (slot in h.pills) {
+            val box = when (slot) { PILL_BITE -> R.id.pill_bite; PILL_BUILDER -> R.id.pill_bpot; PILL_RESEARCH -> R.id.pill_rpot; else -> R.id.pill_ppot }
+            v.setViewVisibility(box, View.VISIBLE)
+        }
+        return v
+    }
+
+    /** Small widget: all running timers, soonest finish first, no section headings. */
+    fun smallItems(model: WidgetModel): List<ListItem> =
+        model.topTimers(Int.MAX_VALUE).first.map { ListItem.Timer(it) }
+
+    fun timerView(r: WidgetRow, model: WidgetModel, live: Boolean, t: Palette, compact: Boolean = false): RemoteViews =
+        row(r, compact, live, System.currentTimeMillis(), SystemClock.elapsedRealtime(), model.accountTag, t, inList = true)
+
+    fun themePalette(theme: String): Palette = palette(theme)
 
     /** Player name + small gold `TH18`. */
     private fun title(model: WidgetModel, t: Palette): CharSequence {
@@ -396,6 +554,12 @@ class WidgetRenderer(private val context: Context) {
 
     companion object {
         const val MAX_BUILDER_ROWS = 8
+        const val PILL_BITE = 0
+        const val PILL_BUILDER = 1
+        const val PILL_RESEARCH = 2
+        const val PILL_PET = 3
+        const val MAX_TILES = 18
+        const val TILES_PER_ROW = 3
 
         /** Estimated panel height in dp with 30 dp rows (see widget_root.xml / widget_row.xml). */
         fun normalHeightDp(rows: Int): Int = 165 + 33 * rows
@@ -406,6 +570,10 @@ class WidgetRenderer(private val context: Context) {
 
         fun reportedWidthDp(options: Bundle?): Int? =
             options?.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH)?.takeIf { it > 0 }
+
+        /** Tiles per row: about one per 82 dp of widget width (3 on a normal 4-cell widget), 2 to 5. */
+        fun tileColumns(options: Bundle?): Int =
+            (((reportedWidthDp(options) ?: 290) - 20) / 82).coerceIn(2, 5)
 
         /** 25 dp rows when the launcher says 30 dp rows won't fit. */
         fun useCompactRows(options: Bundle?, rows: Int): Boolean =

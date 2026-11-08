@@ -5,8 +5,11 @@ package com.killersparrow1.clashtrackers.ui
 import androidx.compose.ui.res.stringResource
 import com.killersparrow1.clashtrackers.core.formatTimestamp
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -25,7 +28,10 @@ import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -179,6 +185,25 @@ fun TimerDashboard(
     if (showHelp) HelpDialog(onDismiss = { showHelp = false })
 }
 
+/** Round picture of an account's Town Hall (the generic one until its level is known), like a profile photo. */
+@Composable
+private fun AccountPicture(townHall: Int?) {
+    val context = LocalContext.current
+    val density = LocalDensity.current
+    val bitmap = remember(townHall) {
+        val px = with(density) { 28.dp.roundToPx() }
+        val icons = WidgetIcons.get(context)
+        (townHall?.let { icons.bitmap("th_$it", px) } ?: icons.bitmap("1000001", px))?.asImageBitmap()
+    }
+    if (bitmap != null) {
+        Image(
+            bitmap = bitmap,
+            contentDescription = null,
+            modifier = Modifier.size(28.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceContainerHighest).padding(2.dp),
+        )
+    }
+}
+
 @Composable
 private fun AccountSwitcherBar(
     accounts: List<AccountMeta>,
@@ -191,31 +216,41 @@ private fun AccountSwitcherBar(
     var showDeleteConfirm by remember { mutableStateOf(false) }
     val selectedAccount = accounts.firstOrNull { it.tag == selectedTag } ?: accounts.firstOrNull()
 
-    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Row(
-            Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
+    var menuOpen by remember { mutableStateOf(false) }
+    // One compact button: tap it for every account, plus Rename / Delete for the current one.
+    Box(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+        AssistChip(
+            onClick = { menuOpen = true },
+            label = { Text("${selectedAccount?.displayName ?: ""} \u25BE") },
+            leadingIcon = { AccountPicture(selectedAccount?.townHall) },
+        )
+        DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
             accounts.forEach { acct ->
-                FilterChip(
-                    selected = acct.tag == selectedTag,
-                    onClick = { onSelect(acct.tag) },
-                    label = { Text("${acct.displayName} (${acct.tag})") },
+                DropdownMenuItem(
+                    leadingIcon = { AccountPicture(acct.townHall) },
+                    text = { Text((if (acct.tag == selectedAccount?.tag) "\u2713  " else "") + "${acct.displayName} (${acct.tag})") },
+                    onClick = {
+                        menuOpen = false
+                        onSelect(acct.tag)
+                    },
                 )
             }
-        }
-        if (selectedAccount != null) {
-            Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                TextButton(onClick = { showRenameDialog = true }) { Text(stringResource(R.string.action_rename)) }
+            if (selectedAccount != null) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.action_rename)) },
+                    onClick = {
+                        menuOpen = false
+                        showRenameDialog = true
+                    },
+                )
                 if (accounts.size > 1) {
-                    TextButton(onClick = { showDeleteConfirm = true }) {
-                        Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error)
-                    }
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) },
+                        onClick = {
+                            menuOpen = false
+                            showDeleteConfirm = true
+                        },
+                    )
                 }
             }
         }

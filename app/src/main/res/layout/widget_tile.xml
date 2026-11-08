@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One timer tile: round progress ring around the icon, name, countdown. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/tile"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    android:layout_margin="3dp"
+    android:layout_weight="1"
+    android:background="@drawable/row_slot"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:paddingStart="4dp"
+    android:paddingTop="8dp"
+    android:paddingEnd="4dp"
+    android:paddingBottom="7dp">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="48dp">
+
+        <ProgressBar
+            android:id="@+id/tile_ring"
+            style="@android:style/Widget.ProgressBar.Horizontal"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center"
+            android:indeterminate="false"
+            android:indeterminateOnly="false"
+            android:max="1000"
+            android:maxHeight="200dp"
+            android:minHeight="0dp"
+            android:progress="0"
+            android:progressDrawable="@drawable/tile_ring" />
+
+        <TextView
+            android:id="@+id/tile_initials"
+            style="@style/WidgetSmallSans"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center"
+            android:textColor="#CFC3B0"
+            android:textSize="12dp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:id="@+id/tile_icon"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center"
+            android:padding="8dp"
+            android:scaleType="fitCenter"
+            android:visibility="gone" />
+
+        <!-- Event Goblin's job: small goblin head at the top-left of the ring. -->
+        <ImageView
+            android:id="@+id/tile_goblin"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_gravity="top|start"
+            android:scaleType="fitCenter"
+            android:visibility="gone" />
+
+        <!-- Green + (link helper) / gold helper badge at the top-right of the ring. -->
+        <FrameLayout
+            android:id="@+id/tile_btn"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="top|end"
+            android:background="@drawable/btn_plus"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/tile_btn_text"
+                style="@style/WidgetSmallSans"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fontFamily="sans-serif"
+                android:text="+"
+                android:textColor="#FFFFFF"
+                android:textSize="16dp"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/tile_btn_icon"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="2dp"
+                android:scaleType="fitCenter"
+                android:visibility="gone" />
+        </FrameLayout>
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/tile_name"
+        style="@style/WidgetText"
+        android:fontFamily="@font/lilita_one"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:ellipsize="end"
+        android:gravity="center"
+        android:textSize="11dp" />
+
+    <TextView
+        android:id="@+id/tile_level"
+        style="@style/WidgetText.Level"
+        android:fontFamily="@font/lilita_one"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:gravity="center"
+        android:textSize="10dp" />
+
+    <Chronometer
+        android:id="@+id/tile_chrono"
+        style="@style/WidgetText.Time"
+        android:fontFamily="@font/lilita_one"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:countDown="true"
+        android:textColor="@color/w_gold"
+        android:textSize="12dp" />
+
+    <TextView
+        android:id="@+id/tile_text"
+        style="@style/WidgetText.Time"
+        android:fontFamily="@font/lilita_one"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/w_gold"
+        android:textSize="12dp"
+        android:visibility="gone" />
+</LinearLayout>

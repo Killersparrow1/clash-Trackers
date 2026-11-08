@@ -51,6 +51,8 @@ fun normalizeTag(tag: String): String {
 data class AccountMeta(
     val tag: String,
     val name: String? = null,
+    /** Town Hall level from the last sync, for the account picture. */
+    val townHall: Int? = null,
 ) {
     val displayName: String get() = name?.trim()?.takeIf { it.isNotEmpty() } ?: AppSettings.DEFAULT_PLAYER_NAME
 }

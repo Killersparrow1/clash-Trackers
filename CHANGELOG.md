@@ -9,6 +9,10 @@ All notable changes to this project are listed here. The format is based on [Kee
 ### Added
 
 - Custom sound for finished upgrades.
+- Each account in the Timers dropdown gets a round Town Hall picture matching its level.
+- The small widget size now scrolls through every timer instead of showing 3 and "+N more".
+- The List and Grid widgets now scroll, so every timer fits however small you make them.
+- A second widget style, Grid: round progress rings with the building icon in the middle, grouped by Builders, Lab, Pets and Builder Base, with the helper button and the Goblin badge. Choose it when you add or reconfigure a widget; List stays the default.
 - Language picker in Settings and a first Russian translation. More languages can be added with one XML file; see CONTRIBUTING.md.
 - Small home-screen widget layouts with the soonest running upgrades.
 - Widget themes: Material You, Clash, Dark and Light. Choose a default in Settings or override it per widget.
@@ -19,6 +23,8 @@ All notable changes to this project are listed here. The format is based on [Kee
 ### Fixed
 
 - Small widget row count now follows the actual widget height.
+- Widget setup screen no longer hides its title under the status bar, and the theme choices are listed vertically.
+- The notification icon is now the new stopwatch image.
 - The small widget's soonest-timers list only includes running upgrades, not completed rows.
 - The widget "+X more" label now follows the selected language.
 

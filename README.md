@@ -66,11 +66,13 @@ Redesigned with **Material 3 Expressive**, authentic Clash typography, an advanc
 
 ### 📱 Live Home Screen Widget
 - **Per-Second Countdowns**: Live ticking chronometers directly on your home screen.
-- **Small and Large Layouts**: Use a compact widget with the soonest running upgrades or the full widget with every timer and progress bar.
+- **Two Styles**: Choose **List** (a row with a progress bar for every timer) or **Grid** (round progress rings with the building icon). Both are grouped by Builders, Lab, Pets and Builder Base.
+- **Scrolls at Any Size**: Resize the widget as small as you like and scroll to reach every timer. Nothing is cut off with a "+N more".
+- **Goblin Badge**: Timers worked on by the event Goblin Builder or Goblin Researcher are marked on both styles.
 - **Widget Themes**: Pick **Material You**, **Clash**, **Dark** or **Light** as the default, and override the theme for individual widgets.
 - **Helper Integration**: Tap `+` to assign the Builder's Apprentice or Lab Assistant and see realistic predicted finish times.
 - **Exact Alarms**: Accurate re-renders at completion edges with no background battery drain.
-- **Per-Widget Account Binding**: Place the widget as many times as you like. Each time, a picker asks which account that widget should show, so you can keep one widget per account side by side. You can change a widget's account and theme later by reconfiguring it.
+- **Per-Widget Account Binding**: Place the widget as many times as you like. Each time, a picker asks which account that widget should show, so you can keep one widget per account side by side. You can change a widget's account, style and theme later by reconfiguring it.
 
 ### 📐 Adaptive Layout
 - **Phones and Tablets**: The app keeps the bottom navigation on phones and switches to a navigation rail on wider screens.
@@ -81,7 +83,7 @@ Redesigned with **Material 3 Expressive**, authentic Clash typography, an advanc
 
 ### 👥 Multiple Accounts
 - **Saved by Player Tag**: Every Clash of Clans export contains a player tag. Sync an export from another account and the app saves it as its own account; syncing the same account again updates only that account.
-- **Account Switcher**: Switch between your accounts from the Timers screen. Timers, boosts, and events follow the account you pick.
+- **Account Switcher**: Tap the account button at the top of the Timers screen to open a dropdown of all your accounts, with Rename and Delete for the current one. Each account gets a round Town Hall picture that follows its level. Timers, boosts, and events follow the account you pick.
 - **Rename & Delete**: Give each account a name and remove accounts you no longer need (deleting asks for confirmation).
 - **Per-Widget Accounts**: Different widgets can show different accounts at the same time, each with its own live countdowns.
 

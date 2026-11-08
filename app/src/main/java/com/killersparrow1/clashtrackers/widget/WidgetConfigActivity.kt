@@ -14,6 +14,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -70,11 +71,12 @@ class WidgetConfigActivity : ComponentActivity() {
                 Surface(Modifier.fillMaxSize()) {
                     WidgetConfigScreen(
                         appWidgetId = appWidgetId,
-                        onSave = { tag, theme ->
+                        onSave = { tag, theme, style ->
                             val repo = StateRepository(this)
                             coroutineScope.launch {
                                 repo.setWidgetAccount(appWidgetId, tag)
                                 repo.setWidgetTheme(appWidgetId, theme)
+                                repo.setWidgetStyle(appWidgetId, style)
                                 WidgetUpdater.updateAll(this@WidgetConfigActivity, "config")
                                 val resultValue = Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
                                 setResult(RESULT_OK, resultValue)
@@ -92,15 +94,17 @@ class WidgetConfigActivity : ComponentActivity() {
 }
 
 @Composable
-private fun WidgetConfigScreen(appWidgetId: Int, onSave: (String, String) -> Unit, onCancel: () -> Unit) {
+private fun WidgetConfigScreen(appWidgetId: Int, onSave: (String, String, String) -> Unit, onCancel: () -> Unit) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val repo = remember { StateRepository(context) }
     val accounts by repo.accounts.collectAsState(initial = emptyList())
     var selectedTag by rememberSaveable { mutableStateOf<String?>(null) }
     var selectedTheme by rememberSaveable { mutableStateOf<String?>(null) }
+    var selectedStyle by rememberSaveable { mutableStateOf(StateRepository.WIDGET_STYLE_LIST) }
 
     LaunchedEffect(appWidgetId) {
         selectedTheme = repo.getWidgetTheme(appWidgetId)
+        selectedStyle = repo.getWidgetStyle(appWidgetId)
         selectedTag = repo.getWidgetAccount(appWidgetId)
     }
     LaunchedEffect(accounts) {
@@ -114,7 +118,7 @@ private fun WidgetConfigScreen(appWidgetId: Int, onSave: (String, String) -> Uni
         "light" to stringResource(R.string.widget_theme_light),
     )
 
-    Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    Column(Modifier.fillMaxSize().systemBarsPadding().padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Text(stringResource(R.string.widget_choose_account), style = MaterialTheme.typography.titleLarge)
         if (accounts.isEmpty()) {
             Text(stringResource(R.string.widget_no_accounts))
@@ -137,16 +141,27 @@ private fun WidgetConfigScreen(appWidgetId: Int, onSave: (String, String) -> Uni
 
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 8.dp)) {
+                        Text(stringResource(R.string.widget_style), style = MaterialTheme.typography.titleMedium)
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            FilterChip(
+                                selected = selectedStyle == StateRepository.WIDGET_STYLE_LIST,
+                                onClick = { selectedStyle = StateRepository.WIDGET_STYLE_LIST },
+                                label = { Text(stringResource(R.string.widget_style_list)) },
+                            )
+                            FilterChip(
+                                selected = selectedStyle == StateRepository.WIDGET_STYLE_TILES,
+                                onClick = { selectedStyle = StateRepository.WIDGET_STYLE_TILES },
+                                label = { Text(stringResource(R.string.widget_style_tiles)) },
+                            )
+                        }
                         Text(stringResource(R.string.widget_theme), style = MaterialTheme.typography.titleMedium)
-                        Row(
-                            Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
+                        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             themes.forEach { (key, label) ->
                                 FilterChip(
                                     selected = selectedTheme == key,
                                     onClick = { selectedTheme = key },
                                     label = { Text(label) },
+                                    modifier = Modifier.fillMaxWidth(),
                                 )
                             }
                         }
@@ -157,7 +172,7 @@ private fun WidgetConfigScreen(appWidgetId: Int, onSave: (String, String) -> Uni
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Button(onClick = onCancel) { Text(stringResource(R.string.action_cancel)) }
                 Button(
-                    onClick = { selectedTag?.let { onSave(it, selectedTheme ?: "material_you") } },
+                    onClick = { selectedTag?.let { onSave(it, selectedTheme ?: "material_you", selectedStyle) } },
                     enabled = selectedTag != null,
                 ) {
                     Text(stringResource(R.string.action_save))
