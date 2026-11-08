@@ -99,7 +99,10 @@ class WidgetRenderer(private val context: Context) {
         )
     }
 
-    fun render(model: WidgetModel, liveCountdown: Boolean, options: Bundle?): RemoteViews {
+    fun render(model: WidgetModel, liveCountdown: Boolean, options: Bundle?, style: String = "list"): RemoteViews {
+        if (style == com.killersparrow1.clashtrackers.data.StateRepository.WIDGET_STYLE_TILES) {
+            return renderTiles(model, liveCountdown)
+        }
         val heightDp = reportedHeightDp(options) ?: 320
         val isSmall = heightDp < 200
 
@@ -222,6 +225,108 @@ class WidgetRenderer(private val context: Context) {
             rv.setViewVisibility(R.id.foot_more, View.GONE)
         }
         return rv
+    }
+
+    /** Tiles style: header, boost pills, then every busy timer as a round progress tile, 3 per row. */
+    private fun renderTiles(model: WidgetModel, live: Boolean): RemoteViews {
+        val rv = RemoteViews(pkg, R.layout.widget_tiles)
+        val sync = syncIntent()
+        val t = palette(model.widgetTheme)
+        rv.setInt(R.id.panel, "setBackgroundResource", t.panel)
+        rv.setInt(R.id.sync_button, "setBackgroundResource", t.syncButton)
+        rv.setOnClickPendingIntent(R.id.header, sync)
+        rv.setOnClickPendingIntent(R.id.sync_button, sync)
+        rv.setTextViewText(R.id.who, title(model, t))
+        rv.setTextColor(R.id.who, t.text)
+        rv.setTextViewText(R.id.lbl_sync, lctx.getString(R.string.widget_sync))
+        rv.setTextColor(R.id.lbl_sync, t.syncText)
+
+        if (!model.hasData) {
+            rv.setViewVisibility(R.id.content, View.GONE)
+            rv.setViewVisibility(R.id.empty, View.VISIBLE)
+            rv.setOnClickPendingIntent(R.id.empty, sync)
+            rv.setTextViewText(R.id.empty_text, if (model.syncFailed) model.text.syncFailed else model.text.noData)
+            rv.setTextColor(R.id.empty_text, t.text)
+            rv.setTextViewText(R.id.lbl_no_data_hint, lctx.getString(R.string.widget_no_data_hint))
+            rv.setTextColor(R.id.lbl_no_data_hint, t.sub)
+            return rv
+        }
+        rv.setViewVisibility(R.id.empty, View.GONE)
+        rv.setViewVisibility(R.id.content, View.VISIBLE)
+
+        pill(rv, PillIds(R.id.pill_bite, R.id.pill_bite_add, R.id.pill_bite_undo, R.id.pill_bite_icon, R.id.pill_bite_text),
+            model.bite, "builder_bite", R.drawable.ic_builder_bite, model.accountTag, t)
+        pill(rv, PillIds(R.id.pill_bpot, R.id.pill_bpot_add, R.id.pill_bpot_undo, R.id.pill_bpot_icon, R.id.pill_bpot_text),
+            model.builderPotion, "builder_potion", R.drawable.ic_builder_potion, model.accountTag, t)
+        pill(rv, PillIds(R.id.pill_rpot, R.id.pill_rpot_add, R.id.pill_rpot_undo, R.id.pill_rpot_icon, R.id.pill_rpot_text),
+            model.researchPotion, "research_potion", R.drawable.ic_research_potion, model.accountTag, t)
+        pill(rv, PillIds(R.id.pill_ppot, R.id.pill_ppot_add, R.id.pill_ppot_undo, R.id.pill_ppot_icon, R.id.pill_ppot_text),
+            model.petPotion, "pet_potion", R.drawable.ic_pet_potion, model.accountTag, t)
+
+        val nowMs = System.currentTimeMillis()
+        val elapsed = SystemClock.elapsedRealtime()
+        // Only busy or just-finished timers get a tile; free builders and labs are left out.
+        val rows = model.allRows.filter { it.kind != RowKind.IDLE }.take(MAX_TILES)
+        rv.removeAllViews(R.id.tiles)
+        rows.chunked(TILES_PER_ROW).forEach { chunk ->
+            val line = RemoteViews(pkg, R.layout.widget_tile_row)
+            chunk.forEach { line.addView(R.id.tile_row, tile(it, live, nowMs, elapsed, t)) }
+            repeat(TILES_PER_ROW - chunk.size) {
+                line.addView(R.id.tile_row, RemoteViews(pkg, R.layout.widget_tile).also { f -> f.setViewVisibility(R.id.tile, View.INVISIBLE) })
+            }
+            rv.addView(R.id.tiles, line)
+        }
+        rv.setTextViewText(R.id.foot_left, footer(model, t))
+        rv.setTextColor(R.id.foot_left, t.sub)
+        rv.setTextViewText(R.id.foot_right, model.footerRight)
+        rv.setTextColor(R.id.foot_right, t.sub)
+        return rv
+    }
+
+    private fun tile(model: WidgetRow, live: Boolean, nowMs: Long, elapsed: Long, t: Palette): RemoteViews {
+        val row = if (model.kind == RowKind.RUNNING && model.finishAt != null && Finish.isDone(model.finishAt, nowMs / 1000)) {
+            model.copy(kind = RowKind.COMPLETED, button = RowButton.NONE, remaining = 0, progress = 1f)
+        } else {
+            model
+        }
+        val v = RemoteViews(pkg, R.layout.widget_tile)
+        v.setInt(R.id.tile, "setBackgroundResource", t.rowSlot)
+        val icon = row.iconIds.firstNotNullOfOrNull { icons.bitmapForLevel(it, row.iconLevel, (34 * density).roundToInt()) }
+        if (icon != null) {
+            v.setImageViewBitmap(R.id.tile_icon, icon)
+            v.setViewVisibility(R.id.tile_icon, View.VISIBLE)
+            v.setViewVisibility(R.id.tile_initials, View.GONE)
+        } else {
+            v.setTextViewText(R.id.tile_initials, row.initials)
+            v.setTextColor(R.id.tile_initials, t.sub)
+        }
+        v.setTextViewText(R.id.tile_name, row.name)
+        v.setTextColor(R.id.tile_name, t.text)
+        val level = row.levelText?.takeIf { row.kind == RowKind.RUNNING }
+        if (level != null) {
+            v.setTextViewText(R.id.tile_level, (if (row.showArrow) "\u2192 " else "") + level)
+            v.setTextColor(R.id.tile_level, t.sub)
+        } else {
+            v.setViewVisibility(R.id.tile_level, View.GONE)
+        }
+        v.setTextColor(R.id.tile_chrono, t.gold)
+        v.setTextColor(R.id.tile_text, t.gold)
+
+        val segment = if (row.kind == RowKind.RUNNING && live) row.finishAt?.let { Countdown.segment(it, nowMs, row.text.day) } else null
+        if (row.kind == RowKind.RUNNING) {
+            v.setProgressBar(R.id.tile_ring, 1000, (row.progress * 1000).roundToInt(), false)
+        } else {
+            v.setProgressBar(R.id.tile_ring, 1000, 1000, false)
+        }
+        if (segment != null) {
+            v.setChronometer(R.id.tile_chrono, elapsed + segment.chronometerMs, segment.format, true)
+            v.setChronometerCountDown(R.id.tile_chrono, true)
+        } else {
+            v.setViewVisibility(R.id.tile_chrono, View.GONE)
+            v.setViewVisibility(R.id.tile_text, View.VISIBLE)
+            v.setTextViewText(R.id.tile_text, row.staticStatus)
+        }
+        return v
     }
 
     private fun row(model: WidgetRow, compact: Boolean, live: Boolean, nowMs: Long, elapsed: Long, accountTag: String, t: Palette): RemoteViews {
@@ -396,6 +501,8 @@ class WidgetRenderer(private val context: Context) {
 
     companion object {
         const val MAX_BUILDER_ROWS = 8
+        const val MAX_TILES = 18
+        const val TILES_PER_ROW = 3
 
         /** Estimated panel height in dp with 30 dp rows (see widget_root.xml / widget_row.xml). */
         fun normalHeightDp(rows: Int): Int = 165 + 33 * rows

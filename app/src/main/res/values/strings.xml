@@ -198,4 +198,7 @@
     <string name="support_rows_compact">compact 25 dp rows</string>
     <string name="support_rows_normal">30 dp rows</string>
     <string name="support_rows_need">%1$s need about %2$d dp</string>
+    <string name="widget_style">Widget style</string>
+    <string name="widget_style_list">List</string>
+    <string name="widget_style_tiles">Tiles</string>
 </resources>

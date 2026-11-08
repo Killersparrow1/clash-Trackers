@@ -204,4 +204,7 @@
     <string name="support_rows_compact">компактные ряды по 25 dp</string>
     <string name="support_rows_normal">ряды по 30 dp</string>
     <string name="support_rows_need">%1$s занимают около %2$d dp</string>
+    <string name="widget_style">Стиль виджета</string>
+    <string name="widget_style_list">Список</string>
+    <string name="widget_style_tiles">Плитки</string>
 </resources>
