@@ -23,21 +23,19 @@ Redesigned with **Material 3 Expressive**, authentic Clash typography, an advanc
 
 ## Screenshots
 <p align="center">
-  <img src="docs/screenshots/timer 1.png" alt="Timers screen - main view" width="180">
-  <img src="docs/screenshots/timer 2.png" alt="Timers screen - detailed view" width="180">
-  <img src="docs/screenshots/setting1.png" alt="Settings - account management" width="180">
-  <img src="docs/screenshots/setting 2.png" alt="Settings - detailed options" width="180">
-  <img src="docs/screenshots/support .png" alt="Support & Diagnostics" width="180">
+  <img src="docs/screenshots/screenshots.png" alt="Timers screen - Screenshots" width="900">
 </p>
 
 ## Widget Themes
+### List Widget
 <p align="center">
-  <img src="docs/screenshots/material.jpg" alt="Material You theme" width="150">
-  <img src="docs/screenshots/clash.jpg" alt="Clash theme" width="150">
-  <img src="docs/screenshots/dark.jpg" alt="Dark theme" width="150">
-  <img src="docs/screenshots/light.jpg" alt="Light theme" width="150">
+  <img src="docs/screenshots/Widget Grid.png" alt="List Widget" width="900">
 </p>
 
+### Grid Widget
+<p align="center">
+  <img src="docs/screenshots/Widget List.png" alt="List Widget" width="900">
+</p>
 ---
 
 ## Highlights
