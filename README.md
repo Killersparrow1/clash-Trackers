@@ -29,12 +29,12 @@ Redesigned with **Material 3 Expressive**, authentic Clash typography, an advanc
 ## Widget Themes
 ### List Widget
 <p align="center">
-  <img src="docs/screenshots/Widget Grid.png" alt="List Widget" width="900">
+  <img src="docs/screenshots/Widget List.png" alt="List Widget" width="900">
 </p>
 
 ### Grid Widget
 <p align="center">
-  <img src="docs/screenshots/Widget List.png" alt="List Widget" width="900">
+  <img src="docs/screenshots/Widget Grid.png" alt="List Widget" width="900">
 </p>
 ---
 
