@@ -221,14 +221,19 @@ private fun AccountSwitcherBar(
     Box(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
         AssistChip(
             onClick = { menuOpen = true },
-            label = { Text("${selectedAccount?.displayName ?: ""} \u25BE") },
+            label = { Text("${selectedAccount?.displayName ?: ""}${selectedAccount?.townHall?.let { " \u00B7 TH$it" } ?: ""} \u25BE") },
             leadingIcon = { AccountPicture(selectedAccount?.townHall) },
         )
         DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
             accounts.forEach { acct ->
                 DropdownMenuItem(
                     leadingIcon = { AccountPicture(acct.townHall) },
-                    text = { Text((if (acct.tag == selectedAccount?.tag) "\u2713  " else "") + "${acct.displayName} (${acct.tag})") },
+                    text = {
+                        Column {
+                            Text((if (acct.tag == selectedAccount?.tag) "\u2713  " else "") + acct.displayName + (acct.townHall?.let { " \u00B7 TH$it" } ?: ""))
+                            Text(acct.tag, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    },
                     onClick = {
                         menuOpen = false
                         onSelect(acct.tag)
