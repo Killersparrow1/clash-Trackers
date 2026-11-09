@@ -24,6 +24,8 @@ class WidgetListService : RemoteViewsService() {
 
         /** Intent extra: how many tiles fit side by side at the widget's current width. */
         const val EXTRA_COLS = "cols"
+
+        private const val SLOW_LOAD_MS = 400L
     }
 
     private class Factory(private val context: Context, private val widgetId: Int, private val small: Boolean, private val cols: Int) : RemoteViewsFactory {
@@ -39,6 +41,24 @@ class WidgetListService : RemoteViewsService() {
         }
 
         override fun onDataSetChanged() {
+            val startedAt = android.os.SystemClock.elapsedRealtime()
+            load()
+            // While the launcher waits for this call the widget cannot update. Slow loads are written to
+            // Support → Recent activity (with the app process's age, to tell cold starts apart) so a
+            // freeze can be matched to them.
+            val took = android.os.SystemClock.elapsedRealtime() - startedAt
+            if (took > SLOW_LOAD_MS) {
+                val processAgeS = (android.os.SystemClock.elapsedRealtime() - android.os.Process.getStartElapsedRealtime()) / 1000
+                runCatching {
+                    runBlocking {
+                        com.killersparrow1.clashtrackers.data.StateRepository(context)
+                            .log("widget", null, "Widget list load took ${took} ms (app process age ${processAgeS} s)")
+                    }
+                }
+            }
+        }
+
+        private fun load() {
             val built = runCatching { runBlocking { WidgetUpdater.modelFor(context, widgetId) } }.getOrNull()
             if (built == null) {
                 items = emptyList()
