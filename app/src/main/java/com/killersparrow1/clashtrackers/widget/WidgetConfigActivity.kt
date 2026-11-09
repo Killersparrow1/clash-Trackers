@@ -149,6 +149,11 @@ private fun WidgetConfigScreen(appWidgetId: Int, onSave: (String, String, String
                                 label = { Text(stringResource(R.string.widget_style_list)) },
                             )
                             FilterChip(
+                                selected = selectedStyle == StateRepository.WIDGET_STYLE_MINIMAL,
+                                onClick = { selectedStyle = StateRepository.WIDGET_STYLE_MINIMAL },
+                                label = { Text(stringResource(R.string.widget_style_minimal)) },
+                            )
+                            FilterChip(
                                 selected = selectedStyle == StateRepository.WIDGET_STYLE_TILES,
                                 onClick = { selectedStyle = StateRepository.WIDGET_STYLE_TILES },
                                 label = { Text(stringResource(R.string.widget_style_tiles)) },

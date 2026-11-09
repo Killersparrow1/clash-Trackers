@@ -417,6 +417,7 @@ class StateRepository(context: Context) {
         val WIDGET_STYLES = stringPreferencesKey("widget_styles_json")
         const val WIDGET_STYLE_LIST = "list"
         const val WIDGET_STYLE_TILES = "tiles"
+        const val WIDGET_STYLE_MINIMAL = "minimal"
         val SYNC_LOG = stringPreferencesKey("sync_log_json")
 
         fun stateKey(tag: String) = stringPreferencesKey("state_json_$tag")

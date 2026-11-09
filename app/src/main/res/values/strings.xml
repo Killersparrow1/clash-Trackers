@@ -205,4 +205,5 @@
     <string name="notif_channel_quiet_desc">Tells you when an upgrade finishes. Stays quiet during Do Not Disturb and uses the notification volume.</string>
     <string name="settings_follow_dnd">Follow Do Not Disturb</string>
     <string name="settings_follow_dnd_desc">On: alerts stay quiet while Do Not Disturb is on and use your notification volume. Off: they sound like an alarm, even during Do Not Disturb.</string>
+    <string name="widget_style_minimal">Minimal</string>
 </resources>
