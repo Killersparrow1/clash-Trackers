@@ -11,7 +11,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 - Custom sound for finished upgrades.
 - A third widget style, Minimal: black card, white dot-matrix type (Doto, SIL OFL), thin progress lines and a red accent. It scrolls like the others and keeps the helper, Goblin and potion buttons.
 - A "Follow Do Not Disturb" switch in Settings → Notifications (on by default): finish alerts stay quiet during Do Not Disturb and use the notification volume. Turn it off for the old alarm-style alert that rings through Do Not Disturb.
-- Each account in the Timers dropdown gets a round Town Hall picture matching its level.
+- The Timers account dropdown shows each account's Town Hall level next to its name.
 - The small widget size now scrolls through every timer instead of showing 3 and "+N more".
 - The List and Grid widgets now scroll, so every timer fits however small you make them.
 - A second widget style, Grid: round progress rings with the building icon in the middle, grouped by Builders, Lab, Pets and Builder Base, with the helper button and the Goblin badge. Choose it when you add or reconfigure a widget; List stays the default.

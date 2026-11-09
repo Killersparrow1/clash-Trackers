@@ -185,25 +185,6 @@ fun TimerDashboard(
     if (showHelp) HelpDialog(onDismiss = { showHelp = false })
 }
 
-/** Round picture of an account's Town Hall (the generic one until its level is known), like a profile photo. */
-@Composable
-private fun AccountPicture(townHall: Int?) {
-    val context = LocalContext.current
-    val density = LocalDensity.current
-    val bitmap = remember(townHall) {
-        val px = with(density) { 28.dp.roundToPx() }
-        val icons = WidgetIcons.get(context)
-        (townHall?.let { icons.bitmap("th_$it", px) } ?: icons.bitmap("1000001", px))?.asImageBitmap()
-    }
-    if (bitmap != null) {
-        Image(
-            bitmap = bitmap,
-            contentDescription = null,
-            modifier = Modifier.size(28.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceContainerHighest).padding(2.dp),
-        )
-    }
-}
-
 @Composable
 private fun AccountSwitcherBar(
     accounts: List<AccountMeta>,
@@ -222,12 +203,10 @@ private fun AccountSwitcherBar(
         AssistChip(
             onClick = { menuOpen = true },
             label = { Text("${selectedAccount?.displayName ?: ""}${selectedAccount?.townHall?.let { " \u00B7 TH$it" } ?: ""} \u25BE") },
-            leadingIcon = { AccountPicture(selectedAccount?.townHall) },
         )
         DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
             accounts.forEach { acct ->
                 DropdownMenuItem(
-                    leadingIcon = { AccountPicture(acct.townHall) },
                     text = {
                         Column {
                             Text((if (acct.tag == selectedAccount?.tag) "\u2713  " else "") + acct.displayName + (acct.townHall?.let { " \u00B7 TH$it" } ?: ""))

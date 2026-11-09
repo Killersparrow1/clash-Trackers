@@ -83,7 +83,7 @@ Redesigned with **Material 3 Expressive**, authentic Clash typography, an advanc
 
 ### 👥 Multiple Accounts
 - **Saved by Player Tag**: Every Clash of Clans export contains a player tag. Sync an export from another account and the app saves it as its own account; syncing the same account again updates only that account.
-- **Account Switcher**: Tap the account button at the top of the Timers screen to open a dropdown of all your accounts, with Rename and Delete for the current one. Each account gets a round Town Hall picture that follows its level. Timers, boosts, and events follow the account you pick.
+- **Account Switcher**: Tap the account button at the top of the Timers screen to open a dropdown of all your accounts, with Rename and Delete for the current one. Each account shows its Town Hall level next to its name. Timers, boosts, and events follow the account you pick.
 - **Rename & Delete**: Give each account a name and remove accounts you no longer need (deleting asks for confirmation).
 - **Per-Widget Accounts**: Different widgets can show different accounts at the same time, each with its own live countdowns.
 
