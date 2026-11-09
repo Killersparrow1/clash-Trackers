@@ -207,4 +207,8 @@
     <string name="widget_style">Стиль виджета</string>
     <string name="widget_style_list">Список</string>
     <string name="widget_style_tiles">Сетка</string>
+    <string name="notif_channel_quiet">Улучшение завершено (учитывает «Не беспокоить»)</string>
+    <string name="notif_channel_quiet_desc">Сообщает о завершении улучшения. Не звучит в режиме «Не беспокоить» и использует громкость уведомлений.</string>
+    <string name="settings_follow_dnd">Учитывать «Не беспокоить»</string>
+    <string name="settings_follow_dnd_desc">Вкл.: оповещения молчат в режиме «Не беспокоить» и используют громкость уведомлений. Выкл.: звучат как будильник, даже в режиме «Не беспокоить».</string>
 </resources>

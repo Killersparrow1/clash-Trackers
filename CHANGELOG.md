@@ -9,6 +9,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 ### Added
 
 - Custom sound for finished upgrades.
+- A "Follow Do Not Disturb" switch in Settings → Notifications (on by default): finish alerts stay quiet during Do Not Disturb and use the notification volume. Turn it off for the old alarm-style alert that rings through Do Not Disturb.
 - Each account in the Timers dropdown gets a round Town Hall picture matching its level.
 - The small widget size now scrolls through every timer instead of showing 3 and "+N more".
 - The List and Grid widgets now scroll, so every timer fits however small you make them.
@@ -22,6 +23,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ### Fixed
 
+- When several upgrades finish together, only the first notification makes a sound.
 - An active research potion is now read from the village export (`lab_boost`), like the builder potion. The pet potion is read too if the game names its field with "pet" and "boost".
 - Small widget row count now follows the actual widget height.
 - Widget setup screen no longer hides its title under the status bar, and the theme choices are listed vertically.
