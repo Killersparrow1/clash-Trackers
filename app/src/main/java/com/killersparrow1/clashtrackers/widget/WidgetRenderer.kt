@@ -67,9 +67,28 @@ class WidgetRenderer(private val context: Context) {
         val idle: Int,
         val error: Int,
         val syncText: Int,
+        /** Which of the row layout's progress bars belongs to this theme. */
+        val fillId: Int = R.id.row_fill,
     )
 
-    private fun palette(theme: String): Palette = when (theme) {
+    private val ROW_FILLS = intArrayOf(R.id.row_fill, R.id.row_fill_clash, R.id.row_fill_dark, R.id.row_fill_light)
+
+    /** Shows only the progress bar that belongs to [theme] (Material You keeps the system accent) and returns its id. */
+    private fun showFill(v: RemoteViews, id: Int): Int {
+        ROW_FILLS.forEach { v.setViewVisibility(it, if (it == id) View.VISIBLE else View.GONE) }
+        return id
+    }
+
+    private fun palette(theme: String): Palette = basePalette(theme).copy(
+        fillId = when (theme) {
+            "clash" -> R.id.row_fill_clash
+            "dark" -> R.id.row_fill_dark
+            "light" -> R.id.row_fill_light
+            else -> R.id.row_fill
+        },
+    )
+
+    private fun basePalette(theme: String): Palette = when (theme) {
         "clash" -> Palette(
             R.drawable.widget_panel_clash, R.drawable.row_slot_clash, R.drawable.row_done_clash,
             R.drawable.pill_on_clash, R.drawable.pill_off_clash, R.drawable.icon_slot_clash,
@@ -81,14 +100,14 @@ class WidgetRenderer(private val context: Context) {
             R.drawable.widget_panel_dark, R.drawable.row_slot_dark, R.drawable.row_done_dark,
             R.drawable.pill_on_dark, R.drawable.pill_off_dark, R.drawable.icon_slot_dark,
             R.drawable.btn_sync_dark, R.drawable.btn_plus_dark, R.drawable.btn_helper_dark,
-            0xFFF5F7FA.toInt(), 0xFFB8C4D0.toInt(), 0xFFFFD24A.toInt(), 0xFF7BE07A.toInt(),
+            0xFFECEEF2.toInt(), 0xFFAEB4BF.toInt(), 0xFFFFD24A.toInt(), 0xFF7BE07A.toInt(),
             0xFFFFB35C.toInt(), 0xFFFF8A8A.toInt(), 0xFF101418.toInt(),
         )
         "light" -> Palette(
             R.drawable.widget_panel_light, R.drawable.row_slot_light, R.drawable.row_done_light,
             R.drawable.pill_on_light, R.drawable.pill_off_light, R.drawable.icon_slot_light,
             R.drawable.btn_sync_light, R.drawable.btn_plus_light, R.drawable.btn_helper_light,
-            0xFF2B2118.toInt(), 0xFF6B5A47.toInt(), 0xFF8A5A10.toInt(), 0xFF1F6D2A.toInt(),
+            0xFF1B1D21.toInt(), 0xFF565C66.toInt(), 0xFF8A5A10.toInt(), 0xFF1F6D2A.toInt(),
             0xFFA34E00.toInt(), 0xFFB3261E.toInt(), 0xFF3A2500.toInt(),
         )
         else -> Palette(
@@ -371,6 +390,7 @@ class WidgetRenderer(private val context: Context) {
             model
         }
         val v = RemoteViews(pkg, if (compact) R.layout.widget_row_compact else R.layout.widget_row)
+        val fillId = showFill(v, t.fillId)
         val iconPx = ((if (compact) 20 else 24) * density).roundToInt()
         if (inList) {
             // A scrolling list reuses row views, so put every optional piece back to the layout's default first.
@@ -379,7 +399,6 @@ class WidgetRenderer(private val context: Context) {
             v.setViewVisibility(R.id.row_goblin, View.GONE)
             v.setViewVisibility(R.id.row_goblin_icon, View.GONE)
             v.setViewVisibility(R.id.row_level, View.VISIBLE)
-            v.setViewVisibility(R.id.row_fill, View.VISIBLE)
             v.setViewVisibility(R.id.row_clock, View.VISIBLE)
             v.setViewVisibility(R.id.row_chrono, View.VISIBLE)
             v.setViewVisibility(R.id.row_text, View.GONE)
@@ -430,7 +449,7 @@ class WidgetRenderer(private val context: Context) {
 
         when (row.kind) {
             RowKind.RUNNING -> {
-                v.setProgressBar(R.id.row_fill, 1000, (row.progress * 1000).roundToInt(), false)
+                v.setProgressBar(fillId, 1000, (row.progress * 1000).roundToInt(), false)
                 icons.bitmap("clock", (12 * density).roundToInt())?.let { v.setImageViewBitmap(R.id.row_clock, it) }
                 val segment = if (live) row.finishAt?.let { Countdown.segment(it, nowMs, model.text.day) } else null
                 if (segment != null) {
@@ -443,7 +462,7 @@ class WidgetRenderer(private val context: Context) {
                 }
             }
             RowKind.COMPLETED, RowKind.IDLE -> {
-                v.setViewVisibility(R.id.row_fill, View.GONE)
+                ROW_FILLS.forEach { v.setViewVisibility(it, View.GONE) }
                 v.setViewVisibility(R.id.row_clock, View.GONE)
                 v.setViewVisibility(R.id.row_chrono, View.GONE)
                 v.setViewVisibility(R.id.row_text, View.VISIBLE)

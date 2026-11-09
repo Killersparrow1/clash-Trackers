@@ -185,15 +185,19 @@ fun TimerDashboard(
     if (showHelp) HelpDialog(onDismiss = { showHelp = false })
 }
 
-/** Round picture of an account's Town Hall (the generic one until its level is known), like a profile photo. */
+/**
+ * Round picture of an account's Town Hall at its level, like a profile photo.
+ * Uses `1000001_<level>.webp`, which the CI icon step (tools/gen_icons.cjs) already makes for every level;
+ * until the level is known it shows the plain Town Hall icon. (Extra files placed in assets/icons by hand
+ * are deleted by that step, so no new files are needed.)
+ */
 @Composable
 private fun AccountPicture(townHall: Int?) {
     val context = LocalContext.current
     val density = LocalDensity.current
     val bitmap = remember(townHall) {
         val px = with(density) { 28.dp.roundToPx() }
-        val icons = WidgetIcons.get(context)
-        (townHall?.let { icons.bitmap("th_$it", px) } ?: icons.bitmap("1000001", px))?.asImageBitmap()
+        WidgetIcons.get(context).bitmapForLevel(1000001, townHall, px)?.asImageBitmap()
     }
     if (bitmap != null) {
         Image(
@@ -221,14 +225,19 @@ private fun AccountSwitcherBar(
     Box(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
         AssistChip(
             onClick = { menuOpen = true },
-            label = { Text("${selectedAccount?.displayName ?: ""} \u25BE") },
+            label = { Text("${selectedAccount?.displayName ?: ""}${selectedAccount?.townHall?.let { " \u00B7 TH$it" } ?: ""} \u25BE") },
             leadingIcon = { AccountPicture(selectedAccount?.townHall) },
         )
         DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
             accounts.forEach { acct ->
                 DropdownMenuItem(
                     leadingIcon = { AccountPicture(acct.townHall) },
-                    text = { Text((if (acct.tag == selectedAccount?.tag) "\u2713  " else "") + "${acct.displayName} (${acct.tag})") },
+                    text = {
+                        Column {
+                            Text((if (acct.tag == selectedAccount?.tag) "\u2713  " else "") + acct.displayName + (acct.townHall?.let { " \u00B7 TH$it" } ?: ""))
+                            Text(acct.tag, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    },
                     onClick = {
                         menuOpen = false
                         onSelect(acct.tag)

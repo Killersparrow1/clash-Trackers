@@ -212,4 +212,8 @@
     <string name="settings_follow_dnd">Учитывать «Не беспокоить»</string>
     <string name="settings_follow_dnd_desc">Вкл.: оповещения молчат в режиме «Не беспокоить» и используют громкость уведомлений. Выкл.: звучат как будильник, даже в режиме «Не беспокоить».</string>
     <string name="widget_style_minimal">Минимализм</string>
+    <string name="about_version">Clash Trackers %1$s</string>
+    <string name="about_check_updates">Проверить обновления</string>
+    <string name="about_updates_note">Открывает последний релиз на GitHub в браузере. Само приложение остаётся офлайн.</string>
+    <string name="about_no_browser">На этом телефоне не найден браузер.</string>
 </resources>

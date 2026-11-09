@@ -83,7 +83,7 @@ Redesigned with **Material 3 Expressive**, authentic Clash typography, an advanc
 
 ### 👥 Multiple Accounts
 - **Saved by Player Tag**: Every Clash of Clans export contains a player tag. Sync an export from another account and the app saves it as its own account; syncing the same account again updates only that account.
-- **Account Switcher**: Tap the account button at the top of the Timers screen to open a dropdown of all your accounts, with Rename and Delete for the current one. Each account gets a round Town Hall picture that follows its level. Timers, boosts, and events follow the account you pick.
+- **Account Switcher**: Tap the account button at the top of the Timers screen to open a dropdown of all your accounts, with Rename and Delete for the current one. Each account shows a round picture of its Town Hall (the art for its level) and the level next to its name. Timers, boosts, and events follow the account you pick.
 - **Rename & Delete**: Give each account a name and remove accounts you no longer need (deleting asks for confirmation).
 - **Per-Widget Accounts**: Different widgets can show different accounts at the same time, each with its own live countdowns.
 
@@ -178,6 +178,8 @@ cd clash-trackers
 | `POST_NOTIFICATIONS` | Alerts you the exact second an upgrade finishes so you can start the next one. |
 | `RECEIVE_BOOT_COMPLETED` | Reschedules active timer alarms after device reboot. |
 | `INTERNET` | **NOT REQUESTED**. The app cannot make network calls. |
+
+**Updates:** the Support tab has a **Check for updates** button that opens the latest GitHub release in your browser. The browser does the downloading, so the app itself still has no internet permission. Releases are named `CT2.1`, `CT2.2` ... `CT3.0`; the app shows its own version the same way (for example `CT2.2`).
 
 ---
 

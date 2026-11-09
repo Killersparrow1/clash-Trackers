@@ -82,6 +82,8 @@ private fun ClashTimersApp() {
     val snackbar = remember { SnackbarHostState() }
     var retry by remember { mutableIntStateOf(0) }
 
+    // Accounts synced before the Town Hall picture existed get their level filled in once.
+    LaunchedEffect(Unit) { repo.backfillTownHall() }
     val accounts by repo.accounts.collectAsStateWithLifecycle(initialValue = emptyList())
     val selectedTag by repo.selectedAccountTag.collectAsStateWithLifecycle(initialValue = null)
 
