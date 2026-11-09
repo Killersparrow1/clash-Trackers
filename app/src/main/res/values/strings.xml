@@ -215,4 +215,5 @@
     <string name="about_report_issue">Report an issue</string>
     <string name="about_request_feature">Request a feature</string>
     <string name="about_view_issues">See open issues</string>
+    <string name="support_clear_activity">Clear activity</string>
 </resources>

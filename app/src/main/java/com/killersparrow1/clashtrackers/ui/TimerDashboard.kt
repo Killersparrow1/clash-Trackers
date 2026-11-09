@@ -495,12 +495,6 @@ private fun TimerCard(timer: DashboardTimer) {
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        Icon(
-                            painterResource(R.drawable.ic_clock),
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp),
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        )
                         Text(
                             stringResource(R.string.finishes_at, formatTimestamp(it)),
                             style = MaterialTheme.typography.labelLarge,

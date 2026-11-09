@@ -371,6 +371,11 @@ class StateRepository(context: Context) {
         }
     }
 
+    /** Empties the on-screen activity log (diagnostics only). */
+    suspend fun clearLog() {
+        runCatching { store.edit { prefs -> prefs.remove(SYNC_LOG) } }
+    }
+
     suspend fun updateSettings(transform: (AppSettings) -> AppSettings) {
         store.edit { prefs ->
             ensureMigrated(prefs)

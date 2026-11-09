@@ -8,6 +8,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ### Added
 
+- Support → Recent activity is collapsed behind a + / − header and has a Clear activity button.
 - A highlighted completion-time chip on every running timer card in the Timers tab.
 - The Timers filter chips now fade out and collapse while you scroll down and come back when you scroll up.
 - Support → About has a prominent Check for updates card plus Report an issue, Request a feature and See open issues buttons.

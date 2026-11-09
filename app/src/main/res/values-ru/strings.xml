@@ -221,4 +221,5 @@
     <string name="about_report_issue">Сообщить об ошибке</string>
     <string name="about_request_feature">Предложить функцию</string>
     <string name="about_view_issues">Открытые обращения</string>
+    <string name="support_clear_activity">Очистить журнал</string>
 </resources>

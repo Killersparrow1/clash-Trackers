@@ -1,8 +1,18 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.killersparrow1.clashtrackers.ui
 
 import com.killersparrow1.clashtrackers.R
 import com.killersparrow1.clashtrackers.core.formatTimestamp
 import android.appwidget.AppWidgetManager
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Row
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.Alignment
+import com.killersparrow1.clashtrackers.data.StateRepository
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -144,15 +154,45 @@ fun SupportScreen(state: AppState, model: WidgetModel, log: SyncLog, timesCount:
             }
         }
         item {
-            SectionCard(stringResource(R.string.support_recent_activity)) {
-                if (log.entries.isEmpty()) Text(stringResource(R.string.support_no_activity))
-                log.entries.forEach { entry ->
-                    SelectionContainer {
+            var activityOpen by rememberSaveable { mutableStateOf(false) }
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+                shape = MaterialTheme.shapes.large,
+            ) {
+                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    // Collapsed by default: the whole header row toggles it, "+" closed / "−" open.
+                    Row(
+                        Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable { activityOpen = !activityOpen },
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
                         Text(
-                            SyncRunner.plainText(entry.line()),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = if (entry.ok == false) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+                            "${stringResource(R.string.support_recent_activity)} (${log.entries.size})",
+                            style = MaterialTheme.typography.titleMediumEmphasized,
                         )
+                        Text(if (activityOpen) "−" else "+", style = MaterialTheme.typography.headlineMedium)
+                    }
+                    AnimatedVisibility(visible = activityOpen) {
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            if (log.entries.isEmpty()) {
+                                Text(stringResource(R.string.support_no_activity))
+                            } else {
+                                TextButton(
+                                    onClick = { scope.launch { StateRepository(context.applicationContext).clearLog() } },
+                                    modifier = Modifier.heightIn(min = 48.dp),
+                                ) { Text(stringResource(R.string.support_clear_activity)) }
+                            }
+                            log.entries.forEach { entry ->
+                                SelectionContainer {
+                                    Text(
+                                        SyncRunner.plainText(entry.line()),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = if (entry.ok == false) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }
