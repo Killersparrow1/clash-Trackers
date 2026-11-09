@@ -235,6 +235,19 @@ class StateRepository(context: Context) {
         }
     }
 
+    /** Fills in the Town Hall level (account picture) for accounts synced before it was saved. */
+    suspend fun backfillTownHall() {
+        store.edit { prefs ->
+            ensureMigrated(prefs)
+            val index = AccountsIndex.decode(prefs[ACCOUNTS_INDEX])
+            if (index.accounts.none { it.townHall == null }) return@edit
+            val filled = index.accounts.map { a ->
+                if (a.townHall != null) a else a.copy(townHall = AppState.decode(prefs[stateKey(a.tag)]).export?.townHallLevel)
+            }
+            if (filled != index.accounts) prefs[ACCOUNTS_INDEX] = index.copy(accounts = filled).encode()
+        }
+    }
+
     suspend fun getAccountSettings(tag: String): AccountSettings {
         val norm = normalizeTag(tag)
         val prefs = store.data.first()
