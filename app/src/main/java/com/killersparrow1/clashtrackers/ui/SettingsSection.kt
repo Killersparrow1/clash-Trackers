@@ -90,6 +90,12 @@ fun SettingsSection(
                 }
             }
             Text(stringResource(R.string.settings_alert_desc), style = MaterialTheme.typography.bodyMedium)
+            var respectDnd by remember { mutableStateOf(Notifier.respectDnd(context)) }
+            SwitchRow(stringResource(R.string.settings_follow_dnd), respectDnd) { on ->
+                respectDnd = on
+                Notifier.setRespectDnd(context, on)
+            }
+            Text(stringResource(R.string.settings_follow_dnd_desc), style = MaterialTheme.typography.bodyMedium)
             if (settings.notificationsEnabled && !notificationsAllowed) {
                 Text(stringResource(R.string.settings_notif_blocked), color = MaterialTheme.colorScheme.error)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

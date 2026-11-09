@@ -66,7 +66,7 @@ Redesigned with **Material 3 Expressive**, authentic Clash typography, an advanc
 
 ### 📱 Live Home Screen Widget
 - **Per-Second Countdowns**: Live ticking chronometers directly on your home screen.
-- **Two Styles**: Choose **List** (a row with a progress bar for every timer) or **Grid** (round progress rings with the building icon). Both are grouped by Builders, Lab, Pets and Builder Base.
+- **Three Styles**: Choose **List** (a row with a progress bar for every timer), **Grid** (round progress rings with the building icon) or **Minimal** (a black, Nothing-inspired look with white dot-matrix type, thin progress lines and one red accent). All are grouped by Builders, Lab, Pets and Builder Base. Minimal keeps its own colours, so the theme choice does not apply to it.
 - **Scrolls at Any Size**: Resize the widget as small as you like and scroll to reach every timer. Nothing is cut off with a "+N more".
 - **Goblin Badge**: Timers worked on by the event Goblin Builder or Goblin Researcher are marked on both styles.
 - **Widget Themes**: Pick **Material You**, **Clash**, **Dark** or **Light** as the default, and override the theme for individual widgets.
@@ -186,6 +186,7 @@ cd clash-trackers
 - **Original Project**: Built upon [Kuswaa/clash-timers](https://github.com/Kuswaa/clash-timers).
 - **Material 3 UI Inspiration**: Adapted from [Hy4ri/clash-timers](https://github.com/Hy4ri/clash-timers/tree/feat/material-app-ui).
 - **Font**: [Lilita One](app/src/main/res/font/lilita_one.ttf) by Juan Montoreano (SIL Open Font License 1.1).
+- **Minimal widget font**: [Doto](https://github.com/oliverlalan/Doto) by The Doto Project Authors (SIL Open Font License 1.1), bundled as [doto.ttf](app/src/main/res/font/doto.ttf); license in `app/src/main/assets/licenses/Doto-OFL.txt`.
 - **Game Data & Art**: Extracted from [clash-of-clans-data](https://github.com/chiefpansancolt/clash-of-clans-data).
 - **Finished Upgrade Sound**: Game audio from Clash of Clans, © Supercell. Used in this unofficial, non-commercial fan project under Supercell's Fan Content Policy. Source: [Zedge mirror](https://www.zedge.net/notification-sounds/2e5dc20a-223a-460a-8ab7-14ac75b6c127). Not covered by the MIT License.
 

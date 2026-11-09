@@ -68,6 +68,10 @@ data class VillageExport(
     val helperOnFinishedItem: Set<JobCategory> = emptySet(),
     /** `boosts.builder_boost`: seconds left on an active home-village builder potion at T0, or null. */
     val builderBoostRemaining: Long? = null,
+    /** `boosts.lab_boost`: seconds left on an active research potion at T0, or null. */
+    val labBoostRemaining: Long? = null,
+    /** The pet potion's `boosts.*pet*boost*` field (name not yet confirmed from a real export), or null. */
+    val petBoostRemaining: Long? = null,
 ) {
     /** Builders derived from the export: huts + B.O.B. Null if no huts were found. */
     val derivedTotalBuilders: Int?

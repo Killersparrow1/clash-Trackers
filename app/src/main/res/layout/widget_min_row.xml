@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Minimal style: one timer. Name, level, countdown, thin progress line; red dot = Goblin, red + = link helper. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingTop="5dp"
+    android:paddingBottom="5dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/mr_goblin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="5dp"
+            android:fontFamily="@font/doto"
+            android:includeFontPadding="false"
+            android:text="G"
+            android:textColor="#D71921"
+            android:textSize="13dp"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/mr_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:fontFamily="@font/doto"
+            android:includeFontPadding="false"
+            android:maxLines="1"
+            android:textColor="#FFFFFF"
+            android:textSize="14dp" />
+
+        <TextView
+            android:id="@+id/mr_level"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:fontFamily="@font/doto"
+            android:includeFontPadding="false"
+            android:textColor="#8A8A8A"
+            android:textSize="12dp" />
+
+        <Chronometer
+            android:id="@+id/mr_chrono"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:countDown="true"
+            android:fontFamily="@font/doto"
+            android:includeFontPadding="false"
+            android:textColor="#FFFFFF"
+            android:textSize="14dp" />
+
+        <TextView
+            android:id="@+id/mr_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:fontFamily="@font/doto"
+            android:includeFontPadding="false"
+            android:textColor="#D71921"
+            android:textSize="14dp"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/mr_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/doto"
+            android:includeFontPadding="false"
+            android:paddingStart="10dp"
+            android:paddingEnd="2dp"
+            android:text="+"
+            android:textColor="#D71921"
+            android:textSize="18dp" />
+    </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/mr_bar"
+        style="@android:style/Widget.ProgressBar.Horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:layout_marginTop="4dp"
+        android:indeterminate="false"
+        android:max="1000"
+        android:maxHeight="3dp"
+        android:minHeight="3dp"
+        android:progress="0"
+        android:progressDrawable="@drawable/minimal_bar" />
+</LinearLayout>

@@ -30,6 +30,7 @@ class WidgetListService : RemoteViewsService() {
         private var model: WidgetModel? = null
         private var live = true
         private var tiles = false
+        private var minimal = false
         private var items: List<WidgetRenderer.ListItem> = emptyList()
         private lateinit var renderer: WidgetRenderer
 
@@ -46,9 +47,11 @@ class WidgetListService : RemoteViewsService() {
             model = built.first
             live = built.second
             val t = renderer.themePalette(built.first.widgetTheme)
-            tiles = runCatching {
+            val style = runCatching {
                 runBlocking { com.killersparrow1.clashtrackers.data.StateRepository(context).getWidgetStyle(widgetId) }
-            }.getOrNull() == com.killersparrow1.clashtrackers.data.StateRepository.WIDGET_STYLE_TILES
+            }.getOrNull()
+            tiles = style == com.killersparrow1.clashtrackers.data.StateRepository.WIDGET_STYLE_TILES
+            minimal = style == com.killersparrow1.clashtrackers.data.StateRepository.WIDGET_STYLE_MINIMAL && !small
             items = when {
                 small -> renderer.smallItems(built.first)
                 tiles -> renderer.tileItems(built.first, t, cols)
@@ -62,11 +65,29 @@ class WidgetListService : RemoteViewsService() {
 
         override fun getCount(): Int = items.size
 
-        override fun getViewAt(position: Int): RemoteViews {
+        override fun getViewAt(position: Int): RemoteViews = try {
+            buildView(position)
+        } catch (e: Throwable) {
+            // Show the problem in the row instead of Android's endless "Loading...".
+            RemoteViews(context.packageName, com.killersparrow1.clashtrackers.R.layout.widget_min_row).apply {
+                setTextViewText(com.killersparrow1.clashtrackers.R.id.mr_name, "ERR ${e.javaClass.simpleName}: ${e.message}")
+                setViewVisibility(com.killersparrow1.clashtrackers.R.id.mr_chrono, android.view.View.GONE)
+                setViewVisibility(com.killersparrow1.clashtrackers.R.id.mr_btn, android.view.View.INVISIBLE)
+            }
+        }
+
+        private fun buildView(position: Int): RemoteViews {
             val m = model
             val item = items.getOrNull(position)
             if (m == null || item == null) return RemoteViews(context.packageName, com.killersparrow1.clashtrackers.R.layout.widget_list_header)
             val t = renderer.themePalette(m.widgetTheme)
+            if (minimal) {
+                return when (item) {
+                    is WidgetRenderer.ListItem.Header -> renderer.minHeaderView(item, m)
+                    is WidgetRenderer.ListItem.Timer -> renderer.minRowView(item.row, m, live)
+                    else -> RemoteViews(context.packageName, com.killersparrow1.clashtrackers.R.layout.widget_min_header)
+                }
+            }
             return when (item) {
                 is WidgetRenderer.ListItem.Header -> renderer.headerView(item, m, t)
                 is WidgetRenderer.ListItem.Timer -> renderer.timerView(item.row, m, live, t, compact = small)
@@ -75,7 +96,7 @@ class WidgetListService : RemoteViewsService() {
         }
 
         override fun getLoadingView(): RemoteViews? = null
-        override fun getViewTypeCount(): Int = 3
+        override fun getViewTypeCount(): Int = 8
         override fun getItemId(position: Int): Long = position.toLong()
         override fun hasStableIds(): Boolean = false
     }

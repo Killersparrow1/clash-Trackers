@@ -19,13 +19,39 @@ import com.killersparrow1.clashtrackers.core.FinishNotice
 
 /** "Builder free: Inferno Tower" / "Lab free" / "Pet house free". */
 object Notifier {
+    /** Plays on the alarm volume and breaks through Do Not Disturb (the original channel, kept for existing users). */
     const val CHANNEL_ID = "finished_v2"
+    /** Plays on the notification volume and is silenced by Do Not Disturb. */
+    const val CHANNEL_QUIET = "finished_v3"
+    private const val PREFS = "notif_prefs"
+    private const val KEY_RESPECT_DND = "respect_dnd"
     private const val OLD_CHANNEL_ID = "finished"
     private const val CLASH_PACKAGE = "com.supercell.clashofclans"
+
+    /** Whether finish alerts follow Do Not Disturb (default yes, so they stay quiet overnight). */
+    fun respectDnd(context: Context): Boolean =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(KEY_RESPECT_DND, true)
+
+    fun setRespectDnd(context: Context, on: Boolean) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(KEY_RESPECT_DND, on).apply()
+    }
 
     fun ensureChannel(context: Context) {
         val nm = context.getSystemService(NotificationManager::class.java) ?: return
         nm.deleteNotificationChannel(OLD_CHANNEL_ID)
+        if (nm.getNotificationChannel(CHANNEL_QUIET) == null) {
+            val quiet = AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .build()
+            val lctx = com.killersparrow1.clashtrackers.locale.LanguageManager.wrap(context)
+            nm.createNotificationChannel(
+                NotificationChannel(CHANNEL_QUIET, lctx.getString(R.string.notif_channel_quiet), NotificationManager.IMPORTANCE_HIGH).apply {
+                    description = lctx.getString(R.string.notif_channel_quiet_desc)
+                    setSound(Uri.parse("android.resource://${context.packageName}/${R.raw.finish_sound}"), quiet)
+                },
+            )
+        }
         if (nm.getNotificationChannel(CHANNEL_ID) != null) return
         val audioAttributes = AudioAttributes.Builder()
             .setUsage(AudioAttributes.USAGE_ALARM)
@@ -57,15 +83,18 @@ object Notifier {
         if (!allowed(context)) return false
         ensureChannel(context)
         val nm = NotificationManagerCompat.from(context)
-        for (n in notices) {
+        val channel = if (respectDnd(context)) CHANNEL_QUIET else CHANNEL_ID
+        for ((index, n) in notices.withIndex()) {
             val titlePrefix = if (multipleAccounts && accountName != null) "$accountName ($accountTag): " else ""
-            val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+            val notification = NotificationCompat.Builder(context, channel)
                 .setSmallIcon(R.drawable.ic_stat_timer)
                 .setContentTitle("$titlePrefix${n.title}")
                 .setContentText(n.text)
                 .setCategory(NotificationCompat.CATEGORY_REMINDER)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setAutoCancel(true)
+                // Several upgrades finishing together: only the first one makes a sound.
+                .setSilent(index > 0)
                 .setContentIntent(openIntent(context))
                 .build()
             try {

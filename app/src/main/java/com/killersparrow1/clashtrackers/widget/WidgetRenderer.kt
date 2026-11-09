@@ -105,6 +105,9 @@ class WidgetRenderer(private val context: Context) {
         if (style == com.killersparrow1.clashtrackers.data.StateRepository.WIDGET_STYLE_TILES) {
             return renderLarge(model, liveCountdown, options, appWidgetId)
         }
+        if (style == com.killersparrow1.clashtrackers.data.StateRepository.WIDGET_STYLE_MINIMAL) {
+            return renderMinimal(model, appWidgetId)
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val smallSize = android.util.SizeF(250f, 130f)
@@ -156,6 +159,102 @@ class WidgetRenderer(private val context: Context) {
         rv.setTextViewText(R.id.foot_right, model.footerRight)
         rv.setTextColor(R.id.foot_right, t.sub)
         return rv
+    }
+
+    /** Minimal (Nothing-inspired) style: black card, white dot-matrix type, one red accent. Ignores the colour theme. */
+    private fun renderMinimal(model: WidgetModel, appWidgetId: Int): RemoteViews {
+        val rv = RemoteViews(pkg, R.layout.widget_root_minimal)
+        val sync = syncIntent()
+        rv.setOnClickPendingIntent(R.id.header, sync)
+        rv.setOnClickPendingIntent(R.id.sync_button, sync)
+        rv.setTextViewText(R.id.who, title(model, palette(model.widgetTheme)).toString().uppercase())
+        rv.setTextViewText(R.id.lbl_sync, lctx.getString(R.string.widget_sync).uppercase())
+        if (!model.hasData) {
+            rv.setViewVisibility(R.id.content, View.GONE)
+            rv.setViewVisibility(R.id.empty, View.VISIBLE)
+            rv.setOnClickPendingIntent(R.id.empty, sync)
+            rv.setTextViewText(R.id.empty_text, if (model.syncFailed) model.text.syncFailed else model.text.noData)
+            rv.setTextViewText(R.id.lbl_no_data_hint, lctx.getString(R.string.widget_no_data_hint))
+            return rv
+        }
+        rv.setViewVisibility(R.id.empty, View.GONE)
+        rv.setViewVisibility(R.id.content, View.VISIBLE)
+        val adapter = Intent(context, WidgetListService::class.java)
+            .putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+        adapter.data = Uri.parse(adapter.toUri(Intent.URI_INTENT_SCHEME))
+        rv.setRemoteAdapter(R.id.list, adapter)
+        rv.setPendingIntentTemplate(R.id.list, tapTemplate())
+        rv.setTextViewText(R.id.foot_left, footer(model, palette(model.widgetTheme)).toString().uppercase())
+        rv.setTextViewText(R.id.foot_right, model.footerRight.uppercase())
+        return rv
+    }
+
+    /** Minimal: a section label plus its potion / Bite chips. */
+    fun minHeaderView(h: ListItem.Header, model: WidgetModel): RemoteViews {
+        val v = RemoteViews(pkg, R.layout.widget_min_header)
+        v.setTextViewText(R.id.mh_label, h.title.toString().uppercase())
+        for (id in listOf(R.id.mp_bite, R.id.mp_bpot, R.id.mp_rpot, R.id.mp_ppot)) v.setViewVisibility(id, View.GONE)
+        for (id in listOf(R.id.mp_bite_undo, R.id.mp_bpot_undo, R.id.mp_rpot_undo, R.id.mp_ppot_undo)) v.setViewVisibility(id, View.GONE)
+        for (slot in h.pills) {
+            val (box, undo, pill) = when (slot) {
+                PILL_BITE -> Triple(R.id.mp_bite, R.id.mp_bite_undo, model.bite)
+                PILL_BUILDER -> Triple(R.id.mp_bpot, R.id.mp_bpot_undo, model.builderPotion)
+                PILL_RESEARCH -> Triple(R.id.mp_rpot, R.id.mp_rpot_undo, model.researchPotion)
+                else -> Triple(R.id.mp_ppot, R.id.mp_ppot_undo, model.petPotion)
+            }
+            val label = if (slot == PILL_BITE) pill.text else "POT ${pill.text}"
+            v.setTextViewText(box, label.uppercase())
+            v.setTextColor(box, if (pill.active) 0xFFD71921.toInt() else 0xFFFFFFFF.toInt())
+            v.setInt(box, "setBackgroundResource", if (pill.active) R.drawable.minimal_chip_on else R.drawable.minimal_chip)
+            v.setViewVisibility(box, View.VISIBLE)
+            tap(v, box, WidgetActions.ADD_BOOST, pill.type.name, model.accountTag, true)
+            if (pill.canUndo) {
+                v.setViewVisibility(undo, View.VISIBLE)
+                tap(v, undo, WidgetActions.UNDO_BOOST, pill.type.name, model.accountTag, true)
+            }
+        }
+        return v
+    }
+
+    /** Minimal: one timer as a line of text with a thin progress bar. */
+    fun minRowView(source: WidgetRow, model: WidgetModel, live: Boolean): RemoteViews {
+        val nowMs = System.currentTimeMillis()
+        val elapsed = SystemClock.elapsedRealtime()
+        val row = if (source.kind == RowKind.RUNNING && source.finishAt != null && Finish.isDone(source.finishAt, nowMs / 1000)) {
+            source.copy(kind = RowKind.COMPLETED, button = RowButton.NONE, remaining = 0, progress = 1f)
+        } else {
+            source
+        }
+        val v = RemoteViews(pkg, R.layout.widget_min_row)
+        // Reused list rows keep old state, so set every optional piece each time.
+        v.setViewVisibility(R.id.mr_goblin, if (row.goblin) View.VISIBLE else View.GONE)
+        v.setTextViewText(R.id.mr_name, row.name.uppercase())
+        val level = row.levelText?.takeIf { row.kind == RowKind.RUNNING }
+        v.setTextViewText(R.id.mr_level, level?.let { (if (row.showArrow) "> " else "") + it.uppercase() } ?: "")
+        v.setViewVisibility(R.id.mr_level, if (level != null) View.VISIBLE else View.GONE)
+        val running = row.kind == RowKind.RUNNING
+        v.setProgressBar(R.id.mr_bar, 1000, if (running) (row.progress * 1000).roundToInt() else if (row.kind == RowKind.COMPLETED) 1000 else 0, false)
+        val segment = if (running && live) row.finishAt?.let { Countdown.segment(it, nowMs, row.text.day) } else null
+        if (segment != null) {
+            v.setViewVisibility(R.id.mr_chrono, View.VISIBLE)
+            v.setViewVisibility(R.id.mr_text, View.GONE)
+            v.setChronometer(R.id.mr_chrono, elapsed + segment.chronometerMs, segment.format, true)
+            v.setChronometerCountDown(R.id.mr_chrono, true)
+        } else {
+            v.setViewVisibility(R.id.mr_chrono, View.GONE)
+            v.setViewVisibility(R.id.mr_text, View.VISIBLE)
+            v.setTextViewText(R.id.mr_text, row.staticStatus.uppercase())
+        }
+        if (row.button != RowButton.NONE && row.jobKey != null) {
+            v.setViewVisibility(R.id.mr_btn, View.VISIBLE)
+            val link = row.button == RowButton.LINK
+            v.setTextViewText(R.id.mr_btn, if (link) "+" else "H")
+            v.setTextColor(R.id.mr_btn, if (link) 0xFFD71921.toInt() else 0xFFFFFFFF.toInt())
+            tap(v, R.id.mr_btn, WidgetActions.HELPER, row.jobKey, model.accountTag, true)
+        } else {
+            v.setViewVisibility(R.id.mr_btn, View.INVISIBLE)
+        }
+        return v
     }
 
     private fun renderSmall(model: WidgetModel, liveCountdown: Boolean, options: Bundle?, appWidgetId: Int): RemoteViews {
