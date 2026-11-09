@@ -210,4 +210,9 @@
     <string name="about_check_updates">Check for updates</string>
     <string name="about_updates_note">Opens the latest release on GitHub in your browser. The app itself stays offline.</string>
     <string name="about_no_browser">No browser found on this phone.</string>
+    <string name="about_feedback_title">Issues and feature requests</string>
+    <string name="about_feedback_note">Found a bug or have an idea? Open it on GitHub (opens in your browser, a free GitHub account is needed to post).</string>
+    <string name="about_report_issue">Report an issue</string>
+    <string name="about_request_feature">Request a feature</string>
+    <string name="about_view_issues">See open issues</string>
 </resources>

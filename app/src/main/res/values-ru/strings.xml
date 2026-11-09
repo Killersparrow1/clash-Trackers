@@ -216,4 +216,9 @@
     <string name="about_check_updates">Проверить обновления</string>
     <string name="about_updates_note">Открывает последний релиз на GitHub в браузере. Само приложение остаётся офлайн.</string>
     <string name="about_no_browser">На этом телефоне не найден браузер.</string>
+    <string name="about_feedback_title">Ошибки и предложения</string>
+    <string name="about_feedback_note">Нашли ошибку или есть идея? Напишите на GitHub (откроется в браузере, для публикации нужен бесплатный аккаунт GitHub).</string>
+    <string name="about_report_issue">Сообщить об ошибке</string>
+    <string name="about_request_feature">Предложить функцию</string>
+    <string name="about_view_issues">Открытые обращения</string>
 </resources>
