@@ -24,6 +24,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 - Russian translations for the new widget theme, Help and small-widget texts.
 
 ### Fixed
+- Widget progress bars now follow the chosen theme: Clash keeps the original green, Dark and Light use their own fixed colours (and a fresh neutral look), and only Material You follows the phone's accent. Fixes unreadable dark-on-dark rows in Light.
 
 - When several upgrades finish together, only the first notification makes a sound.
 - An active research potion is now read from the village export (`lab_boost`), like the builder potion. The pet potion is read too if the game names its field with "pet" and "boost".
