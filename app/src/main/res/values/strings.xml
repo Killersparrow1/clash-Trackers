@@ -206,4 +206,8 @@
     <string name="settings_follow_dnd">Follow Do Not Disturb</string>
     <string name="settings_follow_dnd_desc">On: alerts stay quiet while Do Not Disturb is on and use your notification volume. Off: they sound like an alarm, even during Do Not Disturb.</string>
     <string name="widget_style_minimal">Minimal</string>
+    <string name="about_version">Clash Trackers %1$s</string>
+    <string name="about_check_updates">Check for updates</string>
+    <string name="about_updates_note">Opens the latest release on GitHub in your browser. The app itself stays offline.</string>
+    <string name="about_no_browser">No browser found on this phone.</string>
 </resources>

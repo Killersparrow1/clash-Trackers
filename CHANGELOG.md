@@ -9,6 +9,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 ### Added
 
 - Custom sound for finished upgrades.
+- A **Check for updates** button in Support → About that opens the latest GitHub release in the browser (the app stays offline). The app now shows its version as `CT2.2` and the release workflow also runs for `CT*` tags.
 - A third widget style, Minimal: black card, white dot-matrix type (Doto, SIL OFL), thin progress lines and a red accent. It scrolls like the others and keeps the helper, Goblin and potion buttons.
 - A "Follow Do Not Disturb" switch in Settings → Notifications (on by default): finish alerts stay quiet during Do Not Disturb and use the notification volume. Turn it off for the old alarm-style alert that rings through Do Not Disturb.
 - The Timers account dropdown shows each account's Town Hall level next to its name, with a round picture of the Town Hall at that level.

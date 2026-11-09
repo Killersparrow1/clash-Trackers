@@ -13,8 +13,8 @@ on:
         default: false
   push:
     branches: [main, builder-base]
-    # Pushing a tag like v1.0.3 also publishes a GitHub Release with the APK attached.
-    tags: ['v*']
+    # Pushing a tag like CT2.2 (or v1.0.3) also publishes a GitHub Release with the APK attached.
+    tags: ['CT*', 'v*']
 
 permissions:
   contents: write
@@ -82,7 +82,7 @@ jobs:
           path: app/build/outputs/apk/debug/*.apk
 
       - name: Publish GitHub Release (version tags only)
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/CT') || startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
           files: app/build/outputs/apk/debug/*.apk

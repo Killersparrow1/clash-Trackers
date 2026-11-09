@@ -179,6 +179,8 @@ cd clash-trackers
 | `RECEIVE_BOOT_COMPLETED` | Reschedules active timer alarms after device reboot. |
 | `INTERNET` | **NOT REQUESTED**. The app cannot make network calls. |
 
+**Updates:** the Support tab has a **Check for updates** button that opens the latest GitHub release in your browser. The browser does the downloading, so the app itself still has no internet permission. Releases are named `CT2.1`, `CT2.2` ... `CT3.0`; the app shows its own version the same way (for example `CT2.2`).
+
 ---
 
 ## Acknowledgements & Credits
