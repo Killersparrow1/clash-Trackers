@@ -22,6 +22,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ### Fixed
 
+- An active research potion is now read from the village export (`lab_boost`), like the builder potion. The pet potion is read too if the game names its field with "pet" and "boost".
 - Small widget row count now follows the actual widget height.
 - Widget setup screen no longer hides its title under the status bar, and the theme choices are listed vertically.
 - The notification icon is now the new stopwatch image.

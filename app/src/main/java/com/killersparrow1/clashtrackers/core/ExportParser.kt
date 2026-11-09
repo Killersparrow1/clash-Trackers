@@ -74,7 +74,15 @@ object ExportParser {
         visitAll("units2", JobCategory.STAR_LAB, JobSource.BB_UNIT)
 
         // Active home-village builder potion (Builder Base `clocktower_*` is ignored).
-        val builderBoost = (root["boosts"] as? JsonObject)?.long("builder_boost")?.takeIf { it > 0 }
+        val boostsObj = root["boosts"] as? JsonObject
+        val builderBoost = boostsObj?.long("builder_boost")?.takeIf { it > 0 }
+        // Same shape for the research potion; the pet potion's key is matched loosely (anything with "pet" and "boost").
+        val labBoost = boostsObj?.long("lab_boost")?.takeIf { it > 0 }
+        val petBoost = boostsObj
+            ?.entries
+            ?.firstOrNull { it.key.contains("pet", ignoreCase = true) && it.key.contains("boost", ignoreCase = true) }
+            ?.let { (it.value as? JsonPrimitive)?.longOrNull }
+            ?.takeIf { it > 0 }
 
         val townHall = buildings.objects().firstOrNull { it.int("data") == GameIds.TOWN_HALL }?.int("lvl")
         val huts = buildings.objects()
@@ -98,6 +106,8 @@ object ExportParser {
                 jobs = assignOccurrences(jobs),
                 helperOnFinishedItem = helperOnFinished,
                 builderBoostRemaining = builderBoost,
+                labBoostRemaining = labBoost,
+                petBoostRemaining = petBoost,
             )
         )
     }

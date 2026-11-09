@@ -35,6 +35,16 @@ object SyncLogic {
                 BoostUse(BoostType.BUILDER_POTION, export.timestamp, export.timestamp + left)
         }
 
+        // Research and pet potions: same idea, the game's own remaining time replaces any tapped windows.
+        export.labBoostRemaining?.let { left ->
+            boosts = boosts.filterNot { it.type == BoostType.RESEARCH_POTION } +
+                BoostUse(BoostType.RESEARCH_POTION, export.timestamp, export.timestamp + left)
+        }
+        export.petBoostRemaining?.let { left ->
+            boosts = boosts.filterNot { it.type == BoostType.PET_POTION } +
+                BoostUse(BoostType.PET_POTION, export.timestamp, export.timestamp + left)
+        }
+
         return Outcome.Synced(
             AppState(
                 exportJson = clipboard.trim(),
@@ -90,5 +100,7 @@ fun SyncLogic.Outcome.describe(names: NameMap): String = when (this) {
         append(" · lab: ").append(e.labJobs.takeIf { it.isNotEmpty() }?.joinToString(" + ") { names.label(it) } ?: "idle")
         append(" · pet: ").append(e.petJob?.let(names::label) ?: "idle")
         e.builderBoostRemaining?.let { append(" · builder potion ${WidgetModelBuilder.formatRemaining(it)} left") }
+        e.labBoostRemaining?.let { append(" · research potion ${WidgetModelBuilder.formatRemaining(it)} left") }
+        e.petBoostRemaining?.let { append(" · pet potion ${WidgetModelBuilder.formatRemaining(it)} left") }
     }
 }
