@@ -65,7 +65,18 @@ class WidgetListService : RemoteViewsService() {
 
         override fun getCount(): Int = items.size
 
-        override fun getViewAt(position: Int): RemoteViews {
+        override fun getViewAt(position: Int): RemoteViews = try {
+            buildView(position)
+        } catch (e: Throwable) {
+            // Show the problem in the row instead of Android's endless "Loading...".
+            RemoteViews(context.packageName, com.killersparrow1.clashtrackers.R.layout.widget_min_row).apply {
+                setTextViewText(com.killersparrow1.clashtrackers.R.id.mr_name, "ERR ${e.javaClass.simpleName}: ${e.message}")
+                setViewVisibility(com.killersparrow1.clashtrackers.R.id.mr_chrono, android.view.View.GONE)
+                setViewVisibility(com.killersparrow1.clashtrackers.R.id.mr_btn, android.view.View.INVISIBLE)
+            }
+        }
+
+        private fun buildView(position: Int): RemoteViews {
             val m = model
             val item = items.getOrNull(position)
             if (m == null || item == null) return RemoteViews(context.packageName, com.killersparrow1.clashtrackers.R.layout.widget_list_header)
@@ -85,7 +96,7 @@ class WidgetListService : RemoteViewsService() {
         }
 
         override fun getLoadingView(): RemoteViews? = null
-        override fun getViewTypeCount(): Int = 3
+        override fun getViewTypeCount(): Int = 8
         override fun getItemId(position: Int): Long = position.toLong()
         override fun hasStableIds(): Boolean = false
     }
