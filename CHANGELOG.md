@@ -8,6 +8,9 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ### Added
 
+- A highlighted completion-time chip on every running timer card in the Timers tab.
+- The Timers filter chips now fade out and collapse while you scroll down and come back when you scroll up.
+- Support → About has a prominent Check for updates card plus Report an issue, Request a feature and See open issues buttons.
 - Custom sound for finished upgrades.
 - A **Check for updates** button in Support → About that opens the latest GitHub release in the browser (the app stays offline). The app now shows its version as `CT2.2` and the release workflow also runs for `CT*` tags.
 - A third widget style, Minimal: black card, white dot-matrix type (Doto, SIL OFL), thin progress lines and a red accent. It scrolls like the others and keeps the helper, Goblin and potion buttons.

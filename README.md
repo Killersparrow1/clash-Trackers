@@ -23,28 +23,38 @@ Redesigned with **Material 3 Expressive**, authentic Clash typography, an advanc
 
 ## Screenshots
 <p align="center">
-  <img src="docs/screenshots/timer 1.png" alt="Timers screen - main view" width="180">
-  <img src="docs/screenshots/timer 2.png" alt="Timers screen - detailed view" width="180">
-  <img src="docs/screenshots/setting1.png" alt="Settings - account management" width="180">
-  <img src="docs/screenshots/setting 2.png" alt="Settings - detailed options" width="180">
-  <img src="docs/screenshots/support .png" alt="Support & Diagnostics" width="180">
+  <img src="docs/screenshots/screenshots.png" alt="Timers screen - Screenshots" width="900">
 </p>
 
 ## Widget Themes
+Four colour themes, chosen per widget: **Material You** (follows your phone's wallpaper colours), **Clash** (the original wood panel and green bars), **Dark** (neutral dark with a blue bar) and **Light** (clean white with a pale blue bar). Each theme has its own progress-bar colour, so text stays readable on every one.
+
 <p align="center">
-  <img src="docs/screenshots/material.jpg" alt="Material You theme" width="150">
-  <img src="docs/screenshots/clash.jpg" alt="Clash theme" width="150">
-  <img src="docs/screenshots/dark.jpg" alt="Dark theme" width="150">
-  <img src="docs/screenshots/light.jpg" alt="Light theme" width="150">
+  <img src="docs/screenshots/material.jpg" alt="Material You theme" width="22%">
+  <img src="docs/screenshots/clash.jpg" alt="Clash theme" width="22%">
+  <img src="docs/screenshots/dark.jpg" alt="Dark theme" width="22%">
+  <img src="docs/screenshots/light.jpg" alt="Light theme" width="22%">
+</p>
+
+### List Widget
+<p align="center">
+  <img src="docs/screenshots/Widget List.png" alt="List Widget" width="900">
 </p>
 
 ---
+
+### Grid Widget
+<p align="center">
+  <img src="docs/screenshots/Widget Grid.png" alt="Grid Widget" width="900">
+</p>
 
 ## Highlights
 
 ### 🎨 Material 3 Expressive Interface
 - **Timers Dashboard**: Unified view of all ongoing upgrades with expressive cards, category chips, and animated `LinearWavyProgressIndicator` bars.
 - **Authentic Typography**: Built with the bundled **Lilita One** Clash font for headings, numbers, and badges, paired with clean, legible tabular system typography for body text.
+- **Completion Time on Every Card**: Each running timer shows a highlighted chip with the exact date and time it finishes, calculated from the same finish time as the countdown (boosts, potions and helpers included).
+- **Filters That Get Out of the Way**: On the Timers tab the filter chips fade out and collapse as you scroll down the list and return when you scroll back up or reach the top.
 - **Short Navigation Bar**: Fluid navigation between **Timers**, **Settings**, and **Support**.
 - **Dynamic Theming**: Full support for Material You dynamic color extraction (Android 12+) with expressive light and dark palettes.
 
@@ -58,15 +68,13 @@ Redesigned with **Material 3 Expressive**, authentic Clash typography, an advanc
 - **Clock Tower Potion**: 30-minute 10× speed boost for Builder Base construction and research.
 - **Home Village Builder Potion & Snacks**: 10× Builder Potions, 2× Builder Bites, Research Potions, and Pet Potions with consecutive stacking rules.
 - **Gold Pass Builder Boost**: Configurable 10%, 15%, or 20% time reduction perks.
-- **Special Upgrade Events**:
-  - **Hammer Jam**: Configurable 50% upgrade time and cost reduction for eligible Home Village construction.
-  - **Builder Base Bonanza**: Independent event configuration with customizable time reductions for the Builder Base.
+- **Special Upgrade Events**: Hammer Jam and Builder Base Bonanza reductions are already part of the upgrade times in the Clash of Clans export, so the app reads them from there and has no separate event buttons.
 - **Time-Segment Simulation**: Uses a deterministic interval simulation algorithm that accurately factors in boost start, expiration, and overlapping intervals without floating-point drift.
 - **State Persistence**: Active boosts, Clock Tower levels, and event schedules persist across device reboots and app restarts via Android DataStore.
 
 ### 📱 Live Home Screen Widget
 - **Per-Second Countdowns**: Live ticking chronometers directly on your home screen.
-- **Three Styles**: Choose **List** (a row with a progress bar for every timer), **Grid** (round progress rings with the building icon) or **Minimal** (a black, Nothing-inspired look with white dot-matrix type, thin progress lines and one red accent). All are grouped by Builders, Lab, Pets and Builder Base. Minimal keeps its own colours, so the theme choice does not apply to it.
+- **Three Styles** (pick one per widget): Choose **List** (a row with a progress bar for every timer), **Grid** (round progress rings with the building icon) or **Minimal** (a black, Nothing-inspired look with white dot-matrix type, thin progress lines and one red accent). All are grouped by Builders, Lab, Pets and Builder Base. Minimal keeps its own colours, so the theme choice does not apply to it.
 - **Scrolls at Any Size**: Resize the widget as small as you like and scroll to reach every timer. Nothing is cut off with a "+N more".
 - **Goblin Badge**: Timers worked on by the event Goblin Builder or Goblin Researcher are marked on both styles.
 - **Widget Themes**: Pick **Material You**, **Clash**, **Dark** or **Light** as the default, and override the theme for individual widgets.
@@ -93,6 +101,16 @@ Redesigned with **Material 3 Expressive**, authentic Clash typography, an advanc
 - **Fully Localized**: Upgrade and building names (all 250 game IDs: buildings, troops, pets, spells, hero equipment and traps), countdown units such as `1д 20:12:05`, the widget's footer and labels ("Готово", "Помощники: …"), and the Support diagnostics are all translated.
 - **Add your language**: Copy one XML file, optionally one JSON file, and add one line each — no coding needed. See [Adding a language](CONTRIBUTING.md#adding-a-language).
 - **Still English**: The About section body (Supercell's required fan-content wording and licence text), the sync toast summary and the runtime sync-log lines.
+
+### 🔔 Notifications
+- **Finish Alerts**: A notification when a builder, the lab or a pet is free, with the Clash of Clans finish sound.
+- **Follow Do Not Disturb**: A switch in **Settings → Notifications** (on by default) keeps alerts quiet during Do Not Disturb and uses your notification volume. Turn it off for an alarm-style alert that rings through Do Not Disturb.
+
+### ⬆️ Updates, Feedback & Releases
+- **Check for updates**: A prominent card in **Support → About** opens the latest GitHub release in your browser. The app itself stays offline; only your browser goes online.
+- **Issues and feature requests**: **Support → About** also has *Report an issue*, *Request a feature* and *See open issues* buttons that open [GitHub Issues](https://github.com/Killersparrow1/clash-Trackers/issues/).
+- **Install over the old version**: Builds are signed with a fixed key, so a new APK installs on top of the previous one without uninstalling (the version number must be higher).
+- **Release names**: Releases are named `CT2.1`, `CT2.2` ... `CT3.0`. The app shows the same name in **Support → About**, and pushing a `CT*` tag builds and publishes a release with the APK attached.
 
 ### 🔒 100% Offline Privacy
 - **Zero Internet Permission**: The app does not request `android.permission.INTERNET`. It cannot send or receive data over the network.
@@ -129,7 +147,8 @@ clash-trackers/
 │   │   ├── data/           # DataStore persistence (StateRepository, Names, Times)
 │   │   ├── ui/             # Jetpack Compose Material 3 Expressive UI
 │   │   │   ├── ClashTrackersContent.kt # Adaptive scaffold with bottom bar or navigation rail
-│   │   │   ├── TimerDashboard.kt    # Upgrade cards, filters, & sync controls
+│   │   │   ├── TimerDashboard.kt    # Upgrade cards (with completion time), collapsing filters, & sync controls
+│   │   │   ├── AboutSection.kt      # Version, update card, issue/feature links, credits
 │   │   │   ├── BoostEventSection.kt # Interactive Clock Tower & potion controls
 │   │   │   ├── HelpDialog.kt        # Setup and sync guide with looping video
 │   │   │   ├── SettingsSection.kt   # Grouped settings & dialog editors
@@ -179,7 +198,7 @@ cd clash-trackers
 | `RECEIVE_BOOT_COMPLETED` | Reschedules active timer alarms after device reboot. |
 | `INTERNET` | **NOT REQUESTED**. The app cannot make network calls. |
 
-**Updates:** the Support tab has a **Check for updates** button that opens the latest GitHub release in your browser. The browser does the downloading, so the app itself still has no internet permission. Releases are named `CT2.1`, `CT2.2` ... `CT3.0`; the app shows its own version the same way (for example `CT2.2`).
+**Updates and feedback:** the Support tab's **Check for updates** button and the issue / feature-request buttons open GitHub in your browser. The browser does the networking, so the app itself still has no internet permission.
 
 ---
 

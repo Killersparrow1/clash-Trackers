@@ -4,7 +4,18 @@ package com.killersparrow1.clashtrackers.ui
 
 import androidx.compose.ui.res.stringResource
 import com.killersparrow1.clashtrackers.core.formatTimestamp
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.horizontalScroll
@@ -92,11 +103,36 @@ fun TimerDashboard(
     var showHelp by rememberSaveable { mutableStateOf(false) }
     val timers = remember(model, filter) { model.timers(filter) }
 
-    Column(modifier.fillMaxSize()) {
+    // Filters collapse when the list is pushed up and come back when it is pulled down (or at the very top).
+    var filtersVisible by remember { mutableStateOf(true) }
+    val gridState = rememberLazyGridState()
+    val atTop by remember { derivedStateOf { gridState.firstVisibleItemIndex == 0 && gridState.firstVisibleItemScrollOffset == 0 } }
+    val scrollConnection = remember {
+        object : NestedScrollConnection {
+            private var travelled = 0f
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                val dy = available.y
+                if (dy != 0f) {
+                    // Direction change resets the distance, so a small wobble never toggles the filters.
+                    if (travelled != 0f && (travelled > 0f) != (dy > 0f)) travelled = 0f
+                    travelled += dy
+                    if (travelled < -24f) filtersVisible = false else if (travelled > 24f) filtersVisible = true
+                }
+                return Offset.Zero
+            }
+        }
+    }
+    val showFilters = filtersVisible || atTop
+
+    Column(modifier.fillMaxSize().nestedScroll(scrollConnection)) {
         if (accounts.isNotEmpty()) {
             AccountSwitcherBar(accounts, selectedTag, onSelectAccount, onRenameAccount, onDeleteAccount)
         }
-        if (model.hasData) {
+        AnimatedVisibility(
+            visible = model.hasData && showFilters,
+            enter = fadeIn() + expandVertically(),
+            exit = fadeOut() + shrinkVertically(),
+        ) {
             Row(
                 Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -113,6 +149,7 @@ fun TimerDashboard(
         }
         LazyVerticalGrid(
             columns = GridCells.Fixed(if (wide) 2 else 1),
+            state = gridState,
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -449,7 +486,27 @@ private fun TimerCard(timer: DashboardTimer) {
             }
             if (row.kind == RowKind.RUNNING) {
                 row.finishAt?.let {
-                    Text(stringResource(R.string.finishes_at, formatTimestamp(it)), style = MaterialTheme.typography.bodyMedium)
+                    // Highlighted completion time (same finishAt the countdown uses), so it stands out on the card.
+                    Row(
+                        Modifier
+                            .clip(MaterialTheme.shapes.large)
+                            .background(MaterialTheme.colorScheme.primaryContainer)
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Icon(
+                            painterResource(R.drawable.ic_clock),
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        )
+                        Text(
+                            stringResource(R.string.finishes_at, formatTimestamp(it)),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        )
+                    }
                 }
                 val helper = when (row.button) {
                     RowButton.APPRENTICE -> stringResource(R.string.apprentice_assigned)
