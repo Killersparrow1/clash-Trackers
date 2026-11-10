@@ -55,6 +55,7 @@ Four colour themes, chosen per widget: **Material You** (follows your phone's wa
 - **Authentic Typography**: Built with the bundled **Lilita One** Clash font for headings, numbers, and badges, paired with clean, legible tabular system typography for body text.
 - **Completion Time on Every Card**: Each running timer shows a highlighted chip with the exact date and time it finishes, calculated from the same finish time as the countdown (boosts, potions and helpers included).
 - **Filters That Get Out of the Way**: On the Timers tab the filter chips fade out and collapse as you scroll down the list and return when you scroll back up or reach the top.
+- **Sync on Open**: Copy your village from Clash of Clans and just open the app; a fresh export is synced automatically (switch in **Settings → Village**). Other clipboard text is ignored and each export is used once.
 - **Short Navigation Bar**: Fluid navigation between **Timers**, **Settings**, and **Support**.
 - **Dynamic Theming**: Full support for Material You dynamic color extraction (Android 12+) with expressive light and dark palettes.
 

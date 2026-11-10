@@ -37,6 +37,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import com.killersparrow1.clashtrackers.sync.ClipboardAutoSync
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -78,6 +79,12 @@ fun SettingsSection(
         Text(stringResource(R.string.settings_autosave), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         SectionCard(stringResource(R.string.settings_section_village)) {
             SettingRow(stringResource(R.string.settings_player_name), settings.displayName, stringResource(R.string.settings_player_name_desc)) { editName = true }
+            var autoClip by remember { mutableStateOf(ClipboardAutoSync.enabled(context)) }
+            SwitchRow(stringResource(R.string.settings_auto_clipboard), autoClip) { on ->
+                autoClip = on
+                ClipboardAutoSync.setEnabled(context, on)
+            }
+            Text(stringResource(R.string.settings_auto_clipboard_desc), style = MaterialTheme.typography.bodyMedium)
         }
         SectionCard(stringResource(R.string.settings_language)) {
             LanguageSetting()

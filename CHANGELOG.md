@@ -8,6 +8,8 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ### Added
 
+- Sync from the clipboard automatically when the app opens (Settings → Village, on by default). Only a fresh Clash of Clans export is used, once.
+- Recent activity keeps the latest 100 entries and drops older ones by itself.
 - Support → Recent activity is collapsed behind a + / − header and has a Clear activity button.
 - A highlighted completion-time chip on every running timer card in the Timers tab.
 - The Timers filter chips now fade out and collapse while you scroll down and come back when you scroll up.

@@ -44,6 +44,8 @@ import com.killersparrow1.clashtrackers.data.WidgetTexts
 import com.killersparrow1.clashtrackers.sync.SyncRunner
 import com.killersparrow1.clashtrackers.ui.ClashTrackersContent
 import com.killersparrow1.clashtrackers.ui.PlayerNameDialog
+import com.killersparrow1.clashtrackers.sync.ClipboardAutoSync
+import androidx.lifecycle.lifecycleScope
 import com.killersparrow1.clashtrackers.ui.theme.ClashTimerTheme
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
@@ -61,6 +63,15 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent { ClashTimerTheme { ClashTimersApp() } }
+    }
+
+    /** Android 10+ only lets the focused app read the clipboard, so the check waits for window focus. */
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (!hasFocus) return
+        val clip = ClipboardAutoSync.pending(this, SyncRunner.readClipboard(this)) ?: return
+        ClipboardAutoSync.markUsed(this, clip)
+        lifecycleScope.launch { runCatching { SyncRunner.sync(this@MainActivity, clip, "auto") } }
     }
 }
 
@@ -171,6 +182,7 @@ private fun ClashTimersApp() {
                     if (!busy) {
                         busy = true
                         val clipboard = SyncRunner.readClipboard(context)
+                        ClipboardAutoSync.markUsed(context, clipboard)
                         scope.launch {
                             try {
                                 SyncRunner.sync(context, clipboard, "app")
