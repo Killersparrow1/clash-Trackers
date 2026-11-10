@@ -1,6 +1,12 @@
 name: Build APK
 
-# Run it from the Actions tab: "Build APK" -> "Run workflow".
+# DEV: run it from the Actions tab: "Build APK" -> "Run workflow" (unchanged), then download the APK.
+# MAIN: every push builds the APK. The "release" job then waits for your approval (it uses the
+# "production" environment, which must have you as a required reviewer; see README, "Releasing").
+# When you approve it creates the CT<version> tag and a GitHub Release with the APK attached.
+#
+# Version numbers: the next one after the newest CT tag (CT2.3 -> 2.4 ... 2.9 -> 3.0), worked out here
+# from the git tags and passed to Gradle, so dev and release builds always count upward together.
 # Applies builder-base-support.patch and builder-base-icons.patch (if they are in the repo root),
 # generates every Builder Base + per-level icon from the clash-of-clans-data package, runs the
 # tests, and builds the debug APK.
@@ -13,8 +19,6 @@ on:
         default: false
   push:
     branches: [main, builder-base]
-    # Pushing a tag like CT2.2 (or v1.0.3) also publishes a GitHub Release with the APK attached.
-    tags: ['CT*', 'v*']
 
 permissions:
   contents: write
@@ -23,8 +27,27 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # all tags, to find the newest release
+
+      - name: Work out the next version
+        id: version
+        run: |
+          latest=$(git tag -l 'CT*' | sed -n 's/^CT\([0-9]\+\(\.[0-9]\+\)\?\)$/\1/p' | sort -V | tail -1)
+          latest=${latest:-2.0}
+          major=${latest%%.*}
+          minor=0
+          case "$latest" in *.*) minor=${latest#*.};; esac
+          if [ "$minor" -ge 9 ]; then major=$((major + 1)); minor=0; else minor=$((minor + 1)); fi
+          echo "Newest release tag: CT$latest -> building ${major}.${minor}"
+          echo "version=${major}.${minor}" >> "$GITHUB_OUTPUT"
+          echo "tag=CT${major}.${minor}" >> "$GITHUB_OUTPUT"
+          echo "code=$((major * 100 + minor))" >> "$GITHUB_OUTPUT"
 
       - name: Apply patches (in order, if present and not applied yet)
         run: |
@@ -73,20 +96,13 @@ jobs:
         run: ./gradlew :app:testDebugUnitTest --stacktrace
 
       - name: Build debug APK
-        run: ./gradlew assembleDebug --stacktrace
+        run: ./gradlew assembleDebug --stacktrace -PappVersionName=${{ steps.version.outputs.version }} -PappVersionCode=${{ steps.version.outputs.code }}
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: ClashTrackers-debug-apk
           path: app/build/outputs/apk/debug/*.apk
-
-      - name: Publish GitHub Release (version tags only)
-        if: startsWith(github.ref, 'refs/tags/CT') || startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: app/build/outputs/apk/debug/*.apk
-          generate_release_notes: true
 
       - name: Upload test report (on failure)
         if: failure()
@@ -105,3 +121,37 @@ jobs:
           git add -A
           git commit -m "Add Builder Base timers and per-level icons" || echo "Nothing to commit"
           git push -f origin builder-base
+
+  # Only for pushes to main. Waits for your approval (environment "production" with a required
+  # reviewer), then tags the commit that was built and publishes the release with the APK.
+  release:
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    # A newer push to main replaces an older release that is still waiting for approval.
+    concurrency:
+      group: release
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: ClashTrackers-debug-apk
+          path: apk
+
+      - name: Create tag and GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.build.outputs.tag }}
+        run: |
+          if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            echo "::error::$TAG already exists (another release was published after this build). Re-run the build on main."
+            exit 1
+          fi
+          mv apk/*.apk "apk/ClashTrackers-$TAG.apk"
+          gh release create "$TAG" "apk/ClashTrackers-$TAG.apk" \
+            --target "$GITHUB_SHA" --title "$TAG" --generate-notes
