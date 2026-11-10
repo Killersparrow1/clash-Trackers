@@ -13,7 +13,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 - Recent activity keeps the latest 100 entries and drops older ones by itself.
 - Support → Recent activity is collapsed behind a + / − header and has a Clear activity button.
 - A highlighted completion-time chip on every running timer card in the Timers tab.
-- The Timers filter chips now fade out and collapse while you scroll down and come back when you scroll up.
+- The Timers account switcher and filter chips now fade out and collapse together while you scroll down the list and come back when you scroll up (the title stays).
 - Support → About has a prominent Check for updates card plus Report an issue, Request a feature and See open issues buttons.
 - Custom sound for finished upgrades.
 - A **Check for updates** button in Support → About that opens the latest GitHub release in the browser (the app stays offline). The app now shows its version as `CT2.2` and the release workflow also runs for `CT*` tags.

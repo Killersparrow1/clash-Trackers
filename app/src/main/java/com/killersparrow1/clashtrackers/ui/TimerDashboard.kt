@@ -125,15 +125,17 @@ fun TimerDashboard(
     val showFilters = filtersVisible || atTop
 
     Column(modifier.fillMaxSize().nestedScroll(scrollConnection)) {
-        if (accounts.isNotEmpty()) {
-            AccountSwitcherBar(accounts, selectedTag, onSelectAccount, onRenameAccount, onDeleteAccount)
-        }
+        // The account switcher and the filter chips fade and collapse together; the app title stays put.
         AnimatedVisibility(
-            visible = model.hasData && showFilters,
+            visible = (accounts.isNotEmpty() || model.hasData) && showFilters,
             enter = fadeIn() + expandVertically(),
             exit = fadeOut() + shrinkVertically(),
         ) {
-            Row(
+          Column {
+            if (accounts.isNotEmpty()) {
+                AccountSwitcherBar(accounts, selectedTag, onSelectAccount, onRenameAccount, onDeleteAccount)
+            }
+            if (model.hasData) Row(
                 Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
@@ -146,6 +148,7 @@ fun TimerDashboard(
                     )
                 }
             }
+          }
         }
         LazyVerticalGrid(
             columns = GridCells.Fixed(if (wide) 2 else 1),
