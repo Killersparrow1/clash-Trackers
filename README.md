@@ -216,8 +216,6 @@ cd clash-trackers
 
 Thank you to everyone on [r/ClashOfClans](https://www.reddit.com/r/ClashOfClans/) who tried the app, reported bugs, shared village exports for testing and suggested features. Several of the app's features and fixes came straight from your feedback, including multiple accounts, the Russian translation, research and pet potion support, and the widget fixes.
 
-- **u/Vanquisher_89**: tested multiple accounts and widgets on Android 17 and shared a village export to help track down an icon issue.
-
 Want to help too? Bug reports, village exports (with sensitive data removed) and feature ideas are all welcome; see [CONTRIBUTING.md](CONTRIBUTING.md) or open an [issue](https://github.com/Killersparrow1/clash-Trackers/issues/).
 
 ---
