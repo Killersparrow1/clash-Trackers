@@ -212,6 +212,14 @@ cd clash-trackers
 - **Game Data & Art**: Extracted from [clash-of-clans-data](https://github.com/chiefpansancolt/clash-of-clans-data).
 - **Finished Upgrade Sound**: Game audio from Clash of Clans, © Supercell. Used in this unofficial, non-commercial fan project under Supercell's Fan Content Policy. Source: [Zedge mirror](https://www.zedge.net/notification-sounds/2e5dc20a-223a-460a-8ab7-14ac75b6c127). Not covered by the MIT License.
 
+### 🙏 Thanks to the community
+
+Thank you to everyone on [r/ClashOfClans](https://www.reddit.com/r/ClashOfClans/) who tried the app, reported bugs, shared village exports for testing and suggested features. Several of the app's features and fixes came straight from your feedback, including multiple accounts, the Russian translation, research and pet potion support, and the widget fixes.
+
+- **u/Vanquisher_89**: tested multiple accounts and widgets on Android 17 and shared a village export to help track down an icon issue.
+
+Want to help too? Bug reports, village exports (with sensitive data removed) and feature ideas are all welcome; see [CONTRIBUTING.md](CONTRIBUTING.md) or open an [issue](https://github.com/Killersparrow1/clash-Trackers/issues/).
+
 ---
 
 ## License
