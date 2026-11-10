@@ -44,6 +44,11 @@ object SyncLogic {
             boosts = boosts.filterNot { it.type == BoostType.PET_POTION } +
                 BoostUse(BoostType.PET_POTION, export.timestamp, export.timestamp + left)
         }
+        // Builder Bite: the game's own remaining time replaces any Bite windows tapped on the widget.
+        export.builderBiteRemaining?.let { left ->
+            boosts = boosts.filterNot { it.type == BoostType.BUILDER_BITE } +
+                BoostUse(BoostType.BUILDER_BITE, export.timestamp, export.timestamp + left)
+        }
 
         return Outcome.Synced(
             AppState(
@@ -102,5 +107,6 @@ fun SyncLogic.Outcome.describe(names: NameMap): String = when (this) {
         e.builderBoostRemaining?.let { append(" · builder potion ${WidgetModelBuilder.formatRemaining(it)} left") }
         e.labBoostRemaining?.let { append(" · research potion ${WidgetModelBuilder.formatRemaining(it)} left") }
         e.petBoostRemaining?.let { append(" · pet potion ${WidgetModelBuilder.formatRemaining(it)} left") }
+        e.builderBiteRemaining?.let { append(" · builder bite ${WidgetModelBuilder.formatRemaining(it)} left") }
     }
 }

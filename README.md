@@ -67,7 +67,7 @@ Four colour themes, chosen per widget: **Material You** (follows your phone's wa
 ### ⚡ Advanced Boost & Event Engine
 - **Builder Base Clock Tower**: Tracks the 10× speed boost with durations calibrated to verified Clock Tower levels (Level 1: 14 min to Level 10: 32 min), including estimated time saved.
 - **Clock Tower Potion**: 30-minute 10× speed boost for Builder Base construction and research.
-- **Home Village Builder Potion & Snacks**: 10× Builder Potions, 2× Builder Bites, Research Potions, and Pet Potions with consecutive stacking rules.
+- **Home Village Builder Potion & Snacks**: 10× Builder Potions, 2× Builder Bites, Research Potions, and Pet Potions with consecutive stacking rules. Active potions and the Builder Bite are read straight from the village export, so you only need to tap their buttons for ones you use after copying the export.
 - **Gold Pass Builder Boost**: Configurable 10%, 15%, or 20% time reduction perks.
 - **Special Upgrade Events**: Hammer Jam and Builder Base Bonanza reductions are already part of the upgrade times in the Clash of Clans export, so the app reads them from there and has no separate event buttons.
 - **Time-Segment Simulation**: Uses a deterministic interval simulation algorithm that accurately factors in boost start, expiration, and overlapping intervals without floating-point drift.

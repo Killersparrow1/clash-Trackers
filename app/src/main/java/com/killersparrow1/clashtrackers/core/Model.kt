@@ -72,6 +72,8 @@ data class VillageExport(
     val labBoostRemaining: Long? = null,
     /** The pet potion's `boosts.*pet*boost*` field (name not yet confirmed from a real export), or null. */
     val petBoostRemaining: Long? = null,
+    /** `boosts.builder_consumable`: seconds left on an active Builder Bite (2x builders) at T0, or null. */
+    val builderBiteRemaining: Long? = null,
 ) {
     /** Builders derived from the export: huts + B.O.B. Null if no huts were found. */
     val derivedTotalBuilders: Int?

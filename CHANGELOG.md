@@ -8,6 +8,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ### Added
 
+- An active Builder Bite is now read from the village export (`boosts.builder_consumable`), like the potions, instead of only from the Bite button.
 - A short animated start-up screen with the app icon, drawn over the theme's own background. Tap to skip; it plays only on a fresh launch.
 - The system start-up screen no longer flashes a white icon before the animation; it shows only the theme background.
 - Releases are automated: a push to `main` builds the APK, then waits for the maintainer's approval before creating the next `CT` tag and GitHub Release with the APK attached. The version number comes from the newest `CT` tag (CT2.3 → CT2.4 … CT2.9 → CT3.0).

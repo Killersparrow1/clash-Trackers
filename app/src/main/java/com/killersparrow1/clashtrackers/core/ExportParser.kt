@@ -78,6 +78,8 @@ object ExportParser {
         val builderBoost = boostsObj?.long("builder_boost")?.takeIf { it > 0 }
         // Same shape for the research potion; the pet potion's key is matched loosely (anything with "pet" and "boost").
         val labBoost = boostsObj?.long("lab_boost")?.takeIf { it > 0 }
+        // Builder Bite (magic snack): `builder_consumable`, remaining seconds.
+        val builderBite = boostsObj?.long("builder_consumable")?.takeIf { it > 0 }
         val petBoost = boostsObj
             ?.entries
             ?.firstOrNull { it.key.contains("pet", ignoreCase = true) && it.key.contains("boost", ignoreCase = true) }
@@ -108,6 +110,7 @@ object ExportParser {
                 builderBoostRemaining = builderBoost,
                 labBoostRemaining = labBoost,
                 petBoostRemaining = petBoost,
+                builderBiteRemaining = builderBite,
             )
         )
     }

@@ -39,10 +39,19 @@ class PotionBoostsTest {
         assertEquals(export.timestamp + 1200L, state.boosts.single { it.type == BoostType.PET_POTION }.end)
     }
 
+    @Test fun builderBiteIsRead() {
+        val (export, state) = sync("""{"builder_consumable":7192,"clocktower_cooldown":100}""")
+        assertEquals(7192L, export.builderBiteRemaining)
+        val bite = state.boosts.single { it.type == BoostType.BUILDER_BITE }
+        assertEquals(export.timestamp, bite.start)
+        assertEquals(export.timestamp + 7192L, bite.end)
+    }
+
     @Test fun noBoostsMeansNoPotions() {
         val (export, state) = sync("""{"clocktower_cooldown":100}""")
         assertNull(export.labBoostRemaining)
         assertNull(export.petBoostRemaining)
-        assertTrue(state.boosts.none { it.type == BoostType.RESEARCH_POTION || it.type == BoostType.PET_POTION })
+        assertNull(export.builderBiteRemaining)
+        assertTrue(state.boosts.none { it.type == BoostType.RESEARCH_POTION || it.type == BoostType.PET_POTION || it.type == BoostType.BUILDER_BITE })
     }
 }
