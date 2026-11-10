@@ -6,6 +6,11 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.layout.Box
+import androidx.compose.runtime.saveable.rememberSaveable
+import com.killersparrow1.clashtrackers.ui.SplashOverlay
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -62,7 +67,17 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContent { ClashTimerTheme { ClashTimersApp() } }
+        // The start-up animation plays on a fresh launch only (not after a rotation or a process restore).
+        val playSplash = savedInstanceState == null
+        setContent {
+            ClashTimerTheme {
+                var splash by rememberSaveable { mutableStateOf(playSplash) }
+                Box(Modifier.fillMaxSize()) {
+                    ClashTimersApp()
+                    AnimatedVisibility(visible = splash, exit = fadeOut()) { SplashOverlay { splash = false } }
+                }
+            }
+        }
     }
 
     /** Android 10+ only lets the focused app read the clipboard, so the check waits for window focus. */

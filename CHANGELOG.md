@@ -8,6 +8,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ### Added
 
+- A short animated start-up screen with the app icon, drawn over the theme's own background. Tap to skip; it plays only on a fresh launch.
 - Releases are automated: a push to `main` builds the APK, then waits for the maintainer's approval before creating the next `CT` tag and GitHub Release with the APK attached. The version number comes from the newest `CT` tag (CT2.3 → CT2.4 … CT2.9 → CT3.0).
 - Support tab tidy-up: Last crash, Widget diagnostics, Saved village and Widget text preview now sit together in one collapsed Diagnostics card, and the About card has aligned, grouped sections.
 - Sync from the clipboard automatically when the app opens (Settings → Village, on by default). Only a fresh Clash of Clans export is used, once.
