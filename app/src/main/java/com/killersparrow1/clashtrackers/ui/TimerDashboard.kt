@@ -359,10 +359,16 @@ private fun VillageSummary(model: WidgetModel) {
             model.nextRunningTimer()?.let { next ->
                 next.row.finishAt?.let { finishAt ->
                     Spacer(Modifier.size(4.dp))
+                    // Highlighted like the completion chip on the timer cards, so the next finish stands out.
                     Text(
                         stringResource(R.string.next_finish, next.row.name, Countdown.text(next.row.remaining, stringResource(R.string.time_day_short))),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(MaterialTheme.shapes.large)
+                            .background(MaterialTheme.colorScheme.primaryContainer)
+                            .padding(horizontal = 14.dp, vertical = 10.dp),
                     )
                 }
             }
