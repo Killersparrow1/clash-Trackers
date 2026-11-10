@@ -11,6 +11,8 @@ import android.widget.Toast
 import com.killersparrow1.clashtrackers.R
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -35,7 +37,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 /** Supercell's required wording for fan content (supercell.com/fan-content-policy). */
@@ -50,15 +51,19 @@ fun AboutSection() {
     val version = remember { appVersion(context) }
     var showLicence by remember { mutableStateOf(false) }
 
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text(stringResource(R.string.about_version, version))
-        // Prominent update card: tonal container with a full-width filled button.
+    // Every group starts at the card's left edge: same heading style, 4dp inside a group, 20dp between groups.
+    Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
             shape = MaterialTheme.shapes.extraLarge,
         ) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(
+                    stringResource(R.string.about_version, version),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
                 Text(
                     stringResource(R.string.about_updates_note),
                     style = MaterialTheme.typography.bodyMedium,
@@ -79,39 +84,56 @@ fun AboutSection() {
                 }
             }
         }
-        Text(stringResource(R.string.about_feedback_title), style = MaterialTheme.typography.titleSmall)
-        Text(stringResource(R.string.about_feedback_note), style = MaterialTheme.typography.bodySmall)
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilledTonalButton(onClick = { openUrl(context, ISSUES_URL) }, modifier = Modifier.weight(1f).heightIn(min = 48.dp)) {
-                Text(stringResource(R.string.about_report_issue))
+        AboutGroup(stringResource(R.string.about_feedback_title)) {
+            Text(stringResource(R.string.about_feedback_note), style = MaterialTheme.typography.bodyMedium)
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FilledTonalButton(onClick = { openUrl(context, ISSUES_URL) }, modifier = Modifier.weight(1f).heightIn(min = 48.dp)) {
+                    Text(stringResource(R.string.about_report_issue))
+                }
+                FilledTonalButton(onClick = { openUrl(context, FEATURE_URL) }, modifier = Modifier.weight(1f).heightIn(min = 48.dp)) {
+                    Text(stringResource(R.string.about_request_feature))
+                }
             }
-            FilledTonalButton(onClick = { openUrl(context, FEATURE_URL) }, modifier = Modifier.weight(1f).heightIn(min = 48.dp)) {
-                Text(stringResource(R.string.about_request_feature))
+            TextButton(
+                onClick = { openUrl(context, ISSUES_LIST_URL) },
+                modifier = Modifier.heightIn(min = 48.dp),
+                contentPadding = PaddingValues(0.dp),
+            ) { Text(stringResource(R.string.about_view_issues)) }
+        }
+        AboutGroup("Works fully offline") {
+            Text(
+                "The app has no internet permission. It reads only the village data you copy in Clash of Clans, " +
+                    "keeps it on this phone and sends nothing anywhere. No account, no ads, no tracking.",
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+        AboutGroup("Credits") {
+            Text(FAN_CONTENT_DISCLAIMER, style = MaterialTheme.typography.bodyMedium)
+            Text(
+                "Clash of Clans names and images are the property of Supercell. Names, upgrade times and images " +
+                    "come from the clash-of-clans-data package. Font: Lilita One by Juan Montoreano, " +
+                    "SIL Open Font License 1.1.",
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            TextButton(
+                onClick = { showLicence = !showLicence },
+                modifier = Modifier.heightIn(min = 48.dp),
+                contentPadding = PaddingValues(0.dp),
+            ) { Text(if (showLicence) "Hide font licence" else "Show font licence") }
+            if (showLicence) {
+                val licence = remember { readAsset(context, "licenses/LilitaOne-OFL.txt") }
+                Text(licence, style = MaterialTheme.typography.bodySmall)
             }
         }
-        TextButton(onClick = { openUrl(context, ISSUES_LIST_URL) }, modifier = Modifier.heightIn(min = 48.dp)) {
-            Text(stringResource(R.string.about_view_issues))
-        }
-        Text("Works fully offline", fontWeight = FontWeight.Bold)
-        Text(
-            "The app has no internet permission. It reads only the village data you copy in Clash of Clans, " +
-                "keeps it on this phone and sends nothing anywhere. No account, no ads, no tracking.",
-            style = MaterialTheme.typography.bodySmall,
-        )
-        Text(FAN_CONTENT_DISCLAIMER, style = MaterialTheme.typography.bodyMedium)
-        Text(
-            "Clash of Clans names and images are the property of Supercell. Names, upgrade times and images " +
-                "come from the clash-of-clans-data package. Font: Lilita One by Juan Montoreano, " +
-                "SIL Open Font License 1.1.",
-            style = MaterialTheme.typography.bodySmall,
-        )
-        TextButton(onClick = { showLicence = !showLicence }) {
-            Text(if (showLicence) "Hide font licence" else "Show font licence")
-        }
-        if (showLicence) {
-            val licence = remember { readAsset(context, "licenses/LilitaOne-OFL.txt") }
-            Text(licence, style = MaterialTheme.typography.bodySmall)
-        }
+    }
+}
+
+/** A titled group inside About; headings share one style so everything lines up. */
+@Composable
+private fun AboutGroup(title: String, content: @Composable ColumnScope.() -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(title, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
+        content()
     }
 }
 
