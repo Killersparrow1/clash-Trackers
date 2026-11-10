@@ -55,6 +55,7 @@ Four colour themes, chosen per widget: **Material You** (follows your phone's wa
 - **Authentic Typography**: Built with the bundled **Lilita One** Clash font for headings, numbers, and badges, paired with clean, legible tabular system typography for body text.
 - **Completion Time on Every Card**: Each running timer shows a highlighted chip with the exact date and time it finishes, calculated from the same finish time as the countdown (boosts, potions and helpers included).
 - **Filters That Get Out of the Way**: On the Timers tab the filter chips fade out and collapse as you scroll down the list and return when you scroll back up or reach the top.
+- **Sync on Open**: Copy your village from Clash of Clans and just open the app; a fresh export is synced automatically (switch in **Settings → Village**). Other clipboard text is ignored and each export is used once.
 - **Short Navigation Bar**: Fluid navigation between **Timers**, **Settings**, and **Support**.
 - **Dynamic Theming**: Full support for Material You dynamic color extraction (Android 12+) with expressive light and dark palettes.
 
@@ -110,7 +111,7 @@ Four colour themes, chosen per widget: **Material You** (follows your phone's wa
 - **Check for updates**: A prominent card in **Support → About** opens the latest GitHub release in your browser. The app itself stays offline; only your browser goes online.
 - **Issues and feature requests**: **Support → About** also has *Report an issue*, *Request a feature* and *See open issues* buttons that open [GitHub Issues](https://github.com/Killersparrow1/clash-Trackers/issues/).
 - **Install over the old version**: Builds are signed with a fixed key, so a new APK installs on top of the previous one without uninstalling (the version number must be higher).
-- **Release names**: Releases are named `CT2.1`, `CT2.2` ... `CT3.0`. The app shows the same name in **Support → About**, and pushing a `CT*` tag builds and publishes a release with the APK attached.
+- **Release names**: Releases are named `CT2.1`, `CT2.2` ... `CT3.0`. The app shows the same name in **Support → About**, and merging into `main` builds the APK and, after your approval, publishes the release automatically (see **Releasing** below).
 
 ### 🔒 100% Offline Privacy
 - **Zero Internet Permission**: The app does not request `android.permission.INTERNET`. It cannot send or receive data over the network.
@@ -220,3 +221,11 @@ The source code is licensed under the [MIT License](LICENSE). Game assets, names
 ## Disclaimer
 
 This material is unofficial and is not endorsed by Supercell. For more information see Supercell's Fan Content Policy: [www.supercell.com/fan-content-policy](https://www.supercell.com/fan-content-policy).
+
+## Releasing (maintainers)
+
+- **Dev builds:** Actions → **Build APK** → **Run workflow** on the `dev` branch, then download the APK. Nothing is published.
+- **Production:** merging into `main` runs the same build. A second job, **release**, then waits for approval. Approve it under Actions → the run → **Review deployments** → `production`.
+- **After approval** it picks the next version from the newest `CT` tag (`CT2.3` → `CT2.4`, … `CT2.9` → `CT3.0`), tags the built commit and publishes a GitHub Release with `ClashTrackers-CT2.4.apk` attached and generated release notes. Not approving simply means no release.
+- **One-time setup:** Settings → **Environments** → New environment named `production` → tick **Required reviewers** and add yourself. Do this before merging; without it GitHub creates the environment with no approval step and the release would publish by itself.
+- Dev and release builds get their version from the same rule, so installing a dev build over a release (or the reverse) always works. A newer push to `main` replaces a release that is still waiting.

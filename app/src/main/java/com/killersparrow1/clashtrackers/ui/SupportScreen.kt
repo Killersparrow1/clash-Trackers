@@ -1,8 +1,19 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.killersparrow1.clashtrackers.ui
 
 import com.killersparrow1.clashtrackers.R
 import com.killersparrow1.clashtrackers.core.formatTimestamp
 import android.appwidget.AppWidgetManager
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Row
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.Alignment
+import com.killersparrow1.clashtrackers.data.StateRepository
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -80,10 +91,10 @@ fun SupportScreen(state: AppState, model: WidgetModel, log: SyncLog, timesCount:
             }
         }
         item {
-            SectionCard(stringResource(R.string.support_last_crash)) { CrashSection() }
-        }
-        item {
-            SectionCard(stringResource(R.string.support_widget_diagnostics)) {
+          CollapsibleCard(stringResource(R.string.support_diagnostics), "diagnostics") {
+            SubSection(stringResource(R.string.support_last_crash)) { CrashSection() }
+            HorizontalDivider()
+            SubSection(stringResource(R.string.support_widget_diagnostics)) {
                 Text(when (widgetCount) {
                     -1 -> stringResource(R.string.support_widgets_unknown)
                     0 -> stringResource(R.string.support_widgets_none)
@@ -127,25 +138,32 @@ fun SupportScreen(state: AppState, model: WidgetModel, log: SyncLog, timesCount:
                 ) { Text(if (refreshBusy) stringResource(R.string.support_refreshing) else stringResource(R.string.support_refresh_widget)) }
                 if (widgetCount == 0) Text(stringResource(R.string.support_add_widget_hint), style = MaterialTheme.typography.bodySmall)
             }
-        }
-        item {
-            SectionCard(stringResource(R.string.support_saved_village)) {
+            HorizontalDivider()
+            SubSection(stringResource(R.string.support_saved_village)) {
                 state.export?.let {
                     Text(stringResource(R.string.support_village_tag, it.tag))
                     Text(stringResource(R.string.support_export_copied, formatTimestamp(it.timestamp)))
                 } ?: Text(stringResource(R.string.support_no_export))
             }
-        }
-        item {
-            SectionCard(stringResource(R.string.support_widget_preview)) {
+            HorizontalDivider()
+            SubSection(stringResource(R.string.support_widget_preview)) {
                 SelectionContainer {
                     Text(widgetPreview(model), fontFamily = FontFamily.Monospace, style = MaterialTheme.typography.bodyMedium)
                 }
             }
+          }
         }
         item {
-            SectionCard(stringResource(R.string.support_recent_activity)) {
-                if (log.entries.isEmpty()) Text(stringResource(R.string.support_no_activity))
+            CollapsibleCard("${stringResource(R.string.support_recent_activity)} (${log.entries.size})", "activity") {
+                if (log.entries.isEmpty()) {
+                    Text(stringResource(R.string.support_no_activity))
+                } else {
+                    TextButton(
+                        onClick = { scope.launch { StateRepository(context.applicationContext).clearLog() } },
+                        modifier = Modifier.heightIn(min = 48.dp),
+                        contentPadding = PaddingValues(0.dp),
+                    ) { Text(stringResource(R.string.support_clear_activity)) }
+                }
                 log.entries.forEach { entry ->
                     SelectionContainer {
                         Text(

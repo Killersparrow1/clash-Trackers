@@ -125,15 +125,17 @@ fun TimerDashboard(
     val showFilters = filtersVisible || atTop
 
     Column(modifier.fillMaxSize().nestedScroll(scrollConnection)) {
-        if (accounts.isNotEmpty()) {
-            AccountSwitcherBar(accounts, selectedTag, onSelectAccount, onRenameAccount, onDeleteAccount)
-        }
+        // The account switcher and the filter chips fade and collapse together; the app title stays put.
         AnimatedVisibility(
-            visible = model.hasData && showFilters,
+            visible = (accounts.isNotEmpty() || model.hasData) && showFilters,
             enter = fadeIn() + expandVertically(),
             exit = fadeOut() + shrinkVertically(),
         ) {
-            Row(
+          Column {
+            if (accounts.isNotEmpty()) {
+                AccountSwitcherBar(accounts, selectedTag, onSelectAccount, onRenameAccount, onDeleteAccount)
+            }
+            if (model.hasData) Row(
                 Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
@@ -146,6 +148,7 @@ fun TimerDashboard(
                     )
                 }
             }
+          }
         }
         LazyVerticalGrid(
             columns = GridCells.Fixed(if (wide) 2 else 1),
@@ -356,10 +359,16 @@ private fun VillageSummary(model: WidgetModel) {
             model.nextRunningTimer()?.let { next ->
                 next.row.finishAt?.let { finishAt ->
                     Spacer(Modifier.size(4.dp))
+                    // Highlighted like the completion chip on the timer cards, so the next finish stands out.
                     Text(
                         stringResource(R.string.next_finish, next.row.name, Countdown.text(next.row.remaining, stringResource(R.string.time_day_short))),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(MaterialTheme.shapes.large)
+                            .background(MaterialTheme.colorScheme.primaryContainer)
+                            .padding(horizontal = 14.dp, vertical = 10.dp),
                     )
                 }
             }
@@ -495,12 +504,6 @@ private fun TimerCard(timer: DashboardTimer) {
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        Icon(
-                            painterResource(R.drawable.ic_clock),
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp),
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        )
                         Text(
                             stringResource(R.string.finishes_at, formatTimestamp(it)),
                             style = MaterialTheme.typography.labelLarge,

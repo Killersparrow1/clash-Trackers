@@ -164,7 +164,7 @@ data class SyncLog(val entries: List<SyncLogEntry> = emptyList()) {
     fun encode(): String = AppState.JSON.encodeToString(serializer(), this)
 
     companion object {
-        const val MAX_ENTRIES = 40
+        const val MAX_ENTRIES = 100 // older entries drop off automatically
 
         fun decode(text: String?): SyncLog =
             text?.let { runCatching { AppState.JSON.decodeFromString(serializer(), it) }.getOrNull() } ?: SyncLog()

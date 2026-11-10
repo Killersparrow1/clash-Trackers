@@ -215,4 +215,8 @@
     <string name="about_report_issue">Report an issue</string>
     <string name="about_request_feature">Request a feature</string>
     <string name="about_view_issues">See open issues</string>
+    <string name="support_clear_activity">Clear activity</string>
+    <string name="settings_auto_clipboard">Sync from clipboard when the app opens</string>
+    <string name="settings_auto_clipboard_desc">When you open the app, a village export you just copied in Clash of Clans is synced automatically. Other clipboard text is ignored, and each export is only used once. Android may show a short "pasted from clipboard" message.</string>
+    <string name="support_diagnostics">Diagnostics</string>
 </resources>

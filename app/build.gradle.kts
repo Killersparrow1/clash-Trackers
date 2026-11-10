@@ -28,10 +28,11 @@ android {
         applicationId = "com.killersparrow1.clashtrackers"
         minSdk = 26
         targetSdk = 37
-        // Bump both for every release; a lower versionCode can't install over a higher one.
-        // Releases are named CT<versionName> (CT2.1, CT2.2 ... CT3.0): tag the GitHub release "CT2.2" for versionName "2.2".
-        versionCode = 4
-        versionName = "2.2"
+        // GitHub Actions passes the next release number (-PappVersionName=2.4 -PappVersionCode=204, from the
+        // newest CT tag), so dev and release builds count upward together. The values below are only used
+        // for local builds. Releases are named CT<versionName> (CT2.4 ... CT2.9, CT3.0).
+        versionCode = (findProperty("appVersionCode") as String?)?.toInt() ?: 4
+        versionName = (findProperty("appVersionName") as String?) ?: "2.2"
         // Shown in crash reports (crash/CrashReporter.kt). R8 is off in every build (see release below).
         manifestPlaceholders["r8"] = "off"
 
