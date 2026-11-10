@@ -11,7 +11,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -46,7 +48,8 @@ fun SplashOverlay(onFinished: () -> Unit) {
         contentAlignment = Alignment.Center,
     ) {
         AndroidView(
-            modifier = Modifier.fillMaxSize(),
+            // The frames are a square crop around the icon, so 45% of the screen width gives a modest icon.
+            modifier = Modifier.fillMaxWidth(0.45f).aspectRatio(1f),
             factory = { ctx ->
                 ImageView(ctx).apply {
                     scaleType = ImageView.ScaleType.FIT_CENTER
