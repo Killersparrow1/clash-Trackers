@@ -21,6 +21,7 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.IdRes
 import com.killersparrow1.clashtrackers.R
 import com.killersparrow1.clashtrackers.core.BoostPill
+import com.killersparrow1.clashtrackers.sync.ClockTowerTracking
 import com.killersparrow1.clashtrackers.core.Countdown
 import com.killersparrow1.clashtrackers.core.Finish
 import com.killersparrow1.clashtrackers.core.FooterTone
@@ -212,9 +213,17 @@ class WidgetRenderer(private val context: Context) {
     fun minHeaderView(h: ListItem.Header, model: WidgetModel): RemoteViews {
         val v = RemoteViews(pkg, R.layout.widget_min_header)
         v.setTextViewText(R.id.mh_label, h.title.toString().uppercase())
-        for (id in listOf(R.id.mp_bite, R.id.mp_soup, R.id.mp_bpot, R.id.mp_rpot, R.id.mp_ppot)) v.setViewVisibility(id, View.GONE)
+        for (id in listOf(R.id.mp_bite, R.id.mp_soup, R.id.mp_bpot, R.id.mp_rpot, R.id.mp_ppot, R.id.mp_ct)) v.setViewVisibility(id, View.GONE)
         for (id in listOf(R.id.mp_bite_undo, R.id.mp_soup_undo, R.id.mp_bpot_undo, R.id.mp_rpot_undo, R.id.mp_ppot_undo)) v.setViewVisibility(id, View.GONE)
         for (slot in h.pills) {
+            if (slot == PILL_CLOCKTOWER) {
+                val ct = model.clockTower ?: continue
+                v.setTextViewText(R.id.mp_ct, "CT ${ct.text}".uppercase())
+                v.setTextColor(R.id.mp_ct, if (ct.boostActive) 0xFFD71921.toInt() else 0xFFFFFFFF.toInt())
+                v.setInt(R.id.mp_ct, "setBackgroundResource", if (ct.boostActive) R.drawable.minimal_chip_on else R.drawable.minimal_chip)
+                v.setViewVisibility(R.id.mp_ct, View.VISIBLE)
+                continue
+            }
             val (box, undo, pill) = when (slot) {
                 PILL_BITE -> Triple(R.id.mp_bite, R.id.mp_bite_undo, model.bite)
                 PILL_SOUP -> Triple(R.id.mp_soup, R.id.mp_soup_undo, model.soup)
@@ -547,7 +556,7 @@ class WidgetRenderer(private val context: Context) {
     }
 
     /** Pill slots a section heading can show, in the order [headerView] knows them. */
-    private val pillSlots = listOf(PILL_BITE, PILL_BUILDER, PILL_RESEARCH, PILL_PET, PILL_SOUP)
+    private val pillSlots = listOf(PILL_BITE, PILL_BUILDER, PILL_RESEARCH, PILL_PET, PILL_SOUP, PILL_CLOCKTOWER)
 
     fun listItems(model: WidgetModel, t: Palette): List<ListItem> {
         val items = mutableListOf<ListItem>()
@@ -558,8 +567,9 @@ class WidgetRenderer(private val context: Context) {
         section(buildersLabel(model, t), listOf(PILL_BITE, PILL_BUILDER), model.builderRows)
         section(lctx.getString(R.string.widget_lab), listOf(PILL_SOUP, PILL_RESEARCH), model.labRows)
         section(lctx.getString(R.string.widget_pets), listOf(PILL_PET), listOf(model.petRow))
-        if (model.showBuilderBase) {
-            section(lctx.getString(R.string.widget_bb), emptyList(), model.bbRows + listOfNotNull(model.starLabRow))
+        val ctPill = if (model.clockTower != null && ClockTowerTracking.enabled(context)) listOf(PILL_CLOCKTOWER) else emptyList()
+        if (model.showBuilderBase || ctPill.isNotEmpty()) {
+            section(lctx.getString(R.string.widget_bb), ctPill, model.bbRows + listOfNotNull(model.starLabRow))
         }
         return items
     }
@@ -574,8 +584,9 @@ class WidgetRenderer(private val context: Context) {
         section(buildersLabel(model, t), listOf(PILL_BITE, PILL_BUILDER), model.builderRows)
         section(lctx.getString(R.string.widget_lab), listOf(PILL_SOUP, PILL_RESEARCH), model.labRows)
         section(lctx.getString(R.string.widget_pets), listOf(PILL_PET), listOf(model.petRow))
-        if (model.showBuilderBase) {
-            section(lctx.getString(R.string.widget_bb), emptyList(), model.bbRows + listOfNotNull(model.starLabRow))
+        val ctPill = if (model.clockTower != null && ClockTowerTracking.enabled(context)) listOf(PILL_CLOCKTOWER) else emptyList()
+        if (model.showBuilderBase || ctPill.isNotEmpty()) {
+            section(lctx.getString(R.string.widget_bb), ctPill, model.bbRows + listOfNotNull(model.starLabRow))
         }
         return items
     }
@@ -598,6 +609,13 @@ class WidgetRenderer(private val context: Context) {
         v.setTextViewText(R.id.hdr_label, h.title)
         v.setTextColor(R.id.hdr_label, t.gold)
         for (slot in h.pills) when (slot) {
+            PILL_CLOCKTOWER -> model.clockTower?.let { ct ->
+                val bmp = icons.bitmap("clock_tower", (14 * density).roundToInt())
+                if (bmp != null) v.setImageViewBitmap(R.id.pill_ct_icon, bmp) else v.setImageViewResource(R.id.pill_ct_icon, R.drawable.ic_clock_tower)
+                v.setTextViewText(R.id.pill_ct_text, ct.text)
+                v.setTextColor(R.id.pill_ct_text, if (ct.boostActive) t.gold else t.text)
+                v.setInt(R.id.pill_ct, "setBackgroundResource", if (ct.boostActive) t.pillOn else t.pillOff)
+            }
             PILL_BITE -> pill(v, PillIds(R.id.pill_bite, R.id.pill_bite_add, R.id.pill_bite_undo, R.id.pill_bite_icon, R.id.pill_bite_text),
                 model.bite, "builder_bite", R.drawable.ic_builder_bite, model.accountTag, t, true)
             PILL_BUILDER -> pill(v, PillIds(R.id.pill_bpot, R.id.pill_bpot_add, R.id.pill_bpot_undo, R.id.pill_bpot_icon, R.id.pill_bpot_text),
@@ -609,9 +627,9 @@ class WidgetRenderer(private val context: Context) {
             PILL_PET -> pill(v, PillIds(R.id.pill_ppot, R.id.pill_ppot_add, R.id.pill_ppot_undo, R.id.pill_ppot_icon, R.id.pill_ppot_text),
                 model.petPotion, "pet_potion", R.drawable.ic_pet_potion, model.accountTag, t, true)
         }
-        for (box in listOf(R.id.pill_bite, R.id.pill_soup, R.id.pill_bpot, R.id.pill_rpot, R.id.pill_ppot)) v.setViewVisibility(box, View.GONE)
+        for (box in listOf(R.id.pill_bite, R.id.pill_soup, R.id.pill_bpot, R.id.pill_rpot, R.id.pill_ppot, R.id.pill_ct)) v.setViewVisibility(box, View.GONE)
         for (slot in h.pills) {
-            val box = when (slot) { PILL_BITE -> R.id.pill_bite; PILL_SOUP -> R.id.pill_soup; PILL_BUILDER -> R.id.pill_bpot; PILL_RESEARCH -> R.id.pill_rpot; else -> R.id.pill_ppot }
+            val box = when (slot) { PILL_BITE -> R.id.pill_bite; PILL_SOUP -> R.id.pill_soup; PILL_BUILDER -> R.id.pill_bpot; PILL_RESEARCH -> R.id.pill_rpot; PILL_CLOCKTOWER -> R.id.pill_ct; else -> R.id.pill_ppot }
             v.setViewVisibility(box, View.VISIBLE)
         }
         return v
@@ -680,6 +698,7 @@ class WidgetRenderer(private val context: Context) {
         const val PILL_RESEARCH = 2
         const val PILL_PET = 3
         const val PILL_SOUP = 4
+        const val PILL_CLOCKTOWER = 5
         const val MAX_TILES = 18
         const val TILES_PER_ROW = 3
 

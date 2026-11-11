@@ -38,6 +38,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import com.killersparrow1.clashtrackers.sync.ClipboardAutoSync
+import androidx.compose.runtime.rememberCoroutineScope
+import com.killersparrow1.clashtrackers.sync.ClockTowerTracking
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -85,6 +87,14 @@ fun SettingsSection(
                 ClipboardAutoSync.setEnabled(context, on)
             }
             Text(stringResource(R.string.settings_auto_clipboard_desc), style = MaterialTheme.typography.bodyMedium)
+            val ctScope = rememberCoroutineScope()
+            var ctTrack by remember { mutableStateOf(ClockTowerTracking.enabled(context)) }
+            SwitchRow(stringResource(R.string.settings_clock_tower), ctTrack) { on ->
+                ctTrack = on
+                ClockTowerTracking.setEnabled(context, on)
+                ctScope.launch { SyncRunner.refreshWidgets(context.applicationContext, "settings") }
+            }
+            Text(stringResource(R.string.settings_clock_tower_desc), style = MaterialTheme.typography.bodyMedium)
         }
         SectionCard(stringResource(R.string.settings_language)) {
             LanguageSetting()

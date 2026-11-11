@@ -79,4 +79,12 @@
         </LinearLayout>
     </LinearLayout>
                 
+
+    <!-- Clock Tower cooldown: read-only chip (no add / undo). -->
+    <LinearLayout android:id="@+id/pill_ct" android:layout_width="wrap_content" android:layout_height="22dp" android:background="@drawable/pill_off" android:gravity="center_vertical" android:orientation="horizontal" android:visibility="gone" android:layout_marginStart="6dp">
+        <LinearLayout android:id="@+id/pill_ct_add" android:layout_width="wrap_content" android:layout_height="match_parent" android:gravity="center_vertical" android:orientation="horizontal" android:paddingStart="7dp" android:paddingEnd="7dp">
+            <ImageView android:id="@+id/pill_ct_icon" android:layout_width="14dp" android:layout_height="14dp" android:layout_marginEnd="3dp" android:src="@drawable/ic_clock_tower" />
+            <TextView android:id="@+id/pill_ct_text" style="@style/WidgetText.Pill" android:fontFamily="@font/lilita_one" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+        </LinearLayout>
+    </LinearLayout>
 </LinearLayout>

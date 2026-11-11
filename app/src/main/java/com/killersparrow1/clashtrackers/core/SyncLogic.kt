@@ -112,6 +112,8 @@ fun SyncLogic.Outcome.describe(names: NameMap): String = when (this) {
         e.labBoostRemaining?.let { append(" · research potion ${WidgetModelBuilder.formatRemaining(it)} left") }
         e.petBoostRemaining?.let { append(" · pet potion ${WidgetModelBuilder.formatRemaining(it)} left") }
         e.studySoupRemaining?.let { append(" · study soup ${WidgetModelBuilder.formatRemaining(it)} left") }
+        e.clockTowerCooldownRemaining?.let { append(" · clock tower cooldown ${WidgetModelBuilder.formatRemaining(it)}") }
+        e.clockTowerBoostRemaining?.let { append(" · clock tower boost ${WidgetModelBuilder.formatRemaining(it)} left") }
         e.builderBiteRemaining?.let { append(" · builder bite ${WidgetModelBuilder.formatRemaining(it)} left") }
     }
 }

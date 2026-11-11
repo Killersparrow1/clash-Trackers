@@ -5,6 +5,8 @@ object GameIds {
     const val TOWN_HALL = 1000001
     const val BUILDERS_HUT = 1000015
     const val BOBS_HUT = 1000064
+    /** Builder Base Clock Tower (`buildings2`). */
+    const val CLOCK_TOWER = 1000039
 
     // Helper IDs, confirmed against clash-of-clans-data@0.19.1 (`data/home/other/helpers`).
     const val HELPER_BUILDERS_APPRENTICE = 93000000

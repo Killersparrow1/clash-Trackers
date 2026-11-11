@@ -221,4 +221,6 @@
     <string name="support_diagnostics">Diagnostics</string>
     <string name="potion_soup">Study Soup</string>
     <string name="widget_soup">Soup</string>
+    <string name="settings_clock_tower">Show Clock Tower cooldown on the widget</string>
+    <string name="settings_clock_tower_desc">When your village has a Clock Tower, the widget's Builder Base line shows how long until it can be used again (gold while its boost is running). Read from the export automatically.</string>
 </resources>

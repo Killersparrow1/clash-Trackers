@@ -56,6 +56,8 @@ data class WidgetModel(
     val text: WidgetText = WidgetText.EN,
     /** Study Soup button on the Lab line. */
     val soup: BoostPill = BoostPill(BoostType.STUDY_SOUP, null),
+    /** Clock Tower cooldown chip on the Builder Base line; null when there is no valid cooldown to show. */
+    val clockTower: ClockTowerPill? = null,
 ) {
     /** Show the Builder Base section only when there is something running or just finished there. */
     val showBuilderBase: Boolean get() = bbRows.isNotEmpty() || starLabRow != null
@@ -91,6 +93,15 @@ data class BoostPill(
                 BoostType.STUDY_SOUP -> localized.soup
                 else -> localized.plusOne
             }
+}
+
+/** Read-only chip: time until the Builder Base Clock Tower can be used again (gold while its boost runs). */
+data class ClockTowerPill(
+    val secondsLeft: Long,
+    val boostActive: Boolean,
+    val localized: WidgetText = WidgetText.EN,
+) {
+    val text: String get() = localized.formatPill(secondsLeft)
 }
 
 enum class FooterTone { NORMAL, IDLE, ERROR }
@@ -252,7 +263,15 @@ object WidgetModelBuilder {
         }
 
         // Edges after which the model itself changes (countdown text edges are added by WidgetSchedule).
+        // Clock Tower cooldown: absolute end = export time + remaining; hidden once it has passed.
+        val ctEnd = export.clockTowerCooldownRemaining?.let { export.timestamp + it }
+        val ctBoostEnd = export.clockTowerBoostRemaining?.let { export.timestamp + it }
+        val clockTower = ctEnd?.takeIf { it > now }?.let {
+            ClockTowerPill(it - now, boostActive = ctBoostEnd != null && ctBoostEnd > now, localized = text)
+        }
         val edges = buildList {
+            clockTower?.let { add(now + pillEdgeIn(it.secondsLeft)); add(ctEnd!!) }
+            ctBoostEnd?.takeIf { it > now }?.let { add(it) }
             // A row turns Completed GRACE_SEC before its finish; redraw again GRACE_SEC after it as a safety net.
             finish.values.forEach { add(it - Finish.GRACE_SEC); add(it + Finish.GRACE_SEC) }
             export.jobs.filter(::running).forEach { job ->
@@ -288,6 +307,7 @@ object WidgetModelBuilder {
             widgetTheme = widgetTheme,
             extraLabRows = labRowsSorted.drop(1),
             text = text,
+            clockTower = clockTower,
         )
     }
 

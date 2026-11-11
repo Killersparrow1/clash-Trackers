@@ -227,4 +227,6 @@
     <string name="support_diagnostics">Диагностика</string>
     <string name="potion_soup">Учебный суп</string>
     <string name="widget_soup">Суп</string>
+    <string name="settings_clock_tower">Показывать перезарядку Часовой башни на виджете</string>
+    <string name="settings_clock_tower_desc">Если в деревне есть Часовая башня, на строке Базы строителя виджета показывается время до её повторного использования (золотым, пока идёт ускорение). Данные берутся из экспорта автоматически.</string>
 </resources>

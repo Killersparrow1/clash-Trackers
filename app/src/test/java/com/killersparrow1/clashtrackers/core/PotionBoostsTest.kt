@@ -65,4 +65,37 @@ class PotionBoostsTest {
         assertNull(export.studySoupRemaining)
         assertTrue(state.boosts.none { it.type == BoostType.RESEARCH_POTION || it.type == BoostType.PET_POTION || it.type == BoostType.BUILDER_BITE })
     }
+
+    @Test fun petPotionAndClockTowerCooldownTogether() {
+        val (export, _) = sync("""{"pet_boost":3586,"clocktower_cooldown":18148}""")
+        assertEquals(3586L, export.petBoostRemaining)
+        assertEquals(18148L, export.clockTowerCooldownRemaining)
+        assertNull(export.clockTowerBoostRemaining)
+        assertEquals(10, export.clockTowerLevel)
+    }
+
+    @Test fun clockTowerBoostAndCooldownAreRead() {
+        val (export, _) = sync("""{"clocktower_boost":1808,"clocktower_cooldown":81008}""")
+        assertEquals(1808L, export.clockTowerBoostRemaining)
+        assertEquals(81008L, export.clockTowerCooldownRemaining)
+    }
+
+    @Test fun clockTowerZeroOrMissingValuesAreIgnored() {
+        val (zero, _) = sync("""{"clocktower_boost":0,"clocktower_cooldown":0}""")
+        assertNull(zero.clockTowerBoostRemaining)
+        assertNull(zero.clockTowerCooldownRemaining)
+        val (none, _) = sync("""{"builder_boost":100}""")
+        assertNull(none.clockTowerCooldownRemaining)
+        val (junk, _) = sync("""{"clocktower_cooldown":"soon","clocktower_boost":-5}""")
+        assertNull(junk.clockTowerCooldownRemaining)
+        assertNull(junk.clockTowerBoostRemaining)
+    }
+
+    @Test fun clockTowerTimersNeedTheBuilding() {
+        val noTower = base.replace("\"data\":1000039", "\"data\":1999999")
+        val text = noTower.substring(0, noTower.indexOf("\"boosts\":{")) + "\"boosts\":{\"clocktower_cooldown\":5000}}"
+        val out = SyncLogic.apply(AppState(), text) as SyncLogic.Outcome.Synced
+        assertNull(out.export.clockTowerLevel)
+        assertNull(out.export.clockTowerCooldownRemaining)
+    }
 }
