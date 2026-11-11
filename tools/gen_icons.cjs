@@ -185,8 +185,10 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;',
 
   // Old PNGs with the same names would be shadowed; remove stale .webp files not in the checklist.
   const wanted = new Set([...made.map(m => m.file), ...levelMade]);
+  // Hand-added art the package doesn't have (taken from the clash-of-clans-data repo's main branch) is kept.
+  const KEEP = /^(study_soup|1000039(_\d+)?)\.webp$/;
   for (const f of fs.readdirSync(OUT_DIR)) {
-    if (f.endsWith('.webp') && !wanted.has(f)) fs.unlinkSync(path.join(OUT_DIR, f));
+    if (f.endsWith('.webp') && !wanted.has(f) && !KEEP.test(f)) fs.unlinkSync(path.join(OUT_DIR, f));
   }
 
   // ---- icons_missing.txt ----
