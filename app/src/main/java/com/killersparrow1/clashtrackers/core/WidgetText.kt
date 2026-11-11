@@ -20,6 +20,7 @@ data class WidgetText(
     val goblinSuffix: String = " + Goblin",
     val goblin: String = "GOBLIN",
     val bite: String = "Bite",
+    val soup: String = "Soup",
     val plusOne: String = "+1",
     val syncFailed: String = "Sync failed — copy data and tap Sync",
     val noData: String = "Copy village data in Clash, then tap Sync",

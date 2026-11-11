@@ -73,6 +73,7 @@ object WidgetActions {
     private fun boostName(arg: String) = when (arg) {
         BoostType.BUILDER_POTION.name -> "Builder potion"
         BoostType.BUILDER_BITE.name -> "Builder Bite"
+        BoostType.STUDY_SOUP.name -> "Study Soup"
         BoostType.RESEARCH_POTION.name -> "Research potion"
         BoostType.PET_POTION.name -> "Pet potion"
         else -> arg

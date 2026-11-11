@@ -54,6 +54,8 @@ data class WidgetModel(
     val extraLabRows: List<WidgetRow> = emptyList(),
     /** Localized labels/units used while building; keep for the renderer and the Support preview. */
     val text: WidgetText = WidgetText.EN,
+    /** Study Soup button on the Lab line. */
+    val soup: BoostPill = BoostPill(BoostType.STUDY_SOUP, null),
 ) {
     /** Show the Builder Base section only when there is something running or just finished there. */
     val showBuilderBase: Boolean get() = bbRows.isNotEmpty() || starLabRow != null
@@ -84,7 +86,11 @@ data class BoostPill(
     val active: Boolean get() = secondsLeft != null
     val text: String
         get() = secondsLeft?.let(localized::formatPill)
-            ?: if (type == BoostType.BUILDER_BITE) localized.bite else localized.plusOne
+            ?: when (type) {
+                BoostType.BUILDER_BITE -> localized.bite
+                BoostType.STUDY_SOUP -> localized.soup
+                else -> localized.plusOne
+            }
 }
 
 enum class FooterTone { NORMAL, IDLE, ERROR }
@@ -174,6 +180,7 @@ object WidgetModelBuilder {
                 builderRows = emptyList(),
                 labRow = idleRow(text.laboratory, LABORATORY, text), petRow = idleRow(text.petHouse, PET_HOUSE, text),
                 footerLeft = if (state.syncFailed) listOf(FooterPart(text.syncFailed, FooterTone.ERROR)) else emptyList(),
+                soup = pills(BoostType.STUDY_SOUP),
                 footerRight = "", syncFailed = state.syncFailed, nextChangeAt = null,
                 accountTag = accountTag,
                 widgetTheme = widgetTheme,
@@ -267,6 +274,7 @@ object WidgetModelBuilder {
             builderPotion = pills(BoostType.BUILDER_POTION),
             researchPotion = pills(BoostType.RESEARCH_POTION),
             petPotion = pills(BoostType.PET_POTION),
+            soup = pills(BoostType.STUDY_SOUP),
             builderRows = builderRows,
             labRow = labRow,
             petRow = petRow,

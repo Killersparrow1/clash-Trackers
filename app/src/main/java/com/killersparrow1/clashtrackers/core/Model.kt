@@ -74,6 +74,8 @@ data class VillageExport(
     val petBoostRemaining: Long? = null,
     /** `boosts.builder_consumable`: seconds left on an active Builder Bite (2x builders) at T0, or null. */
     val builderBiteRemaining: Long? = null,
+    /** `boosts.lab_consumable`: seconds left on an active Study Soup (2x Laboratory) at T0, or null. */
+    val studySoupRemaining: Long? = null,
 ) {
     /** Builders derived from the export: huts + B.O.B. Null if no huts were found. */
     val derivedTotalBuilders: Int?

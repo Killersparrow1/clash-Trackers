@@ -80,6 +80,8 @@ object ExportParser {
         val labBoost = boostsObj?.long("lab_boost")?.takeIf { it > 0 }
         // Builder Bite (magic snack): `builder_consumable`, remaining seconds.
         val builderBite = boostsObj?.long("builder_consumable")?.takeIf { it > 0 }
+        // Study Soup (magic snack): `lab_consumable`, remaining seconds.
+        val studySoup = boostsObj?.long("lab_consumable")?.takeIf { it > 0 }
         val petBoost = boostsObj
             ?.entries
             ?.firstOrNull { it.key.contains("pet", ignoreCase = true) && it.key.contains("boost", ignoreCase = true) }
@@ -111,6 +113,7 @@ object ExportParser {
                 labBoostRemaining = labBoost,
                 petBoostRemaining = petBoost,
                 builderBiteRemaining = builderBite,
+                studySoupRemaining = studySoup,
             )
         )
     }

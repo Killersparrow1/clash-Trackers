@@ -212,16 +212,17 @@ class WidgetRenderer(private val context: Context) {
     fun minHeaderView(h: ListItem.Header, model: WidgetModel): RemoteViews {
         val v = RemoteViews(pkg, R.layout.widget_min_header)
         v.setTextViewText(R.id.mh_label, h.title.toString().uppercase())
-        for (id in listOf(R.id.mp_bite, R.id.mp_bpot, R.id.mp_rpot, R.id.mp_ppot)) v.setViewVisibility(id, View.GONE)
-        for (id in listOf(R.id.mp_bite_undo, R.id.mp_bpot_undo, R.id.mp_rpot_undo, R.id.mp_ppot_undo)) v.setViewVisibility(id, View.GONE)
+        for (id in listOf(R.id.mp_bite, R.id.mp_soup, R.id.mp_bpot, R.id.mp_rpot, R.id.mp_ppot)) v.setViewVisibility(id, View.GONE)
+        for (id in listOf(R.id.mp_bite_undo, R.id.mp_soup_undo, R.id.mp_bpot_undo, R.id.mp_rpot_undo, R.id.mp_ppot_undo)) v.setViewVisibility(id, View.GONE)
         for (slot in h.pills) {
             val (box, undo, pill) = when (slot) {
                 PILL_BITE -> Triple(R.id.mp_bite, R.id.mp_bite_undo, model.bite)
+                PILL_SOUP -> Triple(R.id.mp_soup, R.id.mp_soup_undo, model.soup)
                 PILL_BUILDER -> Triple(R.id.mp_bpot, R.id.mp_bpot_undo, model.builderPotion)
                 PILL_RESEARCH -> Triple(R.id.mp_rpot, R.id.mp_rpot_undo, model.researchPotion)
                 else -> Triple(R.id.mp_ppot, R.id.mp_ppot_undo, model.petPotion)
             }
-            val label = if (slot == PILL_BITE) pill.text else "POT ${pill.text}"
+            val label = if (slot == PILL_BITE || slot == PILL_SOUP) pill.text else "POT ${pill.text}"
             v.setTextViewText(box, label.uppercase())
             v.setTextColor(box, if (pill.active) 0xFFD71921.toInt() else 0xFFFFFFFF.toInt())
             v.setInt(box, "setBackgroundResource", if (pill.active) R.drawable.minimal_chip_on else R.drawable.minimal_chip)
@@ -546,7 +547,7 @@ class WidgetRenderer(private val context: Context) {
     }
 
     /** Pill slots a section heading can show, in the order [headerView] knows them. */
-    private val pillSlots = listOf(PILL_BITE, PILL_BUILDER, PILL_RESEARCH, PILL_PET)
+    private val pillSlots = listOf(PILL_BITE, PILL_BUILDER, PILL_RESEARCH, PILL_PET, PILL_SOUP)
 
     fun listItems(model: WidgetModel, t: Palette): List<ListItem> {
         val items = mutableListOf<ListItem>()
@@ -555,7 +556,7 @@ class WidgetRenderer(private val context: Context) {
             rows.take(MAX_BUILDER_ROWS).forEach { items += ListItem.Timer(it) }
         }
         section(buildersLabel(model, t), listOf(PILL_BITE, PILL_BUILDER), model.builderRows)
-        section(lctx.getString(R.string.widget_lab), listOf(PILL_RESEARCH), model.labRows)
+        section(lctx.getString(R.string.widget_lab), listOf(PILL_SOUP, PILL_RESEARCH), model.labRows)
         section(lctx.getString(R.string.widget_pets), listOf(PILL_PET), listOf(model.petRow))
         if (model.showBuilderBase) {
             section(lctx.getString(R.string.widget_bb), emptyList(), model.bbRows + listOfNotNull(model.starLabRow))
@@ -571,7 +572,7 @@ class WidgetRenderer(private val context: Context) {
             rows.filter { it.kind != RowKind.IDLE }.take(MAX_TILES).chunked(cols).forEach { items += ListItem.Tiles(it) }
         }
         section(buildersLabel(model, t), listOf(PILL_BITE, PILL_BUILDER), model.builderRows)
-        section(lctx.getString(R.string.widget_lab), listOf(PILL_RESEARCH), model.labRows)
+        section(lctx.getString(R.string.widget_lab), listOf(PILL_SOUP, PILL_RESEARCH), model.labRows)
         section(lctx.getString(R.string.widget_pets), listOf(PILL_PET), listOf(model.petRow))
         if (model.showBuilderBase) {
             section(lctx.getString(R.string.widget_bb), emptyList(), model.bbRows + listOfNotNull(model.starLabRow))
@@ -603,12 +604,14 @@ class WidgetRenderer(private val context: Context) {
                 model.builderPotion, "builder_potion", R.drawable.ic_builder_potion, model.accountTag, t, true)
             PILL_RESEARCH -> pill(v, PillIds(R.id.pill_rpot, R.id.pill_rpot_add, R.id.pill_rpot_undo, R.id.pill_rpot_icon, R.id.pill_rpot_text),
                 model.researchPotion, "research_potion", R.drawable.ic_research_potion, model.accountTag, t, true)
+            PILL_SOUP -> pill(v, PillIds(R.id.pill_soup, R.id.pill_soup_add, R.id.pill_soup_undo, R.id.pill_soup_icon, R.id.pill_soup_text),
+                model.soup, "study_soup", R.drawable.ic_study_soup, model.accountTag, t, true)
             PILL_PET -> pill(v, PillIds(R.id.pill_ppot, R.id.pill_ppot_add, R.id.pill_ppot_undo, R.id.pill_ppot_icon, R.id.pill_ppot_text),
                 model.petPotion, "pet_potion", R.drawable.ic_pet_potion, model.accountTag, t, true)
         }
-        for (box in listOf(R.id.pill_bite, R.id.pill_bpot, R.id.pill_rpot, R.id.pill_ppot)) v.setViewVisibility(box, View.GONE)
+        for (box in listOf(R.id.pill_bite, R.id.pill_soup, R.id.pill_bpot, R.id.pill_rpot, R.id.pill_ppot)) v.setViewVisibility(box, View.GONE)
         for (slot in h.pills) {
-            val box = when (slot) { PILL_BITE -> R.id.pill_bite; PILL_BUILDER -> R.id.pill_bpot; PILL_RESEARCH -> R.id.pill_rpot; else -> R.id.pill_ppot }
+            val box = when (slot) { PILL_BITE -> R.id.pill_bite; PILL_SOUP -> R.id.pill_soup; PILL_BUILDER -> R.id.pill_bpot; PILL_RESEARCH -> R.id.pill_rpot; else -> R.id.pill_ppot }
             v.setViewVisibility(box, View.VISIBLE)
         }
         return v
@@ -676,6 +679,7 @@ class WidgetRenderer(private val context: Context) {
         const val PILL_BUILDER = 1
         const val PILL_RESEARCH = 2
         const val PILL_PET = 3
+        const val PILL_SOUP = 4
         const val MAX_TILES = 18
         const val TILES_PER_ROW = 3
 

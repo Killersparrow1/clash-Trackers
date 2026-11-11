@@ -219,4 +219,6 @@
     <string name="settings_auto_clipboard">Sync from clipboard when the app opens</string>
     <string name="settings_auto_clipboard_desc">When you open the app, a village export you just copied in Clash of Clans is synced automatically. Other clipboard text is ignored, and each export is only used once. Android may show a short "pasted from clipboard" message.</string>
     <string name="support_diagnostics">Diagnostics</string>
+    <string name="potion_soup">Study Soup</string>
+    <string name="widget_soup">Soup</string>
 </resources>

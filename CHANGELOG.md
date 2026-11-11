@@ -8,6 +8,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ### Added
 
+- Study Soup: a **Soup** button on the widget's Lab line (List, Grid and Minimal) and an "active, time left" pill, and an active soup is read from the village export (`boosts.lab_consumable`). Its saving is adjustable in Settings.
 - An active Builder Bite is now read from the village export (`boosts.builder_consumable`), like the potions, instead of only from the Bite button.
 - A short animated start-up screen with the app icon, drawn over the theme's own background. Tap to skip; it plays only on a fresh launch.
 - The system start-up screen no longer flashes a white icon before the animation; it shows only the theme background.

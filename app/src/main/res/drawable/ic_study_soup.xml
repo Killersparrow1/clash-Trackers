@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Study Soup: a bowl with steam. Replace with assets/icons/study_soup.webp when an official icon is available. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#E9A23B"
+        android:pathData="M3,12h18c0,4.4 -3.6,8 -8,8h-2c-4.4,0 -8,-3.6 -8,-8z" />
+    <path
+        android:fillColor="#FFF3D6"
+        android:pathData="M5,12h14v1.2h-14z" />
+    <path
+        android:strokeColor="#FFF3D6"
+        android:strokeWidth="1.6"
+        android:strokeLineCap="round"
+        android:pathData="M8,9c-1,-1.2 1,-2 0,-3.4M12,9c-1,-1.2 1,-2 0,-3.4M16,9c-1,-1.2 1,-2 0,-3.4" />
+</vector>

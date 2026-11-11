@@ -225,4 +225,6 @@
     <string name="settings_auto_clipboard">Синхронизация из буфера при открытии</string>
     <string name="settings_auto_clipboard_desc">При открытии приложения скопированные в Clash of Clans данные деревни синхронизируются автоматически. Другой текст из буфера игнорируется, а каждый экспорт используется только один раз. Android может показать короткое сообщение о вставке из буфера.</string>
     <string name="support_diagnostics">Диагностика</string>
+    <string name="potion_soup">Учебный суп</string>
+    <string name="widget_soup">Суп</string>
 </resources>

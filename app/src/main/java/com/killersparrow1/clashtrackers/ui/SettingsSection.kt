@@ -138,6 +138,7 @@ fun SettingsSection(
             Text(stringResource(R.string.settings_potions_desc), style = MaterialTheme.typography.bodyMedium)
             HoursSetting(stringResource(R.string.potion_builder), b.builderPotionSavingSec, 1..47) { value -> boosts { it.copy(builderPotionSavingSec = value) } }
             HoursSetting(stringResource(R.string.potion_bite), b.builderBiteSavingSec, 1..23) { value -> boosts { it.copy(builderBiteSavingSec = value) } }
+            HoursSetting(stringResource(R.string.potion_soup), b.studySoupSavingSec, 1..23) { value -> boosts { it.copy(studySoupSavingSec = value) } }
             HoursSetting(stringResource(R.string.potion_research), b.researchPotionSavingSec, 1..47) { value -> boosts { it.copy(researchPotionSavingSec = value) } }
             HoursSetting(stringResource(R.string.potion_pet), b.petPotionSavingSec, 1..47) { value -> boosts { it.copy(petPotionSavingSec = value) } }
         }
