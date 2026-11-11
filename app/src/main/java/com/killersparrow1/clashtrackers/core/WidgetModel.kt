@@ -99,6 +99,7 @@ data class BoostPill(
 data class ClockTowerPill(
     val secondsLeft: Long,
     val boostActive: Boolean,
+    val level: Int? = null,
     val localized: WidgetText = WidgetText.EN,
 ) {
     val text: String get() = localized.formatPill(secondsLeft)
@@ -267,7 +268,7 @@ object WidgetModelBuilder {
         val ctEnd = export.clockTowerCooldownRemaining?.let { export.timestamp + it }
         val ctBoostEnd = export.clockTowerBoostRemaining?.let { export.timestamp + it }
         val clockTower = ctEnd?.takeIf { it > now }?.let {
-            ClockTowerPill(it - now, boostActive = ctBoostEnd != null && ctBoostEnd > now, localized = text)
+            ClockTowerPill(it - now, boostActive = ctBoostEnd != null && ctBoostEnd > now, level = export.clockTowerLevel, localized = text)
         }
         val edges = buildList {
             clockTower?.let { add(now + pillEdgeIn(it.secondsLeft)); add(ctEnd!!) }

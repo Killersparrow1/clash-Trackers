@@ -21,6 +21,7 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.IdRes
 import com.killersparrow1.clashtrackers.R
 import com.killersparrow1.clashtrackers.core.BoostPill
+import com.killersparrow1.clashtrackers.core.GameIds
 import com.killersparrow1.clashtrackers.sync.ClockTowerTracking
 import com.killersparrow1.clashtrackers.core.Countdown
 import com.killersparrow1.clashtrackers.core.Finish
@@ -610,7 +611,7 @@ class WidgetRenderer(private val context: Context) {
         v.setTextColor(R.id.hdr_label, t.gold)
         for (slot in h.pills) when (slot) {
             PILL_CLOCKTOWER -> model.clockTower?.let { ct ->
-                val bmp = icons.bitmap("clock_tower", (14 * density).roundToInt())
+                val bmp = icons.bitmapForLevel(GameIds.CLOCK_TOWER, ct.level, (14 * density).roundToInt())
                 if (bmp != null) v.setImageViewBitmap(R.id.pill_ct_icon, bmp) else v.setImageViewResource(R.id.pill_ct_icon, R.drawable.ic_clock_tower)
                 v.setTextViewText(R.id.pill_ct_text, ct.text)
                 v.setTextColor(R.id.pill_ct_text, if (ct.boostActive) t.gold else t.text)
