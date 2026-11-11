@@ -221,7 +221,15 @@ object WidgetUpdater {
                 val theme = repo.getWidgetTheme(id)
                 val model = WidgetModelBuilder.build(state, settings, names, Times.get(app), now, tag ?: "", theme, widgetText)
                 val style = repo.getWidgetStyle(id)
-                manager.updateAppWidget(id, renderer.render(model, settings.liveCountdown, manager.getAppWidgetOptions(id), style, id))
+                try {
+                    manager.updateAppWidget(id, renderer.render(model, settings.liveCountdown, manager.getAppWidgetOptions(id), style, id))
+                } catch (e: RuntimeException) {
+                    // Rows embedded in the widget (Android 17) were too big to send: use the list service instead.
+                    if (!renderer.embedItems) throw e
+                    renderer.embedItems = false
+                    repo.log(source, false, "Embedded widget rows failed (${e.javaClass.simpleName}); using the list service")
+                    manager.updateAppWidget(id, renderer.render(model, settings.liveCountdown, manager.getAppWidgetOptions(id), style, id))
+                }
                 manager.notifyAppWidgetViewDataChanged(id, com.killersparrow1.clashtrackers.R.id.list)
 
                 WidgetSchedule.nextUpdateMs(model, nowMs, settings.liveCountdown)?.let { nextUpdates.add(it) }

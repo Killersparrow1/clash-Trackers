@@ -46,7 +46,7 @@ const val FAN_CONTENT_DISCLAIMER =
 
 /** About: version, offline note, Supercell's fan content disclaimer, credits and the font licence. */
 @Composable
-fun AboutSection() {
+fun AboutSection(reportProvider: () -> String = { "" }) {
     val context = LocalContext.current
     val version = remember { appVersion(context) }
     var showLicence by remember { mutableStateOf(false) }
@@ -87,17 +87,17 @@ fun AboutSection() {
         AboutGroup(stringResource(R.string.about_feedback_title)) {
             Text(stringResource(R.string.about_feedback_note), style = MaterialTheme.typography.bodyMedium)
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilledTonalButton(onClick = { openUrl(context, ISSUES_URL) }, modifier = Modifier.weight(1f).heightIn(min = 48.dp)) {
+                FilledTonalButton(onClick = { reportIssue(context, reportProvider()) }, modifier = Modifier.weight(1f).heightIn(min = 48.dp)) {
                     Text(stringResource(R.string.about_report_issue))
                 }
                 FilledTonalButton(onClick = { openUrl(context, FEATURE_URL) }, modifier = Modifier.weight(1f).heightIn(min = 48.dp)) {
                     Text(stringResource(R.string.about_request_feature))
                 }
             }
-            TextButton(
+            Text(stringResource(R.string.about_report_note), style = MaterialTheme.typography.bodySmall)
+            androidx.compose.material3.OutlinedButton(
                 onClick = { openUrl(context, ISSUES_LIST_URL) },
-                modifier = Modifier.heightIn(min = 48.dp),
-                contentPadding = PaddingValues(0.dp),
+                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
             ) { Text(stringResource(R.string.about_view_issues)) }
         }
         AboutGroup("Works fully offline") {
@@ -147,13 +147,24 @@ private fun openUrl(context: Context, url: String) {
     }
 }
 
+/**
+ * Copies the diagnostic report, then opens a new GitHub issue with a short header filled in. The report is too long
+ * for a link, so the user pastes it into the box (the app itself has no internet permission).
+ */
+private fun reportIssue(context: Context, report: String) {
+    if (report.isNotEmpty()) copyReport(context, report)
+    val body = "**What happened?**\n\n\n**Diagnostic report** (it is on your clipboard, paste it here)\n\n" +
+        "App: ${appVersion(context)} · Android ${Build.VERSION.RELEASE} · ${Build.MANUFACTURER} ${Build.MODEL}\n"
+    openUrl(context, ISSUES_URL + "?body=" + Uri.encode(body))
+}
+
 private const val RELEASES_URL = "https://github.com/Killersparrow1/clash-trackers/releases/latest"
 private const val ISSUES_LIST_URL = "https://github.com/Killersparrow1/clash-Trackers/issues/"
 private const val ISSUES_URL = "https://github.com/Killersparrow1/clash-Trackers/issues/new"
 private const val FEATURE_URL = "https://github.com/Killersparrow1/clash-Trackers/issues/new?title=Feature+request%3A+&labels=enhancement"
 
 /** `CT2.2 (4)` from the installed package (releases are named CT + versionName). */
-private fun appVersion(context: Context): String = runCatching {
+internal fun appVersion(context: Context): String = runCatching {
     val info = context.packageManager.getPackageInfo(context.packageName, 0)
     val code = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) info.longVersionCode else @Suppress("DEPRECATION") info.versionCode.toLong()
     "CT${info.versionName} ($code)"

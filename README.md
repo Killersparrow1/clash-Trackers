@@ -56,6 +56,7 @@ Four colour themes, chosen per widget: **Material You** (follows your phone's wa
 - **Completion Time on Every Card**: Each running timer shows a highlighted chip with the exact date and time it finishes, calculated from the same finish time as the countdown (boosts, potions and helpers included).
 - **Filters That Get Out of the Way**: On the Timers tab the filter chips fade out and collapse as you scroll down the list and return when you scroll back up or reach the top.
 - **Sync on Open**: Copy your village from Clash of Clans and just open the app; a fresh export is synced automatically (switch in **Settings → Village**). Other clipboard text is ignored and each export is used once.
+- **Themed app icon**: on Android 13+ the launcher icon follows your wallpaper colours when *Themed icons* is on in your launcher or wallpaper settings.
 - **Short Navigation Bar**: Fluid navigation between **Timers**, **Settings**, and **Support**.
 - **Dynamic Theming**: Full support for Material You dynamic color extraction (Android 12+) with expressive light and dark palettes.
 
@@ -71,7 +72,6 @@ Four colour themes, chosen per widget: **Material You** (follows your phone's wa
 - **Clock Tower (Builder Base) auto-detection**: the Clock Tower (building `1000039`) and its `clocktower_boost` / `clocktower_cooldown` timers are read from the export. Missing, zero or invalid values show nothing, and the timers are ignored if the export has no Clock Tower.
 - **Clock Tower cooldown chip**: the widget's Builder Base line (List, Grid and Minimal) shows the Clock Tower's level art with the time until it can be used again, counting down like the other pills and gold while its boost runs. It can be switched off in **Settings**.
 - **Pet Potion**: an active Pet Potion (`boosts.pet_boost`) is detected on sync and shown on the Pets line.
-- **Gold Pass Builder Boost**: Configurable 10%, 15%, or 20% time reduction perks.
 - **Special Upgrade Events**: Hammer Jam and Builder Base Bonanza reductions are already part of the upgrade times in the Clash of Clans export, so the app reads them from there and has no separate event buttons.
 - **Time-Segment Simulation**: Uses a deterministic interval simulation algorithm that accurately factors in boost start, expiration, and overlapping intervals without floating-point drift.
 - **State Persistence**: Active boosts, Clock Tower levels, and event schedules persist across device reboots and app restarts via Android DataStore.
@@ -113,7 +113,9 @@ Four colour themes, chosen per widget: **Material You** (follows your phone's wa
 
 ### ⬆️ Updates, Feedback & Releases
 - **Check for updates**: A prominent card in **Support → About** opens the latest GitHub release in your browser. The app itself stays offline; only your browser goes online.
-- **Issues and feature requests**: **Support → About** also has *Report an issue*, *Request a feature* and *See open issues* buttons that open [GitHub Issues](https://github.com/Killersparrow1/clash-Trackers/issues/).
+- **Issues and feature requests**: **Support → About** also has *Report an issue*, *Request a feature* and *See open issues* buttons that open [GitHub Issues](https://github.com/Killersparrow1/clash-Trackers/issues/). *Report an issue* also copies a diagnostic report to your clipboard so you can paste it into the issue.
+- **Diagnostics and report**: **Support → Diagnostics** starts with a health checklist (saved village, notifications, exact alarms, battery restriction, icons) and has **Copy report** / **Share report** buttons. The report lists app, Android and phone info, widget sizes, what the last import detected, which icon each widget row uses, recent activity and the last crash. It never includes your player tag or name.
+- **Android 17**: the widget's rows are sent inside the widget itself on Android 17, which fixed wrong icons some users saw there. Older Android versions are unchanged.
 - **Install over the old version**: Builds are signed with a fixed key, so a new APK installs on top of the previous one without uninstalling (the version number must be higher).
 - **Release names**: Releases are named `CT2.1`, `CT2.2` ... `CT3.0`. The app shows the same name in **Support → About**, and merging into `main` builds the APK and, after your approval, publishes the release automatically (see **Releasing** below).
 
@@ -157,7 +159,7 @@ clash-trackers/
 │   │   │   ├── BoostEventSection.kt # Interactive Clock Tower & potion controls
 │   │   │   ├── HelpDialog.kt        # Setup and sync guide with looping video
 │   │   │   ├── SettingsSection.kt   # Grouped settings & dialog editors
-│   │   │   ├── SupportScreen.kt     # Diagnostics, crash reports, & widget preview
+│   │   │   ├── SupportScreen.kt     # Health checks, diagnostic report, crash reports, & widget preview
 │   │   │   └── theme/               # MaterialExpressiveTheme & Lilita One Typography
 │   │   └── widget/         # Android RemoteViews widget provider, renderers, & WidgetConfigActivity (account picker)
 │   └── src/test/java/com/killersparrow1/clashtrackers/  # Comprehensive unit test suite (160+ test cases)
