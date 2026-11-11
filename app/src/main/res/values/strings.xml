@@ -228,4 +228,5 @@
     <string name="notif_channel_clock">Clock Tower ready</string>
     <string name="notif_channel_clock_quiet">Clock Tower ready (follows Do Not Disturb)</string>
     <string name="notif_channel_clock_desc">Tells you when the Builder Base Clock Tower can be boosted again, with its own sound.</string>
+    <string name="about_report_note">Your diagnostic report is copied when you tap Report an issue. Paste it into the issue so it can be fixed faster. It never includes your player tag or name.</string>
 </resources>

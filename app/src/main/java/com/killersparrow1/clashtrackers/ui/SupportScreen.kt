@@ -1,4 +1,4 @@
-@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class, androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 
 package com.killersparrow1.clashtrackers.ui
 
@@ -8,6 +8,7 @@ import android.appwidget.AppWidgetManager
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -92,6 +93,22 @@ fun SupportScreen(state: AppState, model: WidgetModel, log: SyncLog, timesCount:
         }
         item {
           CollapsibleCard(stringResource(R.string.support_diagnostics), "diagnostics") {
+            SubSection("Health") {
+                val checks = remember(state, now / 10) { DiagnosticReport.health(context, state) }
+                checks.forEach {
+                    Text(
+                        "${if (it.ok) "✓" else "✗"}  ${it.label}${if (!it.ok && it.detail.isNotEmpty()) " (${it.detail})" else ""}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (it.ok) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error,
+                    )
+                }
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(onClick = { copyReport(context, DiagnosticReport.build(context, state, model, log, now)) }) { Text("Copy report") }
+                    OutlinedButton(onClick = { shareReport(context, DiagnosticReport.build(context, state, model, log, now)) }) { Text("Share report") }
+                }
+                Text("Includes app and phone info, settings checks and recent activity. Never your player tag or name.", style = MaterialTheme.typography.bodySmall)
+            }
+            HorizontalDivider()
             SubSection(stringResource(R.string.support_last_crash)) { CrashSection() }
             HorizontalDivider()
             SubSection(stringResource(R.string.support_widget_diagnostics)) {
@@ -175,18 +192,18 @@ fun SupportScreen(state: AppState, model: WidgetModel, log: SyncLog, timesCount:
                 }
             }
         }
-        item { SectionCard(stringResource(R.string.support_about)) { AboutSection() } }
+        item { SectionCard(stringResource(R.string.support_about)) { AboutSection(reportProvider = { DiagnosticReport.build(context, state, model, log, now) }) } }
     }
     if (showHelp) HelpDialog(onDismiss = { showHelp = false })
 }
 
-private fun SyncLogEntry.line(): String {
+internal fun SyncLogEntry.line(): String {
     val mark = when (ok) { true -> "OK"; false -> "FAIL"; null -> "·" }
     return "${formatTimestamp(at)}  [$source] $mark  $message"
 }
 
 /** Each placed widget's size as the launcher reports it, and which row size it gets. */
-private fun widgetSizeReport(context: android.content.Context, state: AppState): String {
+internal fun widgetSizeReport(context: android.content.Context, state: AppState): String {
     val r = context.resources
     val manager = AppWidgetManager.getInstance(context)
     val rows = (state.export?.jobs?.size ?: 0) + 2
@@ -204,7 +221,7 @@ private fun widgetSizeReport(context: android.content.Context, state: AppState):
 }
 
 /** The widget model as text, so a rendering problem can be told apart from a data problem. */
-private fun widgetPreview(m: WidgetModel): String = SyncRunner.plainText(buildString {
+internal fun widgetPreview(m: WidgetModel): String = SyncRunner.plainText(buildString {
     appendLine("${m.title}   [Sync]")
     if (!m.hasData) {
         append(if (m.syncFailed) m.text.syncFailed else m.text.noData)
@@ -231,3 +248,17 @@ private fun widgetPreview(m: WidgetModel): String = SyncRunner.plainText(buildSt
     line(m.petRow)
     append(m.footerLeft.joinToString("") { it.text }).append("   ").append(m.footerRight)
 })
+
+internal fun copyReport(context: android.content.Context, text: String) {
+    context.getSystemService(android.content.ClipboardManager::class.java)
+        ?.setPrimaryClip(android.content.ClipData.newPlainText("Clash Trackers report", text))
+    android.widget.Toast.makeText(context, "Report copied", android.widget.Toast.LENGTH_SHORT).show()
+}
+
+internal fun shareReport(context: android.content.Context, text: String) {
+    val send = android.content.Intent(android.content.Intent.ACTION_SEND)
+        .setType("text/plain")
+        .putExtra(android.content.Intent.EXTRA_SUBJECT, "Clash Trackers diagnostic report")
+        .putExtra(android.content.Intent.EXTRA_TEXT, text)
+    runCatching { context.startActivity(android.content.Intent.createChooser(send, null).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)) }
+}

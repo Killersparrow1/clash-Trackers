@@ -10,6 +10,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 - Clock Tower: detected from the export (building `1000039`, `boosts.clocktower_boost` and `boosts.clocktower_cooldown`). The widget's Builder Base line gets a read-only cooldown chip (List, Grid and Minimal) that counts down with the other pills; missing, zero or invalid values show nothing. A Settings switch turns it off. Pet Potion (`pet_boost`) was already detected.
 - Clock Tower ready alert: a notification when the exported cooldown ends (same sound and Do Not Disturb choice as upgrade alerts; own switch in Settings; needs finish alerts on). It fires once per export.
+- Support: Diagnostics now starts with a health checklist (saved village, notifications, exact alarms, battery, icons) and Copy / Share report buttons. Report an issue copies that report and opens a GitHub issue to paste it into. The report never includes the player tag or name. "See open issues" is now a button.
 - Study Soup: a **Soup** button on the widget's Lab line (List, Grid and Minimal) and an "active, time left" pill, and an active soup is read from the village export (`boosts.lab_consumable`). Its saving is adjustable in Settings.
 - An active Builder Bite is now read from the village export (`boosts.builder_consumable`), like the potions, instead of only from the Bite button.
 - A short animated start-up screen with the app icon, drawn over the theme's own background. Tap to skip; it plays only on a fresh launch.
