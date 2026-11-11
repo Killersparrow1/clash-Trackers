@@ -95,6 +95,13 @@ fun SettingsSection(
                 ctScope.launch { SyncRunner.refreshWidgets(context.applicationContext, "settings") }
             }
             Text(stringResource(R.string.settings_clock_tower_desc), style = MaterialTheme.typography.bodyMedium)
+            var ctAlert by remember { mutableStateOf(ClockTowerTracking.alertEnabled(context)) }
+            SwitchRow(stringResource(R.string.settings_clock_tower_alert), ctAlert) { on ->
+                ctAlert = on
+                ClockTowerTracking.setAlertEnabled(context, on)
+                ctScope.launch { SyncRunner.refreshWidgets(context.applicationContext, "settings") }
+            }
+            Text(stringResource(R.string.settings_clock_tower_alert_desc), style = MaterialTheme.typography.bodyMedium)
         }
         SectionCard(stringResource(R.string.settings_language)) {
             LanguageSetting()

@@ -160,6 +160,7 @@ object WidgetUpdater {
             val globalSettings = repo.currentSettings()
 
             val allFinishTimes = mutableListOf<Long>()
+            val ctAlert = com.killersparrow1.clashtrackers.sync.ClockTowerTracking.alertEnabled(app)
             for (acct in accounts) {
                 val state = repo.getAccountState(acct.tag)
                 val acctSettings = repo.getAccountSettings(acct.tag)
@@ -171,7 +172,7 @@ object WidgetUpdater {
                     playerName = acctSettings.playerName,
                 )
                 try {
-                    val r = FinishNotices.check(state, settings, names, now)
+                    val r = FinishNotices.check(state, settings, names, now, ctAlert)
                     val fresh = r.notices.filter { it.jobKey !in state.notified }
                     repo.updateAccountState(acct.tag) { st ->
                         st.copy(notified = r.notified)
@@ -189,7 +190,7 @@ object WidgetUpdater {
                     repo.log(source, false, "Notification failed (${acct.tag}): ${t.javaClass.simpleName}: ${t.message}")
                 }
 
-                FinishNotices.alarmAt(state, settings, now)?.let { allFinishTimes.add(it) }
+                FinishNotices.alarmAt(state, settings, now, ctAlert)?.let { allFinishTimes.add(it) }
             }
 
             WidgetAlarm.scheduleFinish(app, allFinishTimes.minOrNull()?.times(1000))

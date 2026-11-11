@@ -98,4 +98,18 @@ class PotionBoostsTest {
         assertNull(out.export.clockTowerLevel)
         assertNull(out.export.clockTowerCooldownRemaining)
     }
+
+    @Test fun clockTowerReadyAlertFiresOnceWhenCooldownEnds() {
+        val (export, state) = sync("""{"clocktower_cooldown":600}""")
+        val settings = AppSettings()
+        val names = NameMap(emptyMap())
+        val end = export.timestamp + 600
+        assertTrue(FinishNotices.check(state, settings, names, end - 5, true).notices.none { it.jobKey.startsWith("clocktower:") })
+        val r = FinishNotices.check(state, settings, names, end + 5, true)
+        assertEquals(1, r.notices.count { it.jobKey == "clocktower:$end" })
+        val again = FinishNotices.check(state.copy(notified = r.notified), settings, names, end + 60, true)
+        assertTrue(again.notices.none { it.jobKey.startsWith("clocktower:") })
+        assertTrue(FinishNotices.check(state, settings, names, end + 5, false).notices.none { it.jobKey.startsWith("clocktower:") })
+        assertEquals(end, FinishNotices.nextFinish(state, settings, end - 100, true)?.takeIf { it == end })
+    }
 }

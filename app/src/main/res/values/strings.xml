@@ -223,4 +223,6 @@
     <string name="widget_soup">Soup</string>
     <string name="settings_clock_tower">Show Clock Tower cooldown on the widget</string>
     <string name="settings_clock_tower_desc">When your village has a Clock Tower, the widget\'s Builder Base line shows how long until it can be used again (gold while its boost is running). Read from the export automatically.</string>
+    <string name="settings_clock_tower_alert">Notify when the Clock Tower is ready</string>
+    <string name="settings_clock_tower_alert_desc">Sends an alert when the Clock Tower cooldown ends. Uses the same sound and Do Not Disturb choice as upgrade alerts, and needs finish alerts to be on.</string>
 </resources>

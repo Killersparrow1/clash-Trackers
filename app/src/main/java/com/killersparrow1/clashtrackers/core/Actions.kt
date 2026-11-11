@@ -93,7 +93,7 @@ object FinishNotices {
      * Jobs finished at [now] that haven't been announced yet, and the new [AppState.notified] set
      * (only keys that are still finished, so a job that is "un-finished" by an undo can be announced again).
      */
-    fun check(state: AppState, settings: AppSettings, names: NameMap, now: Long): Result {
+    fun check(state: AppState, settings: AppSettings, names: NameMap, now: Long, clockTowerAlert: Boolean = false): Result {
         val export = state.export ?: return Result(emptyList(), emptySet())
         val engine = TimerEngine(settings.boosts)
         val finished = export.jobs
@@ -103,14 +103,29 @@ object FinishNotices {
             .filter { (job, at) -> job.key !in state.notified && at > now - MAX_AGE_SEC }
             .sortedBy { it.second }
             .map { (job, _) -> notice(job, names) }
-        return Result(notices, finished.map { it.first.key }.toSet())
+        val ctEnd = if (clockTowerAlert) clockTowerEnd(export) else null
+        val ctDone = ctEnd != null && Finish.isDone(ctEnd, now)
+        val ctKey = ctEnd?.let { "$CLOCK_TOWER_KEY$it" }
+        val ctNotice = if (ctDone && ctKey !in state.notified && ctEnd!! > now - MAX_AGE_SEC)
+            listOf(FinishNotice(ctKey!!, CLOCK_TOWER_TITLE, CLOCK_TOWER_TEXT)) else emptyList()
+        val keys = finished.map { it.first.key }.toSet() + listOfNotNull(ctKey.takeIf { ctDone })
+        return Result(notices + ctNotice, keys)
     }
 
+    const val CLOCK_TOWER_KEY = "clocktower:"
+    const val CLOCK_TOWER_TITLE = "Clock Tower ready"
+    const val CLOCK_TOWER_TEXT = "Its cooldown is over, you can boost the Builder Base again."
+
+    /** Epoch s when the exported Clock Tower cooldown ends; null if there is none. */
+    fun clockTowerEnd(export: VillageExport): Long? =
+        export.clockTowerCooldownRemaining?.takeIf { it > 0 }?.let { export.timestamp + it }
+
     /** Next finish time (epoch s) of a job that isn't [Finish.isDone] at [now]. */
-    fun nextFinish(state: AppState, settings: AppSettings, now: Long): Long? {
+    fun nextFinish(state: AppState, settings: AppSettings, now: Long, clockTowerAlert: Boolean = false): Long? {
         val export = state.export ?: return null
         val engine = TimerEngine(settings.boosts)
-        return export.jobs.map { engine.finishTime(it, export, state.links, state.boosts) }
+        val ct = if (clockTowerAlert) clockTowerEnd(export) else null
+        return (export.jobs.map { engine.finishTime(it, export, state.links, state.boosts) } + listOfNotNull(ct))
             .filter { !Finish.isDone(it, now) }.minOrNull()
     }
 
@@ -118,8 +133,8 @@ object FinishNotices {
      * Epoch s for the wakeup finish alarm: [Finish.GRACE_SEC] after the next finish, so the redraw it
      * triggers is certain to see the job as done.
      */
-    fun alarmAt(state: AppState, settings: AppSettings, now: Long): Long? =
-        nextFinish(state, settings, now)?.plus(Finish.GRACE_SEC)
+    fun alarmAt(state: AppState, settings: AppSettings, now: Long, clockTowerAlert: Boolean = false): Long? =
+        nextFinish(state, settings, now, clockTowerAlert)?.plus(Finish.GRACE_SEC)
 
     fun notice(job: Job, names: NameMap): FinishNotice {
         val title = names.title(job)
