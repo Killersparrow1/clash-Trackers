@@ -83,6 +83,7 @@ fun ClashTrackersContent(
                     Text(
                         if (destination == Destination.TIMERS) stringResource(R.string.app_name) else stringResource(destination.labelRes),
                         style = MaterialTheme.typography.titleLargeEmphasized,
+                        modifier = Modifier.titleEasterEgg(),
                     )
                 })
             },
