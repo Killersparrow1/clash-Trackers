@@ -68,7 +68,9 @@ Four colour themes, chosen per widget: **Material You** (follows your phone's wa
 - **Builder Base Clock Tower**: Tracks the 10× speed boost with durations calibrated to verified Clock Tower levels (Level 1: 14 min to Level 10: 32 min), including estimated time saved.
 - **Clock Tower Potion**: 30-minute 10× speed boost for Builder Base construction and research.
 - **Home Village Builder Potion & Snacks**: 10× Builder Potions, 2× Builder Bites, 2× Study Soup (Laboratory), Research Potions, and Pet Potions with consecutive stacking rules. Active potions, the Builder Bite and the Study Soup are read straight from the village export, so you only need to tap their buttons for ones you use after copying the export.
-- **Clock Tower (Builder Base)**: the Clock Tower (building `1000039`) and its `clocktower_boost` / `clocktower_cooldown` timers are read from the export. The widget's Builder Base line shows a Clock Tower chip with the time until it can be used again (gold while its boost runs); it can be switched off in Settings. You also get a "Clock Tower ready" notification when the cooldown ends (separate switch).
+- **Clock Tower (Builder Base) auto-detection**: the Clock Tower (building `1000039`) and its `clocktower_boost` / `clocktower_cooldown` timers are read from the export. Missing, zero or invalid values show nothing, and the timers are ignored if the export has no Clock Tower.
+- **Clock Tower cooldown chip**: the widget's Builder Base line (List, Grid and Minimal) shows the Clock Tower's level art with the time until it can be used again, counting down like the other pills and gold while its boost runs. It can be switched off in **Settings**.
+- **Pet Potion**: an active Pet Potion (`boosts.pet_boost`) is detected on sync and shown on the Pets line.
 - **Gold Pass Builder Boost**: Configurable 10%, 15%, or 20% time reduction perks.
 - **Special Upgrade Events**: Hammer Jam and Builder Base Bonanza reductions are already part of the upgrade times in the Clash of Clans export, so the app reads them from there and has no separate event buttons.
 - **Time-Segment Simulation**: Uses a deterministic interval simulation algorithm that accurately factors in boost start, expiration, and overlapping intervals without floating-point drift.
@@ -106,6 +108,7 @@ Four colour themes, chosen per widget: **Material You** (follows your phone's wa
 
 ### 🔔 Notifications
 - **Finish Alerts**: A notification when a builder, the lab or a pet is free, with the Clash of Clans finish sound.
+- **Clock Tower Ready Alert**: a notification with its own sound when the exported Clock Tower cooldown ends (once per export, own switch in **Settings**, needs finish alerts on).
 - **Follow Do Not Disturb**: A switch in **Settings → Notifications** (on by default) keeps alerts quiet during Do Not Disturb and uses your notification volume. Turn it off for an alarm-style alert that rings through Do Not Disturb.
 
 ### ⬆️ Updates, Feedback & Releases
@@ -210,7 +213,7 @@ cd clash-trackers
 - **Material 3 UI Inspiration**: Adapted from [Hy4ri/clash-timers](https://github.com/Hy4ri/clash-timers/tree/feat/material-app-ui).
 - **Font**: [Lilita One](app/src/main/res/font/lilita_one.ttf) by Juan Montoreano (SIL Open Font License 1.1).
 - **Minimal widget font**: [Doto](https://github.com/oliverlalan/Doto) by The Doto Project Authors (SIL Open Font License 1.1), bundled as [doto.ttf](app/src/main/res/font/doto.ttf); license in `app/src/main/assets/licenses/Doto-OFL.txt`.
-- **Game Data & Art**: Extracted from [clash-of-clans-data](https://github.com/chiefpansancolt/clash-of-clans-data).
+- **Game Data & Art**: Extracted from [clash-of-clans-data](https://github.com/chiefpansancolt/clash-of-clans-data), including the Study Soup and Clock Tower level images.
 - **Finished Upgrade Sound**: Game audio from Clash of Clans, © Supercell. Used in this unofficial, non-commercial fan project under Supercell's Fan Content Policy. Source: [Zedge mirror](https://www.zedge.net/notification-sounds/2e5dc20a-223a-460a-8ab7-14ac75b6c127). Not covered by the MIT License.
 
 ### 🙏 Thanks to the community
