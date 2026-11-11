@@ -28,7 +28,16 @@ class WidgetListService : RemoteViewsService() {
         private const val SLOW_LOAD_MS = 400L
     }
 
-    private class Factory(private val context: Context, private val widgetId: Int, private val small: Boolean, private val cols: Int) : RemoteViewsFactory {
+    /** What the renderer already knows, so embedding the items in the widget never re-reads storage. */
+    class Preset(val model: WidgetModel, val live: Boolean, val style: String?)
+
+    class Factory(
+        private val context: Context,
+        private val widgetId: Int,
+        private val small: Boolean,
+        private val cols: Int,
+        private val preset: Preset? = null,
+    ) : RemoteViewsFactory {
         private var model: WidgetModel? = null
         private var live = true
         private var tiles = false
@@ -59,7 +68,8 @@ class WidgetListService : RemoteViewsService() {
         }
 
         private fun load() {
-            val built = runCatching { runBlocking { WidgetUpdater.modelFor(context, widgetId) } }.getOrNull()
+            val built = preset?.let { it.model to it.live }
+                ?: runCatching { runBlocking { WidgetUpdater.modelFor(context, widgetId) } }.getOrNull()
             if (built == null) {
                 items = emptyList()
                 return
@@ -67,7 +77,7 @@ class WidgetListService : RemoteViewsService() {
             model = built.first
             live = built.second
             val t = renderer.themePalette(built.first.widgetTheme)
-            val style = runCatching {
+            val style = if (preset != null) preset.style else runCatching {
                 runBlocking { com.killersparrow1.clashtrackers.data.StateRepository(context).getWidgetStyle(widgetId) }
             }.getOrNull()
             tiles = style == com.killersparrow1.clashtrackers.data.StateRepository.WIDGET_STYLE_TILES

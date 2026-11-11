@@ -120,14 +120,50 @@ class WidgetRenderer(private val context: Context) {
         )
     }
 
+    /** Android 17+: put the rows inside the widget itself instead of having the launcher call WidgetListService. */
+    var embedItems: Boolean = true
+    private var itemStyle: String? = null
+
+    /**
+     * Connects the scrolling list. Android 17 (API 37) builds the rows here and sends them with the widget
+     * (RemoteCollectionItems): CT1.2, which had no list service, drew correct icons on Android 17 while the
+     * service-backed list showed wrong ones. Everything older keeps the service. If the rows are too big to send,
+     * the caller turns [embedItems] off and the service is used.
+     */
+    private fun attachList(rv: RemoteViews, appWidgetId: Int, small: Boolean, cols: Int, model: WidgetModel, live: Boolean) {
+        if (embedItems && Build.VERSION.SDK_INT >= 37) {
+            val items = runCatching {
+                val factory = WidgetListService.Factory(context, appWidgetId, small, cols, WidgetListService.Preset(model, live, itemStyle))
+                factory.onCreate()
+                factory.onDataSetChanged()
+                val b = RemoteViews.RemoteCollectionItems.Builder().setViewTypeCount(8).setHasStableIds(false)
+                for (i in 0 until factory.getCount()) b.addItem(i.toLong(), factory.getViewAt(i))
+                b.build()
+            }.getOrNull()
+            if (items != null) {
+                rv.setRemoteAdapter(R.id.list, items)
+                rv.setPendingIntentTemplate(R.id.list, tapTemplate())
+                return
+            }
+        }
+        val adapter = Intent(context, WidgetListService::class.java)
+            .putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+            .putExtra(WidgetListService.EXTRA_COLS, cols)
+        if (small) adapter.putExtra(WidgetListService.EXTRA_SMALL, true)
+        adapter.data = Uri.parse(adapter.toUri(Intent.URI_INTENT_SCHEME))
+        rv.setRemoteAdapter(R.id.list, adapter)
+        rv.setPendingIntentTemplate(R.id.list, tapTemplate())
+    }
+
     fun render(model: WidgetModel, liveCountdown: Boolean, options: Bundle?, style: String = "list", appWidgetId: Int = 0): RemoteViews {
+        itemStyle = style
         val heightDp = reportedHeightDp(options) ?: 320
         val isSmall = heightDp < 200
         if (style == com.killersparrow1.clashtrackers.data.StateRepository.WIDGET_STYLE_TILES) {
             return renderLarge(model, liveCountdown, options, appWidgetId)
         }
         if (style == com.killersparrow1.clashtrackers.data.StateRepository.WIDGET_STYLE_MINIMAL) {
-            return renderMinimal(model, appWidgetId)
+            return renderMinimal(model, appWidgetId, liveCountdown)
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -168,12 +204,7 @@ class WidgetRenderer(private val context: Context) {
         rv.setViewVisibility(R.id.content, View.VISIBLE)
 
         // The sections and rows live in a scrolling list filled by WidgetListService (see listItems/headerView/rowView).
-        val adapter = Intent(context, WidgetListService::class.java)
-            .putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
-            .putExtra(WidgetListService.EXTRA_COLS, tileColumns(options))
-        adapter.data = Uri.parse(adapter.toUri(Intent.URI_INTENT_SCHEME))
-        rv.setRemoteAdapter(R.id.list, adapter)
-        rv.setPendingIntentTemplate(R.id.list, tapTemplate())
+        attachList(rv, appWidgetId, small = false, cols = tileColumns(options), model = model, live = liveCountdown)
 
         rv.setTextViewText(R.id.foot_left, footer(model, t))
         rv.setTextColor(R.id.foot_left, t.sub)
@@ -183,7 +214,7 @@ class WidgetRenderer(private val context: Context) {
     }
 
     /** Minimal (Nothing-inspired) style: black card, white dot-matrix type, one red accent. Ignores the colour theme. */
-    private fun renderMinimal(model: WidgetModel, appWidgetId: Int): RemoteViews {
+    private fun renderMinimal(model: WidgetModel, appWidgetId: Int, liveCountdown: Boolean): RemoteViews {
         val rv = RemoteViews(pkg, R.layout.widget_root_minimal)
         val sync = syncIntent()
         rv.setOnClickPendingIntent(R.id.header, sync)
@@ -200,11 +231,7 @@ class WidgetRenderer(private val context: Context) {
         }
         rv.setViewVisibility(R.id.empty, View.GONE)
         rv.setViewVisibility(R.id.content, View.VISIBLE)
-        val adapter = Intent(context, WidgetListService::class.java)
-            .putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
-        adapter.data = Uri.parse(adapter.toUri(Intent.URI_INTENT_SCHEME))
-        rv.setRemoteAdapter(R.id.list, adapter)
-        rv.setPendingIntentTemplate(R.id.list, tapTemplate())
+        attachList(rv, appWidgetId, small = false, cols = TILES_PER_ROW, model = model, live = liveCountdown)
         rv.setTextViewText(R.id.foot_left, footer(model, palette(model.widgetTheme)).toString().uppercase())
         rv.setTextViewText(R.id.foot_right, model.footerRight.uppercase())
         return rv
@@ -310,12 +337,7 @@ class WidgetRenderer(private val context: Context) {
         rv.setViewVisibility(R.id.content, View.VISIBLE)
 
         // Every running timer, soonest first, in a scrolling list (WidgetListService, "small" mode).
-        val adapter = Intent(context, WidgetListService::class.java)
-            .putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
-            .putExtra(WidgetListService.EXTRA_SMALL, true)
-        adapter.data = Uri.parse(adapter.toUri(Intent.URI_INTENT_SCHEME))
-        rv.setRemoteAdapter(R.id.list, adapter)
-        rv.setPendingIntentTemplate(R.id.list, tapTemplate())
+        attachList(rv, appWidgetId, small = true, cols = TILES_PER_ROW, model = model, live = liveCountdown)
         return rv
     }
 
