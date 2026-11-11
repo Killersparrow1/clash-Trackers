@@ -70,6 +70,12 @@ object DiagnosticReport {
             appendLine("  Detected: ${if (boosts.isEmpty()) "no boosts" else boosts.joinToString(", ")}")
         }
         appendLine()
+        appendLine("Row icons (name -> data ids, level -> file)")
+        val icons = WidgetIcons.get(context)
+        (model.builderRows + model.labRows + listOf(model.petRow) + model.bbRows + listOfNotNull(model.starLabRow)).forEach { r ->
+            appendLine("  ${r.name}: ${r.iconIds} L${r.iconLevel ?: "-"} -> ${icons.fileFor(r.iconIds, r.iconLevel) ?: "none"}")
+        }
+        appendLine()
         appendLine("Widget text")
         widgetPreview(model).lines().forEach { appendLine("  $it") }
         appendLine()

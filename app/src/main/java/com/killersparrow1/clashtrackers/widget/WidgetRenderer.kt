@@ -769,6 +769,16 @@ class WidgetIcons private constructor(private val context: Context) {
         return bitmap(id.toString(), sizePx)
     }
 
+    /** Which asset file [bitmapForLevel] would use for these ids (first that exists), or null. For diagnostics. */
+    fun fileFor(ids: List<Int>, level: Int?): String? {
+        fun find(name: String) = EXTENSIONS.map { "$name.$it" }.firstOrNull { it in available }
+        for (id in ids) {
+            if (level != null) for (l in level downTo 1) find("${id}_$l")?.let { return it }
+            find(id.toString())?.let { return it }
+        }
+        return null
+    }
+
     companion object {
         private val EXTENSIONS = listOf("webp", "png")
 
