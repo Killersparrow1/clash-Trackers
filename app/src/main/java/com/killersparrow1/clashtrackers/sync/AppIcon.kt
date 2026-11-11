@@ -5,8 +5,8 @@ import android.content.Context
 import android.content.pm.PackageManager
 
 /**
- * Which launcher icon the app shows: "themed" (follows the wallpaper when the phone's themed icons are on) or
- * "colour" (always the full colour icon). Two launcher entries in the manifest, exactly one enabled.
+ * Which launcher icon the app shows: "colour" (the default, always the full colour icon) or
+ * "themed" (can follow the wallpaper when the phone's themed icons are on). Two launcher entries in the manifest, exactly one enabled.
  * Android may close the app or briefly show both entries on some launchers when this changes.
  */
 object AppIcon {
@@ -15,7 +15,7 @@ object AppIcon {
 
     fun themed(context: Context): Boolean {
         val pm = context.packageManager
-        return pm.getComponentEnabledSetting(ComponentName(context, COLOUR)) != PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+        return pm.getComponentEnabledSetting(ComponentName(context, THEMED)) == PackageManager.COMPONENT_ENABLED_STATE_ENABLED
     }
 
     fun setThemed(context: Context, themed: Boolean) {

@@ -229,6 +229,6 @@
     <string name="notif_channel_clock_quiet">Clock Tower ready (follows Do Not Disturb)</string>
     <string name="notif_channel_clock_desc">Tells you when the Builder Base Clock Tower can be boosted again, with its own sound.</string>
     <string name="about_report_note">Your diagnostic report is copied when you tap Report an issue. Paste it into the issue so it can be fixed faster. It never includes your player tag or name.</string>
-    <string name="settings_themed_icon">App icon follows themed icons</string>
-    <string name="settings_themed_icon_desc">On: the icon follows your wallpaper colours when Themed icons is on in your phone settings (Android 13+). Off: always the full colour icon. Your launcher may take a moment to update and can close the app.</string>
+    <string name="settings_themed_icon">Use themed app icon</string>
+    <string name="settings_themed_icon_desc">Off (default): the full colour icon. On: the icon follows your wallpaper colours when Themed icons is turned on in your phone settings (Android 13+). Your launcher may take a moment to update and can close the app.</string>
 </resources>
