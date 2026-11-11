@@ -23,6 +23,8 @@ data class BoostSettings(
     val boostDurationSec: Long = HOUR,
     val builderPotionSavingSec: Long = 9 * HOUR,
     val builderBiteSavingSec: Long = 1 * HOUR,
+    /** Study Soup (magic snack for the Laboratory): same 2x as the Builder Bite. */
+    val studySoupSavingSec: Long = 1 * HOUR,
     val researchPotionSavingSec: Long = 23 * HOUR,
     val petPotionSavingSec: Long = 23 * HOUR,
     /** null = use the Apprentice's level from the export (level hours). */
@@ -38,6 +40,7 @@ data class BoostSettings(
     fun savingFor(type: BoostType): Long = when (type) {
         BoostType.BUILDER_POTION -> builderPotionSavingSec
         BoostType.BUILDER_BITE -> builderBiteSavingSec
+        BoostType.STUDY_SOUP -> studySoupSavingSec
         BoostType.RESEARCH_POTION -> researchPotionSavingSec
         BoostType.PET_POTION -> petPotionSavingSec
     }
@@ -48,6 +51,7 @@ data class BoostSettings(
 enum class BoostType(val category: JobCategory) {
     BUILDER_POTION(JobCategory.BUILDER),
     BUILDER_BITE(JobCategory.BUILDER),
+    STUDY_SOUP(JobCategory.LAB),
     RESEARCH_POTION(JobCategory.LAB),
     PET_POTION(JobCategory.PET),
 }

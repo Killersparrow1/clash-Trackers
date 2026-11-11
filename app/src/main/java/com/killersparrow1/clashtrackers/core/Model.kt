@@ -72,6 +72,16 @@ data class VillageExport(
     val labBoostRemaining: Long? = null,
     /** The pet potion's `boosts.*pet*boost*` field (name not yet confirmed from a real export), or null. */
     val petBoostRemaining: Long? = null,
+    /** `boosts.builder_consumable`: seconds left on an active Builder Bite (2x builders) at T0, or null. */
+    val builderBiteRemaining: Long? = null,
+    /** `boosts.lab_consumable`: seconds left on an active Study Soup (2x Laboratory) at T0, or null. */
+    val studySoupRemaining: Long? = null,
+    /** Clock Tower (Builder Base) level; null when the export has no Clock Tower. */
+    val clockTowerLevel: Int? = null,
+    /** `boosts.clocktower_boost`: seconds of the 10x boost left; null when absent, zero or no Clock Tower. */
+    val clockTowerBoostRemaining: Long? = null,
+    /** `boosts.clocktower_cooldown`: seconds until the Clock Tower can be used again; null when absent, zero or no Clock Tower. */
+    val clockTowerCooldownRemaining: Long? = null,
 ) {
     /** Builders derived from the export: huts + B.O.B. Null if no huts were found. */
     val derivedTotalBuilders: Int?

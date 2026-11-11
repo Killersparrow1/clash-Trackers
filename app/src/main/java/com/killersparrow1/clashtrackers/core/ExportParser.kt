@@ -73,16 +73,25 @@ object ExportParser {
         visitAll("heroes2", JobCategory.BB_BUILDER, JobSource.BB_HERO)
         visitAll("units2", JobCategory.STAR_LAB, JobSource.BB_UNIT)
 
-        // Active home-village builder potion (Builder Base `clocktower_*` is ignored).
+        // Active home-village builder potion (the Builder Base `clocktower_*` timers are read below).
         val boostsObj = root["boosts"] as? JsonObject
         val builderBoost = boostsObj?.long("builder_boost")?.takeIf { it > 0 }
         // Same shape for the research potion; the pet potion's key is matched loosely (anything with "pet" and "boost").
         val labBoost = boostsObj?.long("lab_boost")?.takeIf { it > 0 }
+        // Builder Bite (magic snack): `builder_consumable`, remaining seconds.
+        val builderBite = boostsObj?.long("builder_consumable")?.takeIf { it > 0 }
+        // Study Soup (magic snack): `lab_consumable`, remaining seconds.
+        val studySoup = boostsObj?.long("lab_consumable")?.takeIf { it > 0 }
         val petBoost = boostsObj
             ?.entries
             ?.firstOrNull { it.key.contains("pet", ignoreCase = true) && it.key.contains("boost", ignoreCase = true) }
             ?.let { (it.value as? JsonPrimitive)?.longOrNull }
             ?.takeIf { it > 0 }
+
+        // Clock Tower (Builder Base): only trusted when the building is in `buildings2`; zero / missing / negative = none.
+        val clockTower = root.array("buildings2").objects().firstOrNull { it.int("data") == GameIds.CLOCK_TOWER }
+        val clockTowerBoost = boostsObj?.long("clocktower_boost")?.takeIf { clockTower != null && it > 0 }
+        val clockTowerCooldown = boostsObj?.long("clocktower_cooldown")?.takeIf { clockTower != null && it > 0 }
 
         val townHall = buildings.objects().firstOrNull { it.int("data") == GameIds.TOWN_HALL }?.int("lvl")
         val huts = buildings.objects()
@@ -108,6 +117,11 @@ object ExportParser {
                 builderBoostRemaining = builderBoost,
                 labBoostRemaining = labBoost,
                 petBoostRemaining = petBoost,
+                builderBiteRemaining = builderBite,
+                studySoupRemaining = studySoup,
+                clockTowerLevel = clockTower?.int("lvl"),
+                clockTowerBoostRemaining = clockTowerBoost,
+                clockTowerCooldownRemaining = clockTowerCooldown,
             )
         )
     }

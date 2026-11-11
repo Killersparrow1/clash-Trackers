@@ -3,6 +3,7 @@
 
     <style name="Theme.ClashTimer" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowBackground">@color/splash_bg</item>
     </style>
 
     <!-- SyncActivity: invisible, no window animation, so tapping Sync looks like nothing opened. -->

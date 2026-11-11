@@ -31,6 +31,19 @@
     
                     
 
+    <LinearLayout android:id="@+id/pill_soup" android:layout_width="wrap_content" android:layout_height="22dp" android:background="@drawable/pill_off" android:gravity="center_vertical" android:orientation="horizontal" android:visibility="gone" android:layout_marginStart="6dp">
+        <LinearLayout android:id="@+id/pill_soup_add" android:layout_width="wrap_content" android:layout_height="match_parent" android:gravity="center_vertical" android:orientation="horizontal" android:paddingStart="7dp" android:paddingEnd="7dp">
+            <ImageView android:id="@+id/pill_soup_icon" android:layout_width="14dp" android:layout_height="14dp" android:layout_marginEnd="3dp" android:src="@drawable/ic_study_soup" />
+            <TextView android:id="@+id/pill_soup_text" style="@style/WidgetText.Pill" android:fontFamily="@font/lilita_one" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/widget_soup" />
+        </LinearLayout>
+        <LinearLayout android:id="@+id/pill_soup_undo" android:layout_width="wrap_content" android:layout_height="match_parent" android:gravity="center_vertical" android:orientation="horizontal" android:paddingEnd="6dp" android:visibility="gone">
+            <ImageView android:layout_width="1dp" android:layout_height="12dp" android:scaleType="fitXY" android:src="@drawable/pill_divider" />
+            <ImageView android:layout_width="10dp" android:layout_height="10dp" android:layout_marginStart="6dp" android:src="@drawable/ic_minus" />
+        </LinearLayout>
+    </LinearLayout>
+    
+                    
+
     <LinearLayout android:id="@+id/pill_bpot" android:layout_width="wrap_content" android:layout_height="22dp" android:layout_marginStart="6dp" android:background="@drawable/pill_off" android:gravity="center_vertical" android:orientation="horizontal" android:visibility="gone">
         <LinearLayout android:id="@+id/pill_bpot_add" android:layout_width="wrap_content" android:layout_height="match_parent" android:gravity="center_vertical" android:orientation="horizontal" android:paddingStart="7dp" android:paddingEnd="7dp">
             <ImageView android:id="@+id/pill_bpot_icon" android:layout_width="14dp" android:layout_height="14dp" android:layout_marginEnd="3dp" android:src="@drawable/ic_builder_potion" />
@@ -66,4 +79,12 @@
         </LinearLayout>
     </LinearLayout>
                 
+
+    <!-- Clock Tower cooldown: read-only chip (no add / undo). -->
+    <LinearLayout android:id="@+id/pill_ct" android:layout_width="wrap_content" android:layout_height="22dp" android:background="@drawable/pill_off" android:gravity="center_vertical" android:orientation="horizontal" android:visibility="gone" android:layout_marginStart="6dp">
+        <LinearLayout android:id="@+id/pill_ct_add" android:layout_width="wrap_content" android:layout_height="match_parent" android:gravity="center_vertical" android:orientation="horizontal" android:paddingStart="7dp" android:paddingEnd="7dp">
+            <ImageView android:id="@+id/pill_ct_icon" android:layout_width="14dp" android:layout_height="14dp" android:layout_marginEnd="3dp" android:src="@drawable/ic_clock_tower" />
+            <TextView android:id="@+id/pill_ct_text" style="@style/WidgetText.Pill" android:fontFamily="@font/lilita_one" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+        </LinearLayout>
+    </LinearLayout>
 </LinearLayout>

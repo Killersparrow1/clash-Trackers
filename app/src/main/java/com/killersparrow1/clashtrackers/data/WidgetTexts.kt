@@ -18,6 +18,7 @@ object WidgetTexts {
             builders = r.getString(R.string.widget_builders),
             goblinSuffix = r.getString(R.string.widget_goblin_suffix),
             bite = r.getString(R.string.widget_bite),
+            soup = r.getString(R.string.widget_soup),
             plusOne = r.getString(R.string.widget_plus_one),
             syncFailed = r.getString(R.string.widget_sync_failed),
             noData = r.getString(R.string.widget_no_data),

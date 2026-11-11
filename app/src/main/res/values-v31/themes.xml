@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 12+: the system splash shows only the Material You background colour (no icon), so there is no
+     white flash before the app's own animation starts. -->
+<resources>
+    <style name="Theme.ClashTimer" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowBackground">@android:color/system_neutral1_10</item>
+        <item name="android:windowSplashScreenBackground">@android:color/system_neutral1_10</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_empty</item>
+    </style>
+</resources>

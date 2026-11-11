@@ -44,6 +44,15 @@ object SyncLogic {
             boosts = boosts.filterNot { it.type == BoostType.PET_POTION } +
                 BoostUse(BoostType.PET_POTION, export.timestamp, export.timestamp + left)
         }
+        // Builder Bite: the game's own remaining time replaces any Bite windows tapped on the widget.
+        export.studySoupRemaining?.let { left ->
+            boosts = boosts.filterNot { it.type == BoostType.STUDY_SOUP } +
+                BoostUse(BoostType.STUDY_SOUP, export.timestamp, export.timestamp + left)
+        }
+        export.builderBiteRemaining?.let { left ->
+            boosts = boosts.filterNot { it.type == BoostType.BUILDER_BITE } +
+                BoostUse(BoostType.BUILDER_BITE, export.timestamp, export.timestamp + left)
+        }
 
         return Outcome.Synced(
             AppState(
@@ -102,5 +111,9 @@ fun SyncLogic.Outcome.describe(names: NameMap): String = when (this) {
         e.builderBoostRemaining?.let { append(" · builder potion ${WidgetModelBuilder.formatRemaining(it)} left") }
         e.labBoostRemaining?.let { append(" · research potion ${WidgetModelBuilder.formatRemaining(it)} left") }
         e.petBoostRemaining?.let { append(" · pet potion ${WidgetModelBuilder.formatRemaining(it)} left") }
+        e.studySoupRemaining?.let { append(" · study soup ${WidgetModelBuilder.formatRemaining(it)} left") }
+        e.clockTowerCooldownRemaining?.let { append(" · clock tower cooldown ${WidgetModelBuilder.formatRemaining(it)}") }
+        e.clockTowerBoostRemaining?.let { append(" · clock tower boost ${WidgetModelBuilder.formatRemaining(it)} left") }
+        e.builderBiteRemaining?.let { append(" · builder bite ${WidgetModelBuilder.formatRemaining(it)} left") }
     }
 }

@@ -8,6 +8,12 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ### Added
 
+- Clock Tower: detected from the export (building `1000039`, `boosts.clocktower_boost` and `boosts.clocktower_cooldown`). The widget's Builder Base line gets a read-only cooldown chip (List, Grid and Minimal) that counts down with the other pills; missing, zero or invalid values show nothing. A Settings switch turns it off. Pet Potion (`pet_boost`) was already detected.
+- Clock Tower ready alert: a notification when the exported cooldown ends (same sound and Do Not Disturb choice as upgrade alerts; own switch in Settings; needs finish alerts on). It fires once per export.
+- Study Soup: a **Soup** button on the widget's Lab line (List, Grid and Minimal) and an "active, time left" pill, and an active soup is read from the village export (`boosts.lab_consumable`). Its saving is adjustable in Settings.
+- An active Builder Bite is now read from the village export (`boosts.builder_consumable`), like the potions, instead of only from the Bite button.
+- A short animated start-up screen with the app icon, drawn over the theme's own background. Tap to skip; it plays only on a fresh launch.
+- The system start-up screen no longer flashes a white icon before the animation; it shows only the theme background.
 - Releases are automated: a push to `main` builds the APK, then waits for the maintainer's approval before creating the next `CT` tag and GitHub Release with the APK attached. The version number comes from the newest `CT` tag (CT2.3 → CT2.4 … CT2.9 → CT3.0).
 - Support tab tidy-up: Last crash, Widget diagnostics, Saved village and Widget text preview now sit together in one collapsed Diagnostics card, and the About card has aligned, grouped sections.
 - Sync from the clipboard automatically when the app opens (Settings → Village, on by default). Only a fresh Clash of Clans export is used, once.

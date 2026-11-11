@@ -39,10 +39,77 @@ class PotionBoostsTest {
         assertEquals(export.timestamp + 1200L, state.boosts.single { it.type == BoostType.PET_POTION }.end)
     }
 
+    @Test fun builderBiteIsRead() {
+        val (export, state) = sync("""{"builder_consumable":7192,"clocktower_cooldown":100}""")
+        assertEquals(7192L, export.builderBiteRemaining)
+        val bite = state.boosts.single { it.type == BoostType.BUILDER_BITE }
+        assertEquals(export.timestamp, bite.start)
+        assertEquals(export.timestamp + 7192L, bite.end)
+    }
+
+    @Test fun studySoupIsRead() {
+        val (export, state) = sync("""{"lab_consumable":10784,"builder_consumable":7192}""")
+        assertEquals(10784L, export.studySoupRemaining)
+        val soup = state.boosts.single { it.type == BoostType.STUDY_SOUP }
+        assertEquals(export.timestamp, soup.start)
+        assertEquals(export.timestamp + 10784L, soup.end)
+        // The Builder Bite is read from the same export, separately.
+        assertEquals(7192L, export.builderBiteRemaining)
+    }
+
     @Test fun noBoostsMeansNoPotions() {
         val (export, state) = sync("""{"clocktower_cooldown":100}""")
         assertNull(export.labBoostRemaining)
         assertNull(export.petBoostRemaining)
-        assertTrue(state.boosts.none { it.type == BoostType.RESEARCH_POTION || it.type == BoostType.PET_POTION })
+        assertNull(export.builderBiteRemaining)
+        assertNull(export.studySoupRemaining)
+        assertTrue(state.boosts.none { it.type == BoostType.RESEARCH_POTION || it.type == BoostType.PET_POTION || it.type == BoostType.BUILDER_BITE })
+    }
+
+    @Test fun petPotionAndClockTowerCooldownTogether() {
+        val (export, _) = sync("""{"pet_boost":3586,"clocktower_cooldown":18148}""")
+        assertEquals(3586L, export.petBoostRemaining)
+        assertEquals(18148L, export.clockTowerCooldownRemaining)
+        assertNull(export.clockTowerBoostRemaining)
+        assertEquals(10, export.clockTowerLevel)
+    }
+
+    @Test fun clockTowerBoostAndCooldownAreRead() {
+        val (export, _) = sync("""{"clocktower_boost":1808,"clocktower_cooldown":81008}""")
+        assertEquals(1808L, export.clockTowerBoostRemaining)
+        assertEquals(81008L, export.clockTowerCooldownRemaining)
+    }
+
+    @Test fun clockTowerZeroOrMissingValuesAreIgnored() {
+        val (zero, _) = sync("""{"clocktower_boost":0,"clocktower_cooldown":0}""")
+        assertNull(zero.clockTowerBoostRemaining)
+        assertNull(zero.clockTowerCooldownRemaining)
+        val (none, _) = sync("""{"builder_boost":100}""")
+        assertNull(none.clockTowerCooldownRemaining)
+        val (junk, _) = sync("""{"clocktower_cooldown":"soon","clocktower_boost":-5}""")
+        assertNull(junk.clockTowerCooldownRemaining)
+        assertNull(junk.clockTowerBoostRemaining)
+    }
+
+    @Test fun clockTowerTimersNeedTheBuilding() {
+        val noTower = base.replace("\"data\":1000039", "\"data\":1999999")
+        val text = noTower.substring(0, noTower.indexOf("\"boosts\":{")) + "\"boosts\":{\"clocktower_cooldown\":5000}}"
+        val out = SyncLogic.apply(AppState(), text) as SyncLogic.Outcome.Synced
+        assertNull(out.export.clockTowerLevel)
+        assertNull(out.export.clockTowerCooldownRemaining)
+    }
+
+    @Test fun clockTowerReadyAlertFiresOnceWhenCooldownEnds() {
+        val (export, state) = sync("""{"clocktower_cooldown":600}""")
+        val settings = AppSettings()
+        val names = NameMap(emptyMap())
+        val end = export.timestamp + 600
+        assertTrue(FinishNotices.check(state, settings, names, end - 5, true).notices.none { it.jobKey.startsWith("clocktower:") })
+        val r = FinishNotices.check(state, settings, names, end + 5, true)
+        assertEquals(1, r.notices.count { it.jobKey == "clocktower:$end" })
+        val again = FinishNotices.check(state.copy(notified = r.notified), settings, names, end + 60, true)
+        assertTrue(again.notices.none { it.jobKey.startsWith("clocktower:") })
+        assertTrue(FinishNotices.check(state, settings, names, end + 5, false).notices.none { it.jobKey.startsWith("clocktower:") })
+        assertEquals(end, FinishNotices.nextFinish(state, settings, end - 100, true)?.takeIf { it == end })
     }
 }

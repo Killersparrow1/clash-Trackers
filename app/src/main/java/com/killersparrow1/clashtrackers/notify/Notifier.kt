@@ -23,6 +23,9 @@ object Notifier {
     const val CHANNEL_ID = "finished_v2"
     /** Plays on the notification volume and is silenced by Do Not Disturb. */
     const val CHANNEL_QUIET = "finished_v3"
+    /** Clock Tower ready: its own sound, one channel per Do Not Disturb choice (a channel's sound can't change once created). */
+    const val CHANNEL_CLOCK = "clocktower_v1"
+    const val CHANNEL_CLOCK_QUIET = "clocktower_v1_quiet"
     private const val PREFS = "notif_prefs"
     private const val KEY_RESPECT_DND = "respect_dnd"
     private const val OLD_CHANNEL_ID = "finished"
@@ -52,6 +55,7 @@ object Notifier {
                 },
             )
         }
+        ensureClockChannels(context, nm)
         if (nm.getNotificationChannel(CHANNEL_ID) != null) return
         val audioAttributes = AudioAttributes.Builder()
             .setUsage(AudioAttributes.USAGE_ALARM)
@@ -70,6 +74,23 @@ object Notifier {
         )
     }
 
+    private fun ensureClockChannels(context: Context, nm: NotificationManager) {
+        val lctx = com.killersparrow1.clashtrackers.locale.LanguageManager.wrap(context)
+        val sound = Uri.parse("android.resource://${context.packageName}/${R.raw.clock_tower_ready}")
+        fun make(id: String, name: String, usage: Int) {
+            if (nm.getNotificationChannel(id) != null) return
+            val attrs = AudioAttributes.Builder().setUsage(usage).setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build()
+            nm.createNotificationChannel(
+                NotificationChannel(id, name, NotificationManager.IMPORTANCE_HIGH).apply {
+                    description = lctx.getString(R.string.notif_channel_clock_desc)
+                    setSound(sound, attrs)
+                },
+            )
+        }
+        make(CHANNEL_CLOCK_QUIET, lctx.getString(R.string.notif_channel_clock_quiet), AudioAttributes.USAGE_NOTIFICATION)
+        make(CHANNEL_CLOCK, lctx.getString(R.string.notif_channel_clock), AudioAttributes.USAGE_ALARM)
+    }
+
     /** True if the app may post notifications (runtime permission on Android 13+, and not blocked in settings). */
     fun allowed(context: Context): Boolean {
         val permission = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
@@ -86,7 +107,9 @@ object Notifier {
         val channel = if (respectDnd(context)) CHANNEL_QUIET else CHANNEL_ID
         for ((index, n) in notices.withIndex()) {
             val titlePrefix = if (multipleAccounts && accountName != null) "$accountName ($accountTag): " else ""
-            val notification = NotificationCompat.Builder(context, channel)
+            val isClock = n.jobKey.startsWith(com.killersparrow1.clashtrackers.core.FinishNotices.CLOCK_TOWER_KEY)
+            val notifChannel = if (isClock) (if (respectDnd(context)) CHANNEL_CLOCK_QUIET else CHANNEL_CLOCK) else channel
+            val notification = NotificationCompat.Builder(context, notifChannel)
                 .setSmallIcon(R.drawable.ic_stat_timer)
                 .setContentTitle("$titlePrefix${n.title}")
                 .setContentText(n.text)

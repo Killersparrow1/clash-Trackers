@@ -38,6 +38,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import com.killersparrow1.clashtrackers.sync.ClipboardAutoSync
+import androidx.compose.runtime.rememberCoroutineScope
+import com.killersparrow1.clashtrackers.sync.ClockTowerTracking
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -85,6 +87,21 @@ fun SettingsSection(
                 ClipboardAutoSync.setEnabled(context, on)
             }
             Text(stringResource(R.string.settings_auto_clipboard_desc), style = MaterialTheme.typography.bodyMedium)
+            val ctScope = rememberCoroutineScope()
+            var ctTrack by remember { mutableStateOf(ClockTowerTracking.enabled(context)) }
+            SwitchRow(stringResource(R.string.settings_clock_tower), ctTrack) { on ->
+                ctTrack = on
+                ClockTowerTracking.setEnabled(context, on)
+                ctScope.launch { SyncRunner.refreshWidgets(context.applicationContext, "settings") }
+            }
+            Text(stringResource(R.string.settings_clock_tower_desc), style = MaterialTheme.typography.bodyMedium)
+            var ctAlert by remember { mutableStateOf(ClockTowerTracking.alertEnabled(context)) }
+            SwitchRow(stringResource(R.string.settings_clock_tower_alert), ctAlert) { on ->
+                ctAlert = on
+                ClockTowerTracking.setAlertEnabled(context, on)
+                ctScope.launch { SyncRunner.refreshWidgets(context.applicationContext, "settings") }
+            }
+            Text(stringResource(R.string.settings_clock_tower_alert_desc), style = MaterialTheme.typography.bodyMedium)
         }
         SectionCard(stringResource(R.string.settings_language)) {
             LanguageSetting()
@@ -138,6 +155,7 @@ fun SettingsSection(
             Text(stringResource(R.string.settings_potions_desc), style = MaterialTheme.typography.bodyMedium)
             HoursSetting(stringResource(R.string.potion_builder), b.builderPotionSavingSec, 1..47) { value -> boosts { it.copy(builderPotionSavingSec = value) } }
             HoursSetting(stringResource(R.string.potion_bite), b.builderBiteSavingSec, 1..23) { value -> boosts { it.copy(builderBiteSavingSec = value) } }
+            HoursSetting(stringResource(R.string.potion_soup), b.studySoupSavingSec, 1..23) { value -> boosts { it.copy(studySoupSavingSec = value) } }
             HoursSetting(stringResource(R.string.potion_research), b.researchPotionSavingSec, 1..47) { value -> boosts { it.copy(researchPotionSavingSec = value) } }
             HoursSetting(stringResource(R.string.potion_pet), b.petPotionSavingSec, 1..47) { value -> boosts { it.copy(petPotionSavingSec = value) } }
         }
