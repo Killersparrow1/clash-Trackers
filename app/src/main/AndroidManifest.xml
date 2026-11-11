@@ -35,12 +35,12 @@
             android:windowSoftInputMode="adjustResize">
         </activity>
 
-        <!-- Launcher entries (see sync/AppIcon.kt): exactly one is enabled. "Colour" (the default) is the full colour
-             icon and is never tinted; "Themed" adds a monochrome layer so Android 13+ themed icons can tint it.
-             Settings switches between them. -->
+        <!-- Launcher entries (see sync/AppIcon.kt): exactly one is enabled. "Themed" uses the adaptive icon with a
+             monochrome layer (Android 13+ themed icons); "Colour" is the same icon without it, so the launcher
+             never tints it. Settings switches between them. -->
         <activity-alias
             android:name=".IconThemed"
-            android:enabled="false"
+            android:enabled="true"
             android:exported="true"
             android:icon="@mipmap/ic_launcher"
             android:roundIcon="@mipmap/ic_launcher_round"
@@ -53,7 +53,7 @@
         </activity-alias>
         <activity-alias
             android:name=".IconColour"
-            android:enabled="true"
+            android:enabled="false"
             android:exported="true"
             android:icon="@mipmap/ic_launcher_colour"
             android:roundIcon="@mipmap/ic_launcher_colour_round"
