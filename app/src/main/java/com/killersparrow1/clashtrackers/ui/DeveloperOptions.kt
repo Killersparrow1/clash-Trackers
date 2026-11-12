@@ -3,6 +3,16 @@
 package com.killersparrow1.clashtrackers.ui
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.res.stringResource
+import com.killersparrow1.clashtrackers.R
+import com.killersparrow1.clashtrackers.core.SyncLog
+import com.killersparrow1.clashtrackers.data.StateRepository
+import com.killersparrow1.clashtrackers.sync.SyncRunner
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -35,8 +45,9 @@ import com.killersparrow1.clashtrackers.sync.GoldPassStore
 
 /** Hidden developer options. Opened by tapping the Support tab 11 times in 4 seconds; leaving the page hides it again. */
 @Composable
-fun DeveloperOptionsScreen(selectedTag: String?, onClose: () -> Unit) {
+fun DeveloperOptionsScreen(selectedTag: String?, log: SyncLog, onClose: () -> Unit) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     BackHandler(onBack = onClose)
     Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Scaffold(
@@ -98,6 +109,27 @@ fun DeveloperOptionsScreen(selectedTag: String?, onClose: () -> Unit) {
                         "To try other parameters, for example one that scrolls to Export Data. Only https links are opened.",
                         style = MaterialTheme.typography.bodySmall,
                     )
+                }
+
+                CollapsibleCard("${stringResource(R.string.support_recent_activity)} (${log.entries.size})", "dev_activity") {
+                    if (log.entries.isEmpty()) {
+                        Text(stringResource(R.string.support_no_activity))
+                    } else {
+                        TextButton(
+                            onClick = { scope.launch { StateRepository(context.applicationContext).clearLog() } },
+                            modifier = Modifier.heightIn(min = 48.dp),
+                            contentPadding = PaddingValues(0.dp),
+                        ) { Text(stringResource(R.string.support_clear_activity)) }
+                    }
+                    log.entries.forEach { entry ->
+                        SelectionContainer {
+                            Text(
+                                SyncRunner.plainText(entry.line()),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = if (entry.ok == false) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+                            )
+                        }
+                    }
                 }
 
                 Button(onClick = onClose, modifier = Modifier.fillMaxWidth()) { Text("Hide developer options") }

@@ -170,28 +170,6 @@ fun SupportScreen(state: AppState, model: WidgetModel, log: SyncLog, timesCount:
             }
           }
         }
-        item {
-            CollapsibleCard("${stringResource(R.string.support_recent_activity)} (${log.entries.size})", "activity") {
-                if (log.entries.isEmpty()) {
-                    Text(stringResource(R.string.support_no_activity))
-                } else {
-                    TextButton(
-                        onClick = { scope.launch { StateRepository(context.applicationContext).clearLog() } },
-                        modifier = Modifier.heightIn(min = 48.dp),
-                        contentPadding = PaddingValues(0.dp),
-                    ) { Text(stringResource(R.string.support_clear_activity)) }
-                }
-                log.entries.forEach { entry ->
-                    SelectionContainer {
-                        Text(
-                            SyncRunner.plainText(entry.line()),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = if (entry.ok == false) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
-                        )
-                    }
-                }
-            }
-        }
         item { SectionCard(stringResource(R.string.support_about)) { AboutSection(reportProvider = { DiagnosticReport.build(context, state, model, log, now) }) } }
     }
     if (showHelp) HelpDialog(onDismiss = { showHelp = false })

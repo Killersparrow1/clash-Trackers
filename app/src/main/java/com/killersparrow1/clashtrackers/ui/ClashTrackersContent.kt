@@ -189,6 +189,6 @@ fun ClashTrackersContent(
                 }
             }
         }
-        if (developerOpen) DeveloperOptionsScreen(selectedTag, onClose = { developerOpen = false })
+        if (developerOpen) DeveloperOptionsScreen(selectedTag, log, onClose = { developerOpen = false })
     }
 }
