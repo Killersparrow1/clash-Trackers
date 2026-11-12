@@ -8,6 +8,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ### Added
 
+- Header button now shows the installed game's icon with "Open game" (plain arrow icon if the game is not installed).
 - Widget theme: new "Pitch black" theme (true black panel, dark rows) for OLED screens.
 - Settings: removed the Player name row; rename an account from the account drop-down on the Timers tab.
 - Timers tab: the Boosts & Events card is replaced by three stat tiles (builders busy, next free builder, next lab) and a read-only Potions & helpers card.

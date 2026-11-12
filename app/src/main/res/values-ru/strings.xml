@@ -262,4 +262,5 @@
     <string name="potions_helpers_title">Зелья и помощники</string>
     <string name="potions_none">Нет активных бустов</string>
     <string name="widget_theme_black">Чёрная (экономит заряд на OLED)</string>
+    <string name="open_game_short">Открыть игру</string>
 </resources>

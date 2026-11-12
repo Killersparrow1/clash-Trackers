@@ -256,4 +256,5 @@
     <string name="potions_helpers_title">Potions &amp; helpers</string>
     <string name="potions_none">No active boosts</string>
     <string name="widget_theme_black">Pitch black (saves battery on OLED)</string>
+    <string name="open_game_short">Open game</string>
 </resources>

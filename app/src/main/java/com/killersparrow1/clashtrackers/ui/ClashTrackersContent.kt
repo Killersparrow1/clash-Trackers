@@ -113,13 +113,11 @@ fun ClashTrackersContent(
                     if (destination == Destination.TIMERS) {
                         val openContext = androidx.compose.ui.platform.LocalContext.current
                         val failed = stringResource(R.string.open_game_failed)
-                        androidx.compose.material3.IconButton(onClick = {
+                        OpenGameButton(onClick = {
                             if (!openGameLink(openContext, CLASH_MORE_SETTINGS_LINK)) {
                                 tapScope.launch { snackbarHost.showSnackbar(failed) }
                             }
-                        }) {
-                            Icon(painterResource(R.drawable.ic_open_in_new), contentDescription = stringResource(R.string.open_game_settings))
-                        }
+                        })
                     }
                 })
             },
