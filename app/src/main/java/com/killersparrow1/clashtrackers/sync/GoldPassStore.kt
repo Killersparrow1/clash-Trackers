@@ -45,6 +45,15 @@ object GoldPassStore {
         version++
     }
 
+    /** Forget this village's answer and turn the monthly question back on, so the popup shows again (testing). */
+    fun reset(context: Context, tag: String?) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+            .remove(key(tag, "month")).remove(key(tag, "gold")).remove(key(tag, "builder")).remove(key(tag, "research"))
+            .putBoolean(KEY_ASK, true)
+            .apply()
+        version++
+    }
+
     fun askMonthly(context: Context): Boolean =
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(KEY_ASK, true)
 

@@ -34,6 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -72,6 +73,29 @@ fun ClashTrackersContent(
     snackbarHost: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     var destination by rememberSaveable { mutableStateOf(Destination.TIMERS) }
+    var developerOpen by rememberSaveable { mutableStateOf(false) }
+    val tapScope = androidx.compose.runtime.rememberCoroutineScope()
+    val supportTaps = remember { mutableListOf<Long>() }
+    // Tap the Support tab 11 times within 4 seconds to open the hidden developer options.
+    fun navigate(entry: Destination) {
+        destination = entry
+        if (entry != Destination.SUPPORT || developerOpen) return
+        val t = System.currentTimeMillis()
+        supportTaps.add(t)
+        supportTaps.removeAll { t - it > 4_000L }
+        val left = 11 - supportTaps.size
+        when {
+            left <= 0 -> {
+                supportTaps.clear()
+                developerOpen = true
+                tapScope.launch { snackbarHost.currentSnackbarData?.dismiss(); snackbarHost.showSnackbar("Developer options enabled") }
+            }
+            left <= 4 -> tapScope.launch {
+                snackbarHost.currentSnackbarData?.dismiss()
+                snackbarHost.showSnackbar(if (left == 1) "1 more tap to enable developer options" else "$left more taps to enable developer options")
+            }
+        }
+    }
     val screenState = rememberSaveableStateHolder()
     BackHandler(enabled = destination != Destination.TIMERS) { destination = Destination.TIMERS }
 
@@ -93,7 +117,7 @@ fun ClashTrackersContent(
                         Destination.entries.forEach { entry ->
                             ShortNavigationBarItem(
                                 selected = destination == entry,
-                                onClick = { destination = entry },
+                                onClick = { navigate(entry) },
                                 icon = { Icon(painterResource(entry.icon), contentDescription = null) },
                                 label = { Text(stringResource(entry.labelRes)) },
                             )
@@ -109,7 +133,7 @@ fun ClashTrackersContent(
                         Destination.entries.forEach { entry ->
                             NavigationRailItem(
                                 selected = destination == entry,
-                                onClick = { destination = entry },
+                                onClick = { navigate(entry) },
                                 icon = { Icon(painterResource(entry.icon), contentDescription = null) },
                                 label = { Text(stringResource(entry.labelRes)) },
                             )
@@ -155,5 +179,6 @@ fun ClashTrackersContent(
                 }
             }
         }
+        if (developerOpen) DeveloperOptionsScreen(selectedTag, onClose = { developerOpen = false })
     }
 }
