@@ -8,6 +8,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ### Added
 
+- Timers tab: the Boosts & Events card is replaced by three stat tiles (builders busy, next free builder, next lab) and a read-only Potions & helpers card.
 - Easter egg: the title shakes for as long as the sound plays.
 - Settings: Gold Pass and Clock Tower options now sit in their own cards.
 - Clock Tower: detected from the export (building `1000039`, `boosts.clocktower_boost` and `boosts.clocktower_cooldown`). The widget's Builder Base line gets a read-only cooldown chip (List, Grid and Minimal) that counts down with the other pills; missing, zero or invalid values show nothing. A Settings switch turns it off. Pet Potion (`pet_boost`) was already detected.

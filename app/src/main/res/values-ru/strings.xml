@@ -255,4 +255,10 @@
     <string name="open_game_failed">Не удалось открыть Clash of Clans</string>
     <string name="settings_section_gold_pass">Золотой пропуск</string>
     <string name="settings_section_clock_tower">Часовая башня</string>
+    <string name="stat_builders">Строители заняты</string>
+    <string name="stat_next_free">Свободный строитель</string>
+    <string name="stat_next_lab">Лаборатория</string>
+    <string name="stat_free_now">Свободно</string>
+    <string name="potions_helpers_title">Зелья и помощники</string>
+    <string name="potions_none">Нет активных бустов</string>
 </resources>

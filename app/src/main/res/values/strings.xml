@@ -249,4 +249,10 @@
     <string name="open_game_failed">Could not open Clash of Clans</string>
     <string name="settings_section_gold_pass">Gold Pass</string>
     <string name="settings_section_clock_tower">Clock Tower</string>
+    <string name="stat_builders">Builders busy</string>
+    <string name="stat_next_free">Next free builder</string>
+    <string name="stat_next_lab">Next lab</string>
+    <string name="stat_free_now">Free now</string>
+    <string name="potions_helpers_title">Potions &amp; helpers</string>
+    <string name="potions_none">No active boosts</string>
 </resources>

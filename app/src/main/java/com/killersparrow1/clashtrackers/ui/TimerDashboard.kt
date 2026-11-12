@@ -182,14 +182,9 @@ fun TimerDashboard(
 
             item(key = "sync", span = { GridItemSpan(maxLineSpan) }) { SyncCard(lastSync, busy, onSync) }
 
-            item(key = "boosts_events", span = { GridItemSpan(maxLineSpan) }) {
-                BoostEventSection(
-                    activeBoostState = activeBoostState,
-                    eventSettings = eventSettings,
-                    now = now,
-                    onUpdateBoosts = onUpdateBoosts,
-                    onUpdateEvents = onUpdateEvents,
-                )
+            if (model.hasData) {
+                item(key = "stats", span = { GridItemSpan(maxLineSpan) }) { StatTiles(model) }
+                item(key = "potions_helpers", span = { GridItemSpan(maxLineSpan) }) { PotionsHelpersCard(model) }
             }
 
             if (model.hasData) {
@@ -526,4 +521,75 @@ private fun TimerCard(timer: DashboardTimer) {
             }
         }
     }
+}
+
+/** Three quick numbers under the village card: builders busy, when a builder frees up, when the lab is free. */
+@Composable
+private fun StatTiles(model: WidgetModel) {
+    val dayUnit = stringResource(R.string.time_day_short)
+    val nextFree = if (model.buildersBusy < model.buildersTotal) stringResource(R.string.stat_free_now)
+    else model.builderRows.filter { it.kind == RowKind.RUNNING && !it.goblin }.minOfOrNull { it.remaining }
+        ?.let { Countdown.text(it, dayUnit) } ?: "—"
+    val labRunning = (listOf(model.labRow) + model.extraLabRows).filter { it.kind == RowKind.RUNNING }
+    val nextLab = if (labRunning.isEmpty()) stringResource(R.string.stat_free_now)
+    else Countdown.text(labRunning.minOf { it.remaining }, dayUnit)
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        StatTile(stringResource(R.string.stat_builders), "${model.buildersBusy} / ${model.buildersTotal}", MaterialTheme.colorScheme.primary, Modifier.weight(1f))
+        StatTile(stringResource(R.string.stat_next_free), nextFree, MaterialTheme.colorScheme.tertiary, Modifier.weight(1f))
+        StatTile(stringResource(R.string.stat_next_lab), nextLab, MaterialTheme.colorScheme.secondary, Modifier.weight(1f))
+    }
+}
+
+@Composable
+private fun StatTile(label: String, value: String, accent: androidx.compose.ui.graphics.Color, modifier: Modifier) {
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        shape = MaterialTheme.shapes.large,
+    ) {
+        Column(Modifier.padding(horizontal = 12.dp, vertical = 14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+            Text(value, style = MaterialTheme.typography.titleLarge, color = accent, maxLines = 1)
+        }
+    }
+}
+
+/** Read-only summary of running potions/snacks and the helper status; both come from the export. */
+@Composable
+private fun PotionsHelpersCard(model: WidgetModel) {
+    val active = listOf(model.builderPotion, model.bite, model.researchPotion, model.soup, model.petPotion).filter { it.active }
+    val labels = active.map { stringResource(potionLabel(it.type)) }
+    val helpers = model.footerLeft.joinToString(" · ") { it.text }
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+        shape = MaterialTheme.shapes.extraLarge,
+    ) {
+        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(
+                stringResource(R.string.potions_helpers_title),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+            )
+            Text(
+                if (active.isEmpty()) stringResource(R.string.potions_none)
+                else labels.zip(active).joinToString(" · ") { (label, pill) -> label + " " + pill.text },
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+            )
+            if (helpers.isNotBlank()) Text(
+                helpers,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+            )
+        }
+    }
+}
+
+private fun potionLabel(type: com.killersparrow1.clashtrackers.core.BoostType): Int = when (type) {
+    com.killersparrow1.clashtrackers.core.BoostType.BUILDER_POTION -> R.string.potion_builder
+    com.killersparrow1.clashtrackers.core.BoostType.BUILDER_BITE -> R.string.potion_bite
+    com.killersparrow1.clashtrackers.core.BoostType.STUDY_SOUP -> R.string.potion_soup
+    com.killersparrow1.clashtrackers.core.BoostType.RESEARCH_POTION -> R.string.potion_research
+    com.killersparrow1.clashtrackers.core.BoostType.PET_POTION -> R.string.potion_pet
 }
