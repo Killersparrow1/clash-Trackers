@@ -8,6 +8,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ### Added
 
+- Settings: removed the "Sync from clipboard when the app opens" switch; it is always on now, so the Your village card is gone.
 - Idle reminder (off by default): a notification when a builder or the lab has sat free for 1 to 12 hours since your last sync.
 - Timers: the village card shows the total builder work and lab time left.
 - App icon shortcuts: long-press the icon for Sync from clipboard and Open game.

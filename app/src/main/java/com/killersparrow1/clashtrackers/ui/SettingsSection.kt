@@ -85,14 +85,6 @@ fun SettingsSection(
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Text(stringResource(R.string.settings_autosave), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        SectionCard(stringResource(R.string.settings_section_village)) {
-            var autoClip by remember { mutableStateOf(ClipboardAutoSync.enabled(context)) }
-            SwitchRow(stringResource(R.string.settings_auto_clipboard), autoClip) { on ->
-                autoClip = on
-                ClipboardAutoSync.setEnabled(context, on)
-            }
-            Text(stringResource(R.string.settings_auto_clipboard_desc), style = MaterialTheme.typography.bodyMedium)
-        }
         SectionCard(stringResource(R.string.settings_section_gold_pass)) {
             val gpScope = rememberCoroutineScope()
             var gpOpen by remember { mutableStateOf(false) }
