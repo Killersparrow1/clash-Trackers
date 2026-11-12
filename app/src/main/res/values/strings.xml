@@ -255,4 +255,5 @@
     <string name="stat_free_now">Free now</string>
     <string name="potions_helpers_title">Potions &amp; helpers</string>
     <string name="potions_none">No active boosts</string>
+    <string name="widget_theme_black">Pitch black (saves battery on OLED)</string>
 </resources>

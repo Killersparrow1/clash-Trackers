@@ -27,7 +27,7 @@ Redesigned with **Material 3 Expressive**, authentic Clash typography, an advanc
 </p>
 
 ## Widget Themes
-Four colour themes, chosen per widget: **Material You** (follows your phone's wallpaper colours), **Clash** (the original wood panel and green bars), **Dark** (neutral dark with a blue bar) and **Light** (clean white with a pale blue bar). Each theme has its own progress-bar colour, so text stays readable on every one.
+Five colour themes, chosen per widget: **Material You** (follows your phone's wallpaper colours), **Clash** (the original wood panel and green bars), **Dark** (neutral dark with a blue bar), **Pitch black** (true black panel, kinder to OLED batteries) and **Light** (clean white with a pale blue bar). Each theme has its own progress-bar colour, so text stays readable on every one.
 
 <p align="center">
   <img src="docs/screenshots/material.jpg" alt="Material You theme" width="22%">
@@ -82,7 +82,7 @@ Four colour themes, chosen per widget: **Material You** (follows your phone's wa
 - **Three Styles** (pick one per widget): Choose **List** (a row with a progress bar for every timer), **Grid** (round progress rings with the building icon) or **Minimal** (a black, Nothing-inspired look with white dot-matrix type, thin progress lines and one red accent). All are grouped by Builders, Lab, Pets and Builder Base. Minimal keeps its own colours, so the theme choice does not apply to it.
 - **Scrolls at Any Size**: Resize the widget as small as you like and scroll to reach every timer. Nothing is cut off with a "+N more".
 - **Goblin Badge**: Timers worked on by the event Goblin Builder or Goblin Researcher are marked on both styles.
-- **Widget Themes**: Pick **Material You**, **Clash**, **Dark** or **Light** as the default, and override the theme for individual widgets.
+- **Widget Themes**: Pick **Material You**, **Clash**, **Dark**, **Pitch black** or **Light** as the default, and override the theme for individual widgets.
 - **Helper Integration**: Tap `+` to assign the Builder's Apprentice or Lab Assistant and see realistic predicted finish times.
 - **Exact Alarms**: Accurate re-renders at completion edges with no background battery drain.
 - **Per-Widget Account Binding**: Place the widget as many times as you like. Each time, a picker asks which account that widget should show, so you can keep one widget per account side by side. You can change a widget's account, style and theme later by reconfiguring it.

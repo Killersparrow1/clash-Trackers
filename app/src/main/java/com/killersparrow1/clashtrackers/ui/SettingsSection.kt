@@ -386,6 +386,7 @@ private fun WidgetThemeSetting(settings: AppSettings, onChange: ((AppSettings) -
         "material_you" to stringResource(R.string.widget_theme_material_you),
         "clash" to stringResource(R.string.widget_theme_clash),
         "dark" to stringResource(R.string.widget_theme_dark),
+        "black" to stringResource(R.string.widget_theme_black),
         "light" to stringResource(R.string.widget_theme_light),
     )
     val currentLabel = themes.firstOrNull { it.first == settings.widgetTheme }?.second ?: stringResource(R.string.widget_theme_material_you)

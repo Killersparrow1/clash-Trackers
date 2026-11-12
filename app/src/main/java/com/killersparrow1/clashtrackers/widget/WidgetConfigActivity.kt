@@ -115,6 +115,7 @@ private fun WidgetConfigScreen(appWidgetId: Int, onSave: (String, String, String
         "material_you" to stringResource(R.string.widget_theme_material_you),
         "clash" to stringResource(R.string.widget_theme_clash),
         "dark" to stringResource(R.string.widget_theme_dark),
+        "black" to stringResource(R.string.widget_theme_black),
         "light" to stringResource(R.string.widget_theme_light),
     )
 

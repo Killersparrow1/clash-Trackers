@@ -84,7 +84,7 @@ class WidgetRenderer(private val context: Context) {
     private fun palette(theme: String): Palette = basePalette(theme).copy(
         fillId = when (theme) {
             "clash" -> R.id.row_fill_clash
-            "dark" -> R.id.row_fill_dark
+            "dark", "black" -> R.id.row_fill_dark
             "light" -> R.id.row_fill_light
             else -> R.id.row_fill
         },
@@ -103,6 +103,13 @@ class WidgetRenderer(private val context: Context) {
             R.drawable.pill_on_dark, R.drawable.pill_off_dark, R.drawable.icon_slot_dark,
             R.drawable.btn_sync_dark, R.drawable.btn_plus_dark, R.drawable.btn_helper_dark,
             0xFFECEEF2.toInt(), 0xFFAEB4BF.toInt(), 0xFFFFD24A.toInt(), 0xFF7BE07A.toInt(),
+            0xFFFFB35C.toInt(), 0xFFFF8A8A.toInt(), 0xFF101418.toInt(),
+        )
+        "black" -> Palette(
+            R.drawable.widget_panel_black, R.drawable.row_slot_black, R.drawable.row_done_black,
+            R.drawable.pill_on_dark, R.drawable.pill_off_black, R.drawable.icon_slot_dark,
+            R.drawable.btn_sync_dark, R.drawable.btn_plus_dark, R.drawable.btn_helper_dark,
+            0xFFECEEF2.toInt(), 0xFFA3A8B2.toInt(), 0xFFFFD24A.toInt(), 0xFF7BE07A.toInt(),
             0xFFFFB35C.toInt(), 0xFFFF8A8A.toInt(), 0xFF101418.toInt(),
         )
         "light" -> Palette(
