@@ -115,11 +115,24 @@ fun DeveloperOptionsScreen(selectedTag: String?, log: SyncLog, onClose: () -> Un
                     if (log.entries.isEmpty()) {
                         Text(stringResource(R.string.support_no_activity))
                     } else {
-                        TextButton(
-                            onClick = { scope.launch { StateRepository(context.applicationContext).clearLog() } },
-                            modifier = Modifier.heightIn(min = 48.dp),
-                            contentPadding = PaddingValues(0.dp),
-                        ) { Text(stringResource(R.string.support_clear_activity)) }
+                        val activityText = log.entries.joinToString("\n") { SyncRunner.plainText(it.line()) }
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            TextButton(
+                                onClick = { copyReport(context, activityText) },
+                                modifier = Modifier.heightIn(min = 48.dp),
+                                contentPadding = PaddingValues(horizontal = 8.dp),
+                            ) { Text("Copy") }
+                            TextButton(
+                                onClick = { shareReport(context, activityText) },
+                                modifier = Modifier.heightIn(min = 48.dp),
+                                contentPadding = PaddingValues(horizontal = 8.dp),
+                            ) { Text("Share") }
+                            TextButton(
+                                onClick = { scope.launch { StateRepository(context.applicationContext).clearLog() } },
+                                modifier = Modifier.heightIn(min = 48.dp),
+                                contentPadding = PaddingValues(horizontal = 8.dp),
+                            ) { Text(stringResource(R.string.support_clear_activity)) }
+                        }
                     }
                     log.entries.forEach { entry ->
                         SelectionContainer {
