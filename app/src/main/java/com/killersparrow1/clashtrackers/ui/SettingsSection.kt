@@ -40,6 +40,12 @@ import androidx.compose.runtime.Composable
 import com.killersparrow1.clashtrackers.sync.ClipboardAutoSync
 import androidx.compose.runtime.rememberCoroutineScope
 import com.killersparrow1.clashtrackers.sync.ClockTowerTracking
+import com.killersparrow1.clashtrackers.sync.IdleAlert
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.FilterChip
+import com.killersparrow1.clashtrackers.sync.GoldPassStore
+import com.killersparrow1.clashtrackers.core.GoldPassLogic
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -67,6 +73,7 @@ fun SettingsSection(
     export: VillageExport?,
     now: Long,
     onChange: ((AppSettings) -> AppSettings) -> Unit,
+    selectedTag: String? = null,
 ) {
     val context = LocalContext.current
     val b = settings.boosts
@@ -74,19 +81,36 @@ fun SettingsSection(
     var permissionTick by remember { mutableIntStateOf(0) }
     val askPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { permissionTick++ }
     val notificationsAllowed = remember(now, permissionTick) { Notifier.allowed(context) }
-    var editName by rememberSaveable { mutableStateOf(false) }
     var confirmReset by rememberSaveable { mutableStateOf(false) }
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        Text(stringResource(R.string.settings_autosave), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        SectionCard(stringResource(R.string.settings_section_village)) {
-            SettingRow(stringResource(R.string.settings_player_name), settings.displayName, stringResource(R.string.settings_player_name_desc)) { editName = true }
-            var autoClip by remember { mutableStateOf(ClipboardAutoSync.enabled(context)) }
-            SwitchRow(stringResource(R.string.settings_auto_clipboard), autoClip) { on ->
-                autoClip = on
-                ClipboardAutoSync.setEnabled(context, on)
+        SectionCard(stringResource(R.string.settings_section_gold_pass)) {
+            val gpScope = rememberCoroutineScope()
+            var gpOpen by remember { mutableStateOf(false) }
+            val gp = remember(selectedTag, GoldPassStore.version) { GoldPassStore.answer(context, selectedTag) }
+            Text(
+                if (gp.month == null) stringResource(R.string.gold_pass_not_set)
+                else if (gp.gold) stringResource(R.string.gold_pass_summary_gold, gp.builder, gp.research)
+                else stringResource(R.string.gold_pass_silver_summary),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            OutlinedButton(onClick = { gpOpen = true }) { Text(stringResource(R.string.gold_pass_change)) }
+            var gpAsk by remember { mutableStateOf(GoldPassStore.askMonthly(context)) }
+            SwitchRow(stringResource(R.string.gold_pass_ask_monthly), gpAsk) { on -> gpAsk = on; GoldPassStore.setAskMonthly(context, on) }
+            if (gpOpen) {
+                GoldPassDialog(
+                    initial = gp,
+                    laterLabel = stringResource(android.R.string.cancel),
+                    onSave = { gold, b, r ->
+                        GoldPassStore.save(context, selectedTag, GoldPassLogic.monthKey(now), gold, b, r)
+                        gpOpen = false
+                        gpScope.launch { SyncRunner.refreshWidgets(context.applicationContext, "settings") }
+                    },
+                    onLater = { gpOpen = false },
+                )
             }
-            Text(stringResource(R.string.settings_auto_clipboard_desc), style = MaterialTheme.typography.bodyMedium)
+        }
+        SectionCard(stringResource(R.string.settings_section_clock_tower)) {
             val ctScope = rememberCoroutineScope()
             var ctTrack by remember { mutableStateOf(ClockTowerTracking.enabled(context)) }
             SwitchRow(stringResource(R.string.settings_clock_tower), ctTrack) { on ->
@@ -120,6 +144,31 @@ fun SettingsSection(
                 Notifier.setRespectDnd(context, on)
             }
             Text(stringResource(R.string.settings_follow_dnd_desc), style = MaterialTheme.typography.bodyMedium)
+            var idleOn by remember { mutableStateOf(IdleAlert.enabled(context)) }
+            var idleHours by remember { mutableIntStateOf(IdleAlert.hours(context)) }
+            val idleScope = rememberCoroutineScope()
+            SwitchRow(stringResource(R.string.settings_idle_alert), idleOn) { on ->
+                idleOn = on
+                IdleAlert.setEnabled(context, on)
+                idleScope.launch { SyncRunner.refreshWidgets(context.applicationContext, "settings") }
+            }
+            Text(stringResource(R.string.settings_idle_alert_desc, idleHours), style = MaterialTheme.typography.bodyMedium)
+            if (idleOn) {
+                Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    IdleAlert.CHOICES.forEach { h ->
+                        FilterChip(
+                            selected = idleHours == h,
+                            onClick = {
+                                idleHours = h
+                                IdleAlert.setHours(context, h)
+                                idleScope.launch { SyncRunner.refreshWidgets(context.applicationContext, "settings") }
+                            },
+                            label = { Text("$h h") },
+                            modifier = Modifier.heightIn(min = 48.dp),
+                        )
+                    }
+                }
+            }
             if (settings.notificationsEnabled && !notificationsAllowed) {
                 Text(stringResource(R.string.settings_notif_blocked), color = MaterialTheme.colorScheme.error)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -197,14 +246,6 @@ fun SettingsSection(
         OutlinedButton(onClick = { confirmReset = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
             Text(stringResource(R.string.settings_reset))
         }
-    }
-    if (editName) {
-        PlayerNameDialog(
-            current = settings.playerName,
-            firstLaunch = false,
-            onDone = { name -> onChange { it.copy(playerName = name) }; editName = false },
-            onDismiss = { editName = false },
-        )
     }
     if (confirmReset) {
         AlertDialog(
@@ -365,6 +406,7 @@ private fun WidgetThemeSetting(settings: AppSettings, onChange: ((AppSettings) -
         "material_you" to stringResource(R.string.widget_theme_material_you),
         "clash" to stringResource(R.string.widget_theme_clash),
         "dark" to stringResource(R.string.widget_theme_dark),
+        "black" to stringResource(R.string.widget_theme_black),
         "light" to stringResource(R.string.widget_theme_light),
     )
     val currentLabel = themes.firstOrNull { it.first == settings.widgetTheme }?.second ?: stringResource(R.string.widget_theme_material_you)

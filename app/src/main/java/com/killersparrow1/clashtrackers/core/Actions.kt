@@ -93,7 +93,7 @@ object FinishNotices {
      * Jobs finished at [now] that haven't been announced yet, and the new [AppState.notified] set
      * (only keys that are still finished, so a job that is "un-finished" by an undo can be announced again).
      */
-    fun check(state: AppState, settings: AppSettings, names: NameMap, now: Long, clockTowerAlert: Boolean = false): Result {
+    fun check(state: AppState, settings: AppSettings, names: NameMap, now: Long, clockTowerAlert: Boolean = false, idleAfterSec: Long? = null): Result {
         val export = state.export ?: return Result(emptyList(), emptySet())
         val engine = TimerEngine(settings.boosts)
         val finished = export.jobs
@@ -108,8 +108,26 @@ object FinishNotices {
         val ctKey = ctEnd?.let { "$CLOCK_TOWER_KEY$it" }
         val ctNotice = if (ctDone && ctKey !in state.notified && ctEnd!! > now - MAX_AGE_SEC)
             listOf(FinishNotice(ctKey!!, CLOCK_TOWER_TITLE, CLOCK_TOWER_TEXT)) else emptyList()
-        val keys = finished.map { it.first.key }.toSet() + listOfNotNull(ctKey.takeIf { ctDone })
-        return Result(notices + ctNotice, keys)
+        // "Still free" reminders: a builder or lab job finished [idleAfterSec] ago and the next sync hasn't replaced it.
+        val idleDue = if (idleAfterSec == null) emptyList() else finished
+            .filter { (job, _) -> (job.category == JobCategory.BUILDER || job.category == JobCategory.LAB) && !job.isGoblin }
+            .filter { (_, at) -> Finish.isDone(at + idleAfterSec, now) }
+        val idleNotices = idleDue
+            .filter { (job, at) -> IDLE_KEY + job.key !in state.notified && at + idleAfterSec!! > now - MAX_AGE_SEC }
+            .sortedBy { it.second }
+            .map { (job, _) -> idleNotice(job, idleAfterSec!!) }
+        val keys = finished.map { it.first.key }.toSet() + listOfNotNull(ctKey.takeIf { ctDone }) + idleDue.map { IDLE_KEY + it.first.key }
+        return Result(notices + idleNotices + ctNotice, keys)
+    }
+
+    const val IDLE_KEY = "idle:"
+
+    fun idleNotice(job: Job, afterSec: Long): FinishNotice {
+        val hours = (afterSec / 3600).coerceAtLeast(1)
+        val (title, text) = if (job.category == JobCategory.LAB)
+            "Lab is still free" to "The lab has been free for $hours h. Start a research."
+        else "Builder is still free" to "A builder has been free for $hours h. Start an upgrade."
+        return FinishNotice(IDLE_KEY + job.key, title, text)
     }
 
     const val CLOCK_TOWER_KEY = "clocktower:"
@@ -121,11 +139,15 @@ object FinishNotices {
         export.clockTowerCooldownRemaining?.takeIf { it > 0 }?.let { export.timestamp + it }
 
     /** Next finish time (epoch s) of a job that isn't [Finish.isDone] at [now]. */
-    fun nextFinish(state: AppState, settings: AppSettings, now: Long, clockTowerAlert: Boolean = false): Long? {
+    fun nextFinish(state: AppState, settings: AppSettings, now: Long, clockTowerAlert: Boolean = false, idleAfterSec: Long? = null): Long? {
         val export = state.export ?: return null
         val engine = TimerEngine(settings.boosts)
         val ct = if (clockTowerAlert) clockTowerEnd(export) else null
-        return (export.jobs.map { engine.finishTime(it, export, state.links, state.boosts) } + listOfNotNull(ct))
+        val finishes = export.jobs.map { it to engine.finishTime(it, export, state.links, state.boosts) }
+        val idle = if (idleAfterSec == null) emptyList() else finishes
+            .filter { (job, _) -> (job.category == JobCategory.BUILDER || job.category == JobCategory.LAB) && !job.isGoblin }
+            .map { it.second + idleAfterSec }
+        return (finishes.map { it.second } + idle + listOfNotNull(ct))
             .filter { !Finish.isDone(it, now) }.minOrNull()
     }
 
@@ -133,8 +155,8 @@ object FinishNotices {
      * Epoch s for the wakeup finish alarm: [Finish.GRACE_SEC] after the next finish, so the redraw it
      * triggers is certain to see the job as done.
      */
-    fun alarmAt(state: AppState, settings: AppSettings, now: Long, clockTowerAlert: Boolean = false): Long? =
-        nextFinish(state, settings, now, clockTowerAlert)?.plus(Finish.GRACE_SEC)
+    fun alarmAt(state: AppState, settings: AppSettings, now: Long, clockTowerAlert: Boolean = false, idleAfterSec: Long? = null): Long? =
+        nextFinish(state, settings, now, clockTowerAlert, idleAfterSec)?.plus(Finish.GRACE_SEC)
 
     fun notice(job: Job, names: NameMap): FinishNotice {
         val title = names.title(job)

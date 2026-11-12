@@ -5,7 +5,7 @@ import com.killersparrow1.clashtrackers.core.ExportParser
 import com.killersparrow1.clashtrackers.core.ParseResult
 
 /**
- * "Sync from the clipboard when the app opens". Only village data that parses as a Clash of Clans export
+ * "Syncs from the clipboard when the app opens ". Only village data that parses as a Clash of Clans export
  * is used, and each copied export is used once, so other clipboard text is ignored and an old export is
  * never pasted over newer data a second time.
  */
@@ -14,6 +14,7 @@ object ClipboardAutoSync {
     private const val KEY_ENABLED = "enabled"
     private const val KEY_LAST = "last_hash"
 
+    /** On by default; the only place to turn it off is Developer options. */
     fun enabled(context: Context): Boolean =
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(KEY_ENABLED, true)
 

@@ -13,6 +13,7 @@ import com.killersparrow1.clashtrackers.core.AccountSettings
 import com.killersparrow1.clashtrackers.core.AppSettings
 import com.killersparrow1.clashtrackers.core.Finish
 import com.killersparrow1.clashtrackers.core.FinishNotices
+import com.killersparrow1.clashtrackers.sync.GoldPassStore
 import com.killersparrow1.clashtrackers.core.WidgetActions
 import com.killersparrow1.clashtrackers.core.WidgetModelBuilder
 import com.killersparrow1.clashtrackers.core.WidgetSchedule
@@ -134,7 +135,7 @@ object WidgetUpdater {
         )
         val model = WidgetModelBuilder.build(
             state, settings, Names.get(app), Times.get(app), System.currentTimeMillis() / 1000, tag ?: "",
-            repo.getWidgetTheme(id), WidgetTexts.get(app),
+            repo.getWidgetTheme(id), WidgetTexts.get(app), GoldPassStore.reduction(app, tag),
         )
         return model to settings.liveCountdown
     }
@@ -161,6 +162,7 @@ object WidgetUpdater {
 
             val allFinishTimes = mutableListOf<Long>()
             val ctAlert = com.killersparrow1.clashtrackers.sync.ClockTowerTracking.alertEnabled(app)
+            val idleAfter = com.killersparrow1.clashtrackers.sync.IdleAlert.afterSec(app)
             for (acct in accounts) {
                 val state = repo.getAccountState(acct.tag)
                 val acctSettings = repo.getAccountSettings(acct.tag)
@@ -172,7 +174,7 @@ object WidgetUpdater {
                     playerName = acctSettings.playerName,
                 )
                 try {
-                    val r = FinishNotices.check(state, settings, names, now, ctAlert)
+                    val r = FinishNotices.check(state, settings, names, now, ctAlert, idleAfter)
                     val fresh = r.notices.filter { it.jobKey !in state.notified }
                     repo.updateAccountState(acct.tag) { st ->
                         st.copy(notified = r.notified)
@@ -190,7 +192,7 @@ object WidgetUpdater {
                     repo.log(source, false, "Notification failed (${acct.tag}): ${t.javaClass.simpleName}: ${t.message}")
                 }
 
-                FinishNotices.alarmAt(state, settings, now, ctAlert)?.let { allFinishTimes.add(it) }
+                FinishNotices.alarmAt(state, settings, now, ctAlert, idleAfter)?.let { allFinishTimes.add(it) }
             }
 
             WidgetAlarm.scheduleFinish(app, allFinishTimes.minOrNull()?.times(1000))
@@ -219,7 +221,7 @@ object WidgetUpdater {
                 )
 
                 val theme = repo.getWidgetTheme(id)
-                val model = WidgetModelBuilder.build(state, settings, names, Times.get(app), now, tag ?: "", theme, widgetText)
+                val model = WidgetModelBuilder.build(state, settings, names, Times.get(app), now, tag ?: "", theme, widgetText, GoldPassStore.reduction(app, tag))
                 val style = repo.getWidgetStyle(id)
                 try {
                     manager.updateAppWidget(id, renderer.render(model, settings.liveCountdown, manager.getAppWidgetOptions(id), style, id))

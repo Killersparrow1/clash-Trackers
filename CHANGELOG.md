@@ -8,11 +8,29 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ### Added
 
+- Gold Pass reminder on the Timers tab: on Day 4 and Day 8, a Gold Pass player below 15% or 20% gets a dismissible "update your builder boost?" banner (the unlock days are not confirmed against the game).
+- Settings: removed the "Changes save automatically" line.
+- Settings: the "Sync from clipboard when the app opens" switch moved to Developer options (still on by default), so the Your village card is gone.
+- Idle reminder (off by default): a notification when a builder or the lab has sat free for 1 to 12 hours since your last sync.
+- Timers: the village card shows the total builder work and lab time left.
+- App icon shortcuts: long-press the icon for Sync from clipboard and Open game.
+- Support tab: Recent activity moved into Developer options (the issue report still includes it); it now has Copy and Share buttons.
+- Header button now shows the installed game's icon with "Open game" (plain arrow icon if the game is not installed).
+- Widget theme: new "Material pitch dark" theme: your Material You colours on a true black panel.
+- Settings: removed the Player name row; rename an account from the account drop-down on the Timers tab.
+- Timers tab: the Boosts & Events card is replaced by three stat tiles (builders busy, next free builder, next lab) and nothing else (the Potions & helpers card was dropped).
+- Easter egg: the title shakes for as long as the sound plays.
+- Settings: Gold Pass and Clock Tower options now sit in their own cards.
 - Clock Tower: detected from the export (building `1000039`, `boosts.clocktower_boost` and `boosts.clocktower_cooldown`). The widget's Builder Base line gets a read-only cooldown chip (List, Grid and Minimal) that counts down with the other pills; missing, zero or invalid values show nothing. A Settings switch turns it off. Pet Potion (`pet_boost`) was already detected.
 - Clock Tower ready alert: a notification when the exported cooldown ends (same sound and Do Not Disturb choice as upgrade alerts; own switch in Settings; needs finish alerts on). It fires once per export.
 - Support: Diagnostics now starts with a health checklist (saved village, notifications, exact alarms, battery, icons) and Copy / Share report buttons. Report an issue copies that report and opens a GitHub issue to paste it into. The report never includes the player tag or name. "See open issues" is now a button.
 - Android 17: the widget's rows are now sent inside the widget instead of being fetched by the launcher through the list service (CT1.2, which had no service, drew correct icons on Android 17). Older Android versions are unchanged; if the rows are too large to send, it falls back to the service and logs that in Recent activity.
 - Themed app icon: a monochrome icon layer, so on Android 13+ the icon follows your wallpaper colours when "Themed icons" is turned on in your launcher or wallpaper settings.
+- Easter egg: hold the app title for 3 seconds.
+- Gold Pass: the game's export has no Gold Pass data, so you set it yourself. A popup asks once a month (Gold Pass with its Builder and Research reductions of 10, 15 or 20%, or Silver/free), and Settings has the same choice any time plus a switch to stop the monthly question. It is used for each job's progress bar, since the game's exported times already include the discount and are not reduced again.
+- Hidden developer options: tap the Support tab 11 times within 4 seconds. For now it can switch the app icon between "Follow my phone" (themed icons, the default) and "Always colour", and reset the Gold Pass popup for testing. Leaving the page hides it again.
+- Clock Tower chip: once the cooldown is over (or the export shows none) it stays on the widget as a gold check mark next to the Clock Tower icon instead of disappearing.
+- Header button (Timers tab, top right): opens Clash of Clans' More Settings, where Export Data is. Developer options also has an "Open a game link" box for trying other links.
 - Study Soup: a **Soup** button on the widget's Lab line (List, Grid and Minimal) and an "active, time left" pill, and an active soup is read from the village export (`boosts.lab_consumable`). Its saving is adjustable in Settings.
 - An active Builder Bite is now read from the village export (`boosts.builder_consumable`), like the potions, instead of only from the Bite button.
 - A short animated start-up screen with the app icon, drawn over the theme's own background. Tap to skip; it plays only on a fresh launch.

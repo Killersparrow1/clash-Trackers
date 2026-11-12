@@ -58,6 +58,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -182,14 +183,10 @@ fun TimerDashboard(
 
             item(key = "sync", span = { GridItemSpan(maxLineSpan) }) { SyncCard(lastSync, busy, onSync) }
 
-            item(key = "boosts_events", span = { GridItemSpan(maxLineSpan) }) {
-                BoostEventSection(
-                    activeBoostState = activeBoostState,
-                    eventSettings = eventSettings,
-                    now = now,
-                    onUpdateBoosts = onUpdateBoosts,
-                    onUpdateEvents = onUpdateEvents,
-                )
+            item(key = "gold_pass_banner", span = { GridItemSpan(maxLineSpan) }) { GoldPassBanner(selectedTag, now) }
+
+            if (model.hasData) {
+                item(key = "stats", span = { GridItemSpan(maxLineSpan) }) { StatTiles(model) }
             }
 
             if (model.hasData) {
@@ -356,6 +353,19 @@ private fun VillageSummary(model: WidgetModel) {
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            val dayUnit = stringResource(R.string.time_day_short)
+            val builderTotal = model.builderRows.filter { it.kind == RowKind.RUNNING }.sumOf { it.remaining }
+            val labTotal = (listOf(model.labRow) + model.extraLabRows).filter { it.kind == RowKind.RUNNING }.sumOf { it.remaining }
+            if (builderTotal > 0 || labTotal > 0) {
+                Text(
+                    listOfNotNull(
+                        builderTotal.takeIf { it > 0 }?.let { stringResource(R.string.total_builder_time, Countdown.text(it, dayUnit)) },
+                        labTotal.takeIf { it > 0 }?.let { stringResource(R.string.total_lab_time, Countdown.text(it, dayUnit)) },
+                    ).joinToString(" · "),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             model.nextRunningTimer()?.let { next ->
                 next.row.finishAt?.let { finishAt ->
                     Spacer(Modifier.size(4.dp))
@@ -525,5 +535,92 @@ private fun TimerCard(timer: DashboardTimer) {
                 )
             }
         }
+    }
+}
+
+/** Three quick numbers under the village card: builders busy, when a builder frees up, when the lab is free. */
+@Composable
+private fun StatTiles(model: WidgetModel) {
+    val dayUnit = stringResource(R.string.time_day_short)
+    val nextFree = if (model.buildersBusy < model.buildersTotal) stringResource(R.string.stat_free_now)
+    else model.builderRows.filter { it.kind == RowKind.RUNNING && !it.goblin }.minOfOrNull { it.remaining }
+        ?.let { Countdown.text(it, dayUnit) } ?: "—"
+    val labRunning = (listOf(model.labRow) + model.extraLabRows).filter { it.kind == RowKind.RUNNING }
+    val nextLab = if (labRunning.isEmpty()) stringResource(R.string.stat_free_now)
+    else Countdown.text(labRunning.minOf { it.remaining }, dayUnit)
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        StatTile(stringResource(R.string.stat_builders), "${model.buildersBusy} / ${model.buildersTotal}", MaterialTheme.colorScheme.primary, Modifier.weight(1f))
+        StatTile(stringResource(R.string.stat_next_free), nextFree, MaterialTheme.colorScheme.tertiary, Modifier.weight(1f))
+        StatTile(stringResource(R.string.stat_next_lab), nextLab, MaterialTheme.colorScheme.secondary, Modifier.weight(1f))
+    }
+}
+
+@Composable
+private fun StatTile(label: String, value: String, accent: androidx.compose.ui.graphics.Color, modifier: Modifier) {
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        shape = MaterialTheme.shapes.large,
+    ) {
+        Column(Modifier.padding(horizontal = 12.dp, vertical = 14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+            Text(value, style = MaterialTheme.typography.titleLarge, color = accent, maxLines = 1)
+        }
+    }
+}
+
+/** A dismissible nudge on Day 4 / Day 8 when a Gold Pass player may have unlocked a bigger builder boost. */
+@Composable
+private fun GoldPassBanner(tag: String?, now: Long) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    var open by rememberSaveable { mutableStateOf(false) }
+    val month = com.killersparrow1.clashtrackers.core.GoldPassLogic.monthKey(now)
+    val day = com.killersparrow1.clashtrackers.core.GoldPassLogic.dayOfSeason(now)
+    val answer = remember(tag, com.killersparrow1.clashtrackers.sync.GoldPassStore.version) {
+        com.killersparrow1.clashtrackers.sync.GoldPassStore.answer(context, tag)
+    }
+    val dismissed = remember(tag, month, com.killersparrow1.clashtrackers.sync.GoldPassStore.version) {
+        com.killersparrow1.clashtrackers.sync.GoldPassStore.dismissedTarget(context, tag, month)
+    }
+    // Only for this month's answer, and only until the player updates it or dismisses this step.
+    val target = if (answer.month == month)
+        com.killersparrow1.clashtrackers.core.GoldPassLogic.bannerTarget(day, answer.gold, answer.builder)?.takeIf { it > dismissed }
+    else null
+    if (target == null) return
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
+        shape = MaterialTheme.shapes.large,
+    ) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(
+                stringResource(R.string.gold_pass_banner, day, target),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onTertiaryContainer,
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                androidx.compose.material3.Button(onClick = { open = true }, modifier = Modifier.heightIn(min = 48.dp)) {
+                    Text(stringResource(R.string.gold_pass_banner_update))
+                }
+                androidx.compose.material3.TextButton(
+                    onClick = { com.killersparrow1.clashtrackers.sync.GoldPassStore.dismissBanner(context, tag, month, target) },
+                    modifier = Modifier.heightIn(min = 48.dp),
+                ) { Text(stringResource(R.string.gold_pass_banner_dismiss)) }
+            }
+        }
+    }
+    if (open) {
+        GoldPassDialog(
+            initial = answer,
+            laterLabel = stringResource(android.R.string.cancel),
+            onSave = { gold, b, r ->
+                com.killersparrow1.clashtrackers.sync.GoldPassStore.save(context, tag, month, gold, b, r)
+                open = false
+                scope.launch { com.killersparrow1.clashtrackers.sync.SyncRunner.refreshWidgets(context.applicationContext, "settings") }
+            },
+            onLater = { open = false },
+        )
     }
 }

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="sync_clipboard"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_sync"
+        android:shortcutShortLabel="@string/shortcut_sync_short"
+        android:shortcutLongLabel="@string/shortcut_sync_long">
+        <intent
+            android:action="android.intent.action.MAIN"
+            android:targetPackage="com.killersparrow1.clashtrackers"
+            android:targetClass="com.killersparrow1.clashtrackers.sync.SyncActivity" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="open_game"
+        android:enabled="true"
+        android:icon="@drawable/ic_open_in_new"
+        android:shortcutShortLabel="@string/shortcut_game_short"
+        android:shortcutLongLabel="@string/shortcut_game_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="https://link.clashofclans.com/en/?action=OpenMoreSettings" />
+    </shortcut>
+</shortcuts>
