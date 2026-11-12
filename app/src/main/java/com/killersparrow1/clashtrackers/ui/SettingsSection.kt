@@ -84,7 +84,6 @@ fun SettingsSection(
     var confirmReset by rememberSaveable { mutableStateOf(false) }
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        Text(stringResource(R.string.settings_autosave), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         SectionCard(stringResource(R.string.settings_section_gold_pass)) {
             val gpScope = rememberCoroutineScope()
             var gpOpen by remember { mutableStateOf(false) }
