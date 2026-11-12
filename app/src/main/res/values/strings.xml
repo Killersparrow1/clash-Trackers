@@ -245,4 +245,6 @@
     <string name="gold_pass_summary_gold">Gold Pass: Builder %1$d%%, Research %2$d%%.</string>
     <string name="gold_pass_silver_summary">Silver (free): no time reduction.</string>
     <string name="gold_pass_ask_monthly">Ask me every month</string>
+    <string name="open_game_settings">Open Clash of Clans settings</string>
+    <string name="open_game_failed">Could not open Clash of Clans</string>
 </resources>

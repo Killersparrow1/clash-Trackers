@@ -251,4 +251,6 @@
     <string name="gold_pass_summary_gold">Золотой пропуск: строители %1$d%%, исследования %2$d%%.</string>
     <string name="gold_pass_silver_summary">Серебряный (бесплатный): без сокращения времени.</string>
     <string name="gold_pass_ask_monthly">Спрашивать каждый месяц</string>
+    <string name="open_game_settings">Открыть настройки Clash of Clans</string>
+    <string name="open_game_failed">Не удалось открыть Clash of Clans</string>
 </resources>

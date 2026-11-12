@@ -80,6 +80,26 @@ fun DeveloperOptionsScreen(selectedTag: String?, onClose: () -> Unit) {
                     }
                 }
 
+                SectionCard("Open a game link") {
+                    var link by remember { mutableStateOf(CLASH_MORE_SETTINGS_LINK) }
+                    var result by remember { mutableStateOf("") }
+                    androidx.compose.material3.OutlinedTextField(
+                        value = link,
+                        onValueChange = { link = it; result = "" },
+                        label = { Text("link.clashofclans.com link") },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    OutlinedButton(
+                        onClick = { result = if (openGameLink(context, link)) "Opened" else "Nothing could open this link" },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) { Text("Open") }
+                    if (result.isNotEmpty()) Text(result, style = MaterialTheme.typography.bodySmall)
+                    Text(
+                        "To try other parameters, for example one that scrolls to Export Data. Only https links are opened.",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+
                 Button(onClick = onClose, modifier = Modifier.fillMaxWidth()) { Text("Hide developer options") }
             }
         }
