@@ -39,4 +39,20 @@ class GoldPassTest {
         assertFalse(GoldPassLogic.needsAsk("2026-11", "2026-11", true))
         assertFalse(GoldPassLogic.needsAsk("2026-10", "2026-11", false))
     }
+
+    @Test fun bannerAsksAtDay4And8OnlyForGoldBelowTarget() {
+        assertEquals(null, GoldPassLogic.bannerTarget(3, true, 10))
+        assertEquals(15, GoldPassLogic.bannerTarget(4, true, 10))
+        assertEquals(15, GoldPassLogic.bannerTarget(7, true, 10))
+        assertEquals(null, GoldPassLogic.bannerTarget(5, true, 15))
+        assertEquals(20, GoldPassLogic.bannerTarget(8, true, 15))
+        assertEquals(20, GoldPassLogic.bannerTarget(31, true, 10))
+        assertEquals(null, GoldPassLogic.bannerTarget(9, true, 20))
+        assertEquals(null, GoldPassLogic.bannerTarget(9, false, 0))
+    }
+
+    @Test fun dayOfSeasonIsUtcCalendarDay() {
+        assertEquals(1, GoldPassLogic.dayOfSeason(java.time.LocalDate.of(2026, 11, 1).atStartOfDay(java.time.ZoneOffset.UTC).toEpochSecond()))
+        assertEquals(30, GoldPassLogic.dayOfSeason(java.time.LocalDate.of(2026, 11, 30).atTime(23, 59).toEpochSecond(java.time.ZoneOffset.UTC)))
+    }
 }

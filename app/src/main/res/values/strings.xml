@@ -265,4 +265,7 @@
     <string name="shortcut_sync_long">Sync from clipboard</string>
     <string name="shortcut_game_short">Open game</string>
     <string name="shortcut_game_long">Open Clash of Clans</string>
+    <string name="gold_pass_banner">Day %1$d: with your Gold Pass, your builder boost may now be %2$d%%. Update it?</string>
+    <string name="gold_pass_banner_update">Update</string>
+    <string name="gold_pass_banner_dismiss">Not yet</string>
 </resources>

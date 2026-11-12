@@ -58,6 +58,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -181,6 +182,8 @@ fun TimerDashboard(
             }
 
             item(key = "sync", span = { GridItemSpan(maxLineSpan) }) { SyncCard(lastSync, busy, onSync) }
+
+            item(key = "gold_pass_banner", span = { GridItemSpan(maxLineSpan) }) { GoldPassBanner(selectedTag, now) }
 
             if (model.hasData) {
                 item(key = "stats", span = { GridItemSpan(maxLineSpan) }) { StatTiles(model) }
@@ -563,5 +566,61 @@ private fun StatTile(label: String, value: String, accent: androidx.compose.ui.g
             Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
             Text(value, style = MaterialTheme.typography.titleLarge, color = accent, maxLines = 1)
         }
+    }
+}
+
+/** A dismissible nudge on Day 4 / Day 8 when a Gold Pass player may have unlocked a bigger builder boost. */
+@Composable
+private fun GoldPassBanner(tag: String?, now: Long) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    var open by rememberSaveable { mutableStateOf(false) }
+    val month = com.killersparrow1.clashtrackers.core.GoldPassLogic.monthKey(now)
+    val day = com.killersparrow1.clashtrackers.core.GoldPassLogic.dayOfSeason(now)
+    val answer = remember(tag, com.killersparrow1.clashtrackers.sync.GoldPassStore.version) {
+        com.killersparrow1.clashtrackers.sync.GoldPassStore.answer(context, tag)
+    }
+    val dismissed = remember(tag, month, com.killersparrow1.clashtrackers.sync.GoldPassStore.version) {
+        com.killersparrow1.clashtrackers.sync.GoldPassStore.dismissedTarget(context, tag, month)
+    }
+    // Only for this month's answer, and only until the player updates it or dismisses this step.
+    val target = if (answer.month == month)
+        com.killersparrow1.clashtrackers.core.GoldPassLogic.bannerTarget(day, answer.gold, answer.builder)?.takeIf { it > dismissed }
+    else null
+    if (target == null) return
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
+        shape = MaterialTheme.shapes.large,
+    ) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(
+                stringResource(R.string.gold_pass_banner, day, target),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onTertiaryContainer,
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                androidx.compose.material3.Button(onClick = { open = true }, modifier = Modifier.heightIn(min = 48.dp)) {
+                    Text(stringResource(R.string.gold_pass_banner_update))
+                }
+                androidx.compose.material3.TextButton(
+                    onClick = { com.killersparrow1.clashtrackers.sync.GoldPassStore.dismissBanner(context, tag, month, target) },
+                    modifier = Modifier.heightIn(min = 48.dp),
+                ) { Text(stringResource(R.string.gold_pass_banner_dismiss)) }
+            }
+        }
+    }
+    if (open) {
+        GoldPassDialog(
+            initial = answer,
+            laterLabel = stringResource(android.R.string.cancel),
+            onSave = { gold, b, r ->
+                com.killersparrow1.clashtrackers.sync.GoldPassStore.save(context, tag, month, gold, b, r)
+                open = false
+                scope.launch { com.killersparrow1.clashtrackers.sync.SyncRunner.refreshWidgets(context.applicationContext, "settings") }
+            },
+            onLater = { open = false },
+        )
     }
 }

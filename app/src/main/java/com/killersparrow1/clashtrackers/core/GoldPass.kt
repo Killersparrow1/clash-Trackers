@@ -39,4 +39,20 @@ object GoldPassLogic {
     /** Ask once per month: when nothing is saved for the current month yet. */
     fun needsAsk(savedMonth: String?, currentMonth: String, askEnabled: Boolean): Boolean =
         askEnabled && savedMonth != currentMonth
+
+    /**
+     * Season days (1 = the 1st) when the next builder-boost step is expected to unlock. Not confirmed against the
+     * game, so it only drives a dismissible reminder, never the numbers on the timers.
+     */
+    val TIER_DAYS = listOf(4 to 15, 8 to 20)
+
+    /** 1-based day of the month (UTC) for [epochSec]. */
+    fun dayOfSeason(epochSec: Long): Int = Instant.ofEpochSecond(epochSec).atZone(ZoneOffset.UTC).dayOfMonth
+
+    /** The builder percent worth asking about today, or null when the player is already there or has no Gold Pass. */
+    fun bannerTarget(day: Int, gold: Boolean, builderPercent: Int): Int? {
+        if (!gold) return null
+        val target = TIER_DAYS.lastOrNull { day >= it.first }?.second ?: return null
+        return target.takeIf { it > builderPercent }
+    }
 }

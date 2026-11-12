@@ -45,10 +45,22 @@ object GoldPassStore {
         version++
     }
 
+    /** The reminder target the player dismissed this [month], or 0. */
+    fun dismissedTarget(context: Context, tag: String?, month: String): Int {
+        val v = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(key(tag, "banner"), null) ?: return 0
+        val parts = v.split(":")
+        return if (parts.size == 2 && parts[0] == month) parts[1].toIntOrNull() ?: 0 else 0
+    }
+
+    fun dismissBanner(context: Context, tag: String?, month: String, target: Int) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(key(tag, "banner"), "$month:$target").apply()
+        version++
+    }
+
     /** Forget this village's answer and turn the monthly question back on, so the popup shows again (testing). */
     fun reset(context: Context, tag: String?) {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
-            .remove(key(tag, "month")).remove(key(tag, "gold")).remove(key(tag, "builder")).remove(key(tag, "research"))
+            .remove(key(tag, "month")).remove(key(tag, "gold")).remove(key(tag, "builder")).remove(key(tag, "research")).remove(key(tag, "banner"))
             .putBoolean(KEY_ASK, true)
             .apply()
         version++

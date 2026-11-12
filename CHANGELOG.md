@@ -8,6 +8,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ### Added
 
+- Gold Pass reminder on the Timers tab: on Day 4 and Day 8, a Gold Pass player below 15% or 20% gets a dismissible "update your builder boost?" banner (the unlock days are not confirmed against the game).
 - Settings: removed the "Changes save automatically" line.
 - Settings: the "Sync from clipboard when the app opens" switch moved to Developer options (still on by default), so the Your village card is gone.
 - Idle reminder (off by default): a notification when a builder or the lab has sat free for 1 to 12 hours since your last sync.

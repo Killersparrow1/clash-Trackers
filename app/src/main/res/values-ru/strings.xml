@@ -271,4 +271,7 @@
     <string name="shortcut_sync_long">Синхронизация из буфера</string>
     <string name="shortcut_game_short">Открыть игру</string>
     <string name="shortcut_game_long">Открыть Clash of Clans</string>
+    <string name="gold_pass_banner">День %1$d: с золотым пропуском бонус строителей может быть уже %2$d%%. Обновить?</string>
+    <string name="gold_pass_banner_update">Обновить</string>
+    <string name="gold_pass_banner_dismiss">Пока нет</string>
 </resources>
