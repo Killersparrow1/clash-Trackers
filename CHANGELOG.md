@@ -14,6 +14,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 - Android 17: the widget's rows are now sent inside the widget instead of being fetched by the launcher through the list service (CT1.2, which had no service, drew correct icons on Android 17). Older Android versions are unchanged; if the rows are too large to send, it falls back to the service and logs that in Recent activity.
 - Themed app icon: a monochrome icon layer, so on Android 13+ the icon follows your wallpaper colours when "Themed icons" is turned on in your launcher or wallpaper settings.
 - Easter egg: hold the app title for 5 seconds.
+- Gold Pass: the game's export has no Gold Pass data, so you set it yourself. A popup asks once a month (Gold Pass with its Builder and Research reductions of 10, 15 or 20%, or Silver/free), and Settings has the same choice any time plus a switch to stop the monthly question. It is used for each job's progress bar, since the game's exported times already include the discount and are not reduced again.
 - Study Soup: a **Soup** button on the widget's Lab line (List, Grid and Minimal) and an "active, time left" pill, and an active soup is read from the village export (`boosts.lab_consumable`). Its saving is adjustable in Settings.
 - An active Builder Bite is now read from the village export (`boosts.builder_consumable`), like the potions, instead of only from the Bite button.
 - A short animated start-up screen with the app icon, drawn over the theme's own background. Tap to skip; it plays only on a fresh launch.

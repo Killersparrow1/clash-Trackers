@@ -146,7 +146,7 @@ fun ClashTrackersContent(
                                     contentPadding = PaddingValues(16.dp),
                                     verticalArrangement = Arrangement.spacedBy(16.dp),
                                 ) {
-                                    item { SettingsSection(settings, state.export, now, onSettingsChange) }
+                                    item { SettingsSection(settings, state.export, now, onSettingsChange, selectedTag) }
                                 }
                                 Destination.SUPPORT -> SupportScreen(state, model, log, timesCount, now)
                             }

@@ -40,6 +40,8 @@ import androidx.compose.runtime.Composable
 import com.killersparrow1.clashtrackers.sync.ClipboardAutoSync
 import androidx.compose.runtime.rememberCoroutineScope
 import com.killersparrow1.clashtrackers.sync.ClockTowerTracking
+import com.killersparrow1.clashtrackers.sync.GoldPassStore
+import com.killersparrow1.clashtrackers.core.GoldPassLogic
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -67,6 +69,7 @@ fun SettingsSection(
     export: VillageExport?,
     now: Long,
     onChange: ((AppSettings) -> AppSettings) -> Unit,
+    selectedTag: String? = null,
 ) {
     val context = LocalContext.current
     val b = settings.boosts
@@ -87,6 +90,31 @@ fun SettingsSection(
                 ClipboardAutoSync.setEnabled(context, on)
             }
             Text(stringResource(R.string.settings_auto_clipboard_desc), style = MaterialTheme.typography.bodyMedium)
+            val gpScope = rememberCoroutineScope()
+            var gpOpen by remember { mutableStateOf(false) }
+            val gp = remember(selectedTag, GoldPassStore.version) { GoldPassStore.answer(context, selectedTag) }
+            Text(stringResource(R.string.gold_pass_title_short), style = MaterialTheme.typography.titleSmall)
+            Text(
+                if (gp.month == null) stringResource(R.string.gold_pass_not_set)
+                else if (gp.gold) stringResource(R.string.gold_pass_summary_gold, gp.builder, gp.research)
+                else stringResource(R.string.gold_pass_silver_summary),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            OutlinedButton(onClick = { gpOpen = true }) { Text(stringResource(R.string.gold_pass_change)) }
+            var gpAsk by remember { mutableStateOf(GoldPassStore.askMonthly(context)) }
+            SwitchRow(stringResource(R.string.gold_pass_ask_monthly), gpAsk) { on -> gpAsk = on; GoldPassStore.setAskMonthly(context, on) }
+            if (gpOpen) {
+                GoldPassDialog(
+                    initial = gp,
+                    laterLabel = stringResource(android.R.string.cancel),
+                    onSave = { gold, b, r ->
+                        GoldPassStore.save(context, selectedTag, GoldPassLogic.monthKey(now), gold, b, r)
+                        gpOpen = false
+                        gpScope.launch { SyncRunner.refreshWidgets(context.applicationContext, "settings") }
+                    },
+                    onLater = { gpOpen = false },
+                )
+            }
             val ctScope = rememberCoroutineScope()
             var ctTrack by remember { mutableStateOf(ClockTowerTracking.enabled(context)) }
             SwitchRow(stringResource(R.string.settings_clock_tower), ctTrack) { on ->

@@ -13,6 +13,7 @@ import com.killersparrow1.clashtrackers.core.AccountSettings
 import com.killersparrow1.clashtrackers.core.AppSettings
 import com.killersparrow1.clashtrackers.core.Finish
 import com.killersparrow1.clashtrackers.core.FinishNotices
+import com.killersparrow1.clashtrackers.sync.GoldPassStore
 import com.killersparrow1.clashtrackers.core.WidgetActions
 import com.killersparrow1.clashtrackers.core.WidgetModelBuilder
 import com.killersparrow1.clashtrackers.core.WidgetSchedule
@@ -134,7 +135,7 @@ object WidgetUpdater {
         )
         val model = WidgetModelBuilder.build(
             state, settings, Names.get(app), Times.get(app), System.currentTimeMillis() / 1000, tag ?: "",
-            repo.getWidgetTheme(id), WidgetTexts.get(app),
+            repo.getWidgetTheme(id), WidgetTexts.get(app), GoldPassStore.reduction(app, tag),
         )
         return model to settings.liveCountdown
     }
@@ -219,7 +220,7 @@ object WidgetUpdater {
                 )
 
                 val theme = repo.getWidgetTheme(id)
-                val model = WidgetModelBuilder.build(state, settings, names, Times.get(app), now, tag ?: "", theme, widgetText)
+                val model = WidgetModelBuilder.build(state, settings, names, Times.get(app), now, tag ?: "", theme, widgetText, GoldPassStore.reduction(app, tag))
                 val style = repo.getWidgetStyle(id)
                 try {
                     manager.updateAppWidget(id, renderer.render(model, settings.liveCountdown, manager.getAppWidgetOptions(id), style, id))

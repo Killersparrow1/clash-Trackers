@@ -49,6 +49,9 @@ import com.killersparrow1.clashtrackers.data.WidgetTexts
 import com.killersparrow1.clashtrackers.sync.SyncRunner
 import com.killersparrow1.clashtrackers.ui.ClashTrackersContent
 import com.killersparrow1.clashtrackers.ui.PlayerNameDialog
+import com.killersparrow1.clashtrackers.ui.GoldPassDialog
+import com.killersparrow1.clashtrackers.core.GoldPassLogic
+import com.killersparrow1.clashtrackers.sync.GoldPassStore
 import com.killersparrow1.clashtrackers.sync.ClipboardAutoSync
 import androidx.lifecycle.lifecycleScope
 import com.killersparrow1.clashtrackers.ui.theme.ClashTimerTheme
@@ -154,7 +157,8 @@ private fun ClashTimersApp() {
         }
         is LoadState.Ready -> {
             val (state, settings, log) = loaded.data
-            val model = remember(state, settings, now) { WidgetModelBuilder.build(state, settings, names, times, now, selectedTag ?: "", text = widgetText) }
+            val goldPass = remember(selectedTag, GoldPassStore.version) { GoldPassStore.reduction(context, selectedTag) }
+            val model = remember(state, settings, now, goldPass) { WidgetModelBuilder.build(state, settings, names, times, now, selectedTag ?: "", text = widgetText, goldPass = goldPass) }
             val changeSettings: ((AppSettings) -> AppSettings) -> Unit = { change ->
                 scope.launch {
                     try {
@@ -178,6 +182,24 @@ private fun ClashTimersApp() {
                         snackbar.showSnackbar("Could not update boosts or events: ${e.message}")
                     }
                 }
+            }
+            val month = GoldPassLogic.monthKey(now)
+            var goldPassOpen by remember { mutableStateOf(false) }
+            LaunchedEffect(selectedTag, month, GoldPassStore.version, settings.needsPlayerName, state.export != null) {
+                if (!settings.needsPlayerName && state.export != null &&
+                    GoldPassLogic.needsAsk(GoldPassStore.answer(context, selectedTag).month, month, GoldPassStore.askMonthly(context))
+                ) goldPassOpen = true
+            }
+            if (goldPassOpen) {
+                GoldPassDialog(
+                    initial = GoldPassStore.answer(context, selectedTag),
+                    onSave = { gold, b, r ->
+                        GoldPassStore.save(context, selectedTag, month, gold, b, r)
+                        goldPassOpen = false
+                        scope.launch { SyncRunner.refreshWidgets(context, "app") }
+                    },
+                    onLater = { goldPassOpen = false },
+                )
             }
             if (settings.needsPlayerName && state.export != null) {
                 val answer = { name: String -> changeSettings { it.copy(playerName = name) } }

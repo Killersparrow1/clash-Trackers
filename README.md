@@ -56,6 +56,7 @@ Four colour themes, chosen per widget: **Material You** (follows your phone's wa
 - **Completion Time on Every Card**: Each running timer shows a highlighted chip with the exact date and time it finishes, calculated from the same finish time as the countdown (boosts, potions and helpers included).
 - **Filters That Get Out of the Way**: On the Timers tab the filter chips fade out and collapse as you scroll down the list and return when you scroll back up or reach the top.
 - **Sync on Open**: Copy your village from Clash of Clans and just open the app; a fresh export is synced automatically (switch in **Settings → Village**). Other clipboard text is ignored and each export is used once.
+- **Gold Pass**: set once a month in a popup (or any time in **Settings**): Gold Pass with its Builder and Research reductions, or Silver (free). The game's export doesn't include it. Exported timers already contain the discount, so it is only used for things the export can't tell, like a job's full length for its progress bar.
 - **Themed app icon**: on Android 13+ the launcher icon follows your wallpaper colours when *Themed icons* is on in your launcher or wallpaper settings.
 - **Short Navigation Bar**: Fluid navigation between **Timers**, **Settings**, and **Support**.
 - **Dynamic Theming**: Full support for Material You dynamic color extraction (Android 12+) with expressive light and dark palettes.

@@ -235,4 +235,20 @@
     <string name="notif_channel_clock_quiet">Часовая башня готова (учитывает «Не беспокоить»)</string>
     <string name="notif_channel_clock_desc">Сообщает, что Часовую башню Базы строителя снова можно использовать, со своим звуком.</string>
     <string name="about_report_note">При нажатии «Сообщить о проблеме» диагностический отчёт копируется. Вставьте его в обращение, так исправить проблему будет быстрее. В нём нет вашего тега и имени.</string>
+    <string name="gold_pass_title">Новый сезон: какой у вас пропуск?</string>
+    <string name="gold_pass_title_short">Золотой пропуск</string>
+    <string name="gold_pass_body">В экспорте игры нет данных о Золотом пропуске, поэтому укажите его здесь. Спрашиваем раз в месяц.</string>
+    <string name="gold_pass_gold">Золотой пропуск</string>
+    <string name="gold_pass_silver">Серебряный (бесплатный)</string>
+    <string name="gold_pass_builder">Ускорение строителей</string>
+    <string name="gold_pass_research">Ускорение исследований</string>
+    <string name="gold_pass_off">Выкл</string>
+    <string name="gold_pass_note">Используется для полос прогресса. Время из экспорта уже учитывает Золотой пропуск.</string>
+    <string name="gold_pass_save">Сохранить</string>
+    <string name="gold_pass_later">Спросить позже</string>
+    <string name="gold_pass_change">Изменить Золотой пропуск</string>
+    <string name="gold_pass_not_set">Пока не указан.</string>
+    <string name="gold_pass_summary_gold">Золотой пропуск: строители %1$d%%, исследования %2$d%%.</string>
+    <string name="gold_pass_silver_summary">Серебряный (бесплатный): без сокращения времени.</string>
+    <string name="gold_pass_ask_monthly">Спрашивать каждый месяц</string>
 </resources>

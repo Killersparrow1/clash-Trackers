@@ -178,6 +178,7 @@ object WidgetModelBuilder {
         accountTag: String = "",
         widgetTheme: String = "material_you",
         text: WidgetText = WidgetText.EN,
+        goldPass: GoldPassReduction = GoldPassReduction.NONE,
     ): WidgetModel {
         val export = state.export
         val pills = { type: BoostType ->
@@ -211,7 +212,11 @@ object WidgetModelBuilder {
             val finishAt = finish.getValue(job.key)
             val done = Finish.isDone(finishAt, now)
             val workLeft = if (done) 0L else engine.remainingAt(job, export, state.links, state.boosts, state.activeBoosts.modifiers, state.eventSettings.events, at)
-            val full = times.fullTime(job)?.takeIf { it >= job.remainingAtT0 }
+            // The game data has the base time. With a Gold Pass the real upgrade was shorter, so try that first;
+            // it is only used when it still covers what is left, otherwise fall back to the base time.
+            val base = times.fullTime(job)
+            val full = base?.let { goldPass.reduce(it, job.category) }?.takeIf { it >= job.remainingAtT0 }
+                ?: base?.takeIf { it >= job.remainingAtT0 }
                 ?: maxOf(state.firstRemaining[job.key] ?: 0L, job.remainingAtT0)
             val title = names.title(job)
             val button = when {

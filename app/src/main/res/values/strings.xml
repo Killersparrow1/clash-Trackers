@@ -229,4 +229,20 @@
     <string name="notif_channel_clock_quiet">Clock Tower ready (follows Do Not Disturb)</string>
     <string name="notif_channel_clock_desc">Tells you when the Builder Base Clock Tower can be boosted again, with its own sound.</string>
     <string name="about_report_note">Your diagnostic report is copied when you tap Report an issue. Paste it into the issue so it can be fixed faster. It never includes your player tag or name.</string>
+    <string name="gold_pass_title">New season: which pass do you have?</string>
+    <string name="gold_pass_title_short">Gold Pass</string>
+    <string name="gold_pass_body">The game\'s export doesn\'t include your Gold Pass, so set it here. It\'s asked once a month.</string>
+    <string name="gold_pass_gold">Gold Pass</string>
+    <string name="gold_pass_silver">Silver (free)</string>
+    <string name="gold_pass_builder">Builder boost</string>
+    <string name="gold_pass_research">Research boost</string>
+    <string name="gold_pass_off">Off</string>
+    <string name="gold_pass_note">Used for progress bars. Times from your export already include the Gold Pass.</string>
+    <string name="gold_pass_save">Save</string>
+    <string name="gold_pass_later">Ask me later</string>
+    <string name="gold_pass_change">Change Gold Pass</string>
+    <string name="gold_pass_not_set">Not set yet.</string>
+    <string name="gold_pass_summary_gold">Gold Pass: Builder %1$d%%, Research %2$d%%.</string>
+    <string name="gold_pass_silver_summary">Silver (free): no time reduction.</string>
+    <string name="gold_pass_ask_monthly">Ask me every month</string>
 </resources>
