@@ -15,7 +15,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 - Header button now shows the installed game's icon with "Open game" (plain arrow icon if the game is not installed).
 - Widget theme: new "Pitch black" theme (true black panel, dark rows) for OLED screens.
 - Settings: removed the Player name row; rename an account from the account drop-down on the Timers tab.
-- Timers tab: the Boosts & Events card is replaced by three stat tiles (builders busy, next free builder, next lab) and a read-only Potions & helpers card.
+- Timers tab: the Boosts & Events card is replaced by three stat tiles (builders busy, next free builder, next lab) and nothing else (the Potions & helpers card was dropped).
 - Easter egg: the title shakes for as long as the sound plays.
 - Settings: Gold Pass and Clock Tower options now sit in their own cards.
 - Clock Tower: detected from the export (building `1000039`, `boosts.clocktower_boost` and `boosts.clocktower_cooldown`). The widget's Builder Base line gets a read-only cooldown chip (List, Grid and Minimal) that counts down with the other pills; missing, zero or invalid values show nothing. A Settings switch turns it off. Pet Potion (`pet_boost`) was already detected.

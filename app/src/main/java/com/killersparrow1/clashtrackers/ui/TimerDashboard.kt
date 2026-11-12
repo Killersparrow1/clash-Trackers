@@ -184,7 +184,6 @@ fun TimerDashboard(
 
             if (model.hasData) {
                 item(key = "stats", span = { GridItemSpan(maxLineSpan) }) { StatTiles(model) }
-                item(key = "potions_helpers", span = { GridItemSpan(maxLineSpan) }) { PotionsHelpersCard(model) }
             }
 
             if (model.hasData) {
@@ -565,44 +564,4 @@ private fun StatTile(label: String, value: String, accent: androidx.compose.ui.g
             Text(value, style = MaterialTheme.typography.titleLarge, color = accent, maxLines = 1)
         }
     }
-}
-
-/** Read-only summary of running potions/snacks and the helper status; both come from the export. */
-@Composable
-private fun PotionsHelpersCard(model: WidgetModel) {
-    val active = listOf(model.builderPotion, model.bite, model.researchPotion, model.soup, model.petPotion).filter { it.active }
-    val labels = active.map { stringResource(potionLabel(it.type)) }
-    val helpers = model.footerLeft.joinToString(" · ") { it.text }
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
-        shape = MaterialTheme.shapes.extraLarge,
-    ) {
-        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(
-                stringResource(R.string.potions_helpers_title),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSecondaryContainer,
-            )
-            Text(
-                if (active.isEmpty()) stringResource(R.string.potions_none)
-                else labels.zip(active).joinToString(" · ") { (label, pill) -> label + " " + pill.text },
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSecondaryContainer,
-            )
-            if (helpers.isNotBlank()) Text(
-                helpers,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSecondaryContainer,
-            )
-        }
-    }
-}
-
-private fun potionLabel(type: com.killersparrow1.clashtrackers.core.BoostType): Int = when (type) {
-    com.killersparrow1.clashtrackers.core.BoostType.BUILDER_POTION -> R.string.potion_builder
-    com.killersparrow1.clashtrackers.core.BoostType.BUILDER_BITE -> R.string.potion_bite
-    com.killersparrow1.clashtrackers.core.BoostType.STUDY_SOUP -> R.string.potion_soup
-    com.killersparrow1.clashtrackers.core.BoostType.RESEARCH_POTION -> R.string.potion_research
-    com.killersparrow1.clashtrackers.core.BoostType.PET_POTION -> R.string.potion_pet
 }
