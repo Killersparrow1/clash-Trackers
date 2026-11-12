@@ -41,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.killersparrow1.clashtrackers.sync.AppIcon
+import com.killersparrow1.clashtrackers.sync.ClipboardAutoSync
 import com.killersparrow1.clashtrackers.sync.GoldPassStore
 
 /** Hidden developer options. Opened by tapping the Support tab 11 times in 4 seconds; leaving the page hides it again. */
@@ -89,6 +90,15 @@ fun DeveloperOptionsScreen(selectedTag: String?, log: SyncLog, onClose: () -> Un
                     OutlinedButton(onClick = { GoldPassStore.reset(context, selectedTag) }, modifier = Modifier.fillMaxWidth()) {
                         Text("Reset Gold Pass popup")
                     }
+                }
+
+                SectionCard("Clipboard") {
+                    var autoClip by remember { mutableStateOf(ClipboardAutoSync.enabled(context)) }
+                    SwitchRow(stringResource(R.string.settings_auto_clipboard), autoClip) { on ->
+                        autoClip = on
+                        ClipboardAutoSync.setEnabled(context, on)
+                    }
+                    Text(stringResource(R.string.settings_auto_clipboard_desc), style = MaterialTheme.typography.bodyMedium)
                 }
 
                 SectionCard("Open a game link") {
