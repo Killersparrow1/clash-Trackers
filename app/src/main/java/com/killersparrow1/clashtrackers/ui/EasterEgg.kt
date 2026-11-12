@@ -21,13 +21,14 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import com.killersparrow1.clashtrackers.R
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 
 private const val HOLD_MS = 3_000L
 
 /**
- * Hold the app title for 3 seconds: the title wobbles, the phone gives one buzz and a sound plays on the media
+ * Hold the app title for 3 seconds: the phone gives one buzz and a sound plays, with the title shaking until it ends on the media
  * volume. Holding again while it plays stops it. Everything is local and skipped quietly if the sound can't play.
  */
 @Composable
@@ -37,6 +38,7 @@ fun Modifier.titleEasterEgg(): Modifier {
     val scope = rememberCoroutineScope()
     val wobble = remember { Animatable(0f) }
     var player by remember { mutableStateOf<MediaPlayer?>(null) }
+    var shakeJob by remember { mutableStateOf<Job?>(null) }
 
     DisposableEffect(Unit) {
         onDispose { runCatching { player?.release() }; player = null }
@@ -73,11 +75,13 @@ fun Modifier.titleEasterEgg(): Modifier {
                 if (released == null) {
                     haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                     if (player?.isPlaying == true) stop() else play()
-                    scope.launch {
-                        repeat(4) {
+                    shakeJob?.cancel()
+                    shakeJob = scope.launch {
+                        // Shake for as long as the sound plays (at least one round if it couldn't start).
+                        do {
                             wobble.animateTo(-4f, tween(70))
                             wobble.animateTo(4f, tween(70))
-                        }
+                        } while (player?.isPlaying == true)
                         wobble.animateTo(0f, tween(70))
                     }
                     // Wait for the finger to lift so one long press triggers once.
