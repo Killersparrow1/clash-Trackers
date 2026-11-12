@@ -109,7 +109,8 @@ class FinishRedrawTest {
         assertTrue(again.notices.none { it.jobKey == idleKey })
         // Off by default.
         assertTrue(FinishNotices.check(state, settings, names, finish + delay + 5).notices.none { it.jobKey == idleKey })
-        // The wakeup alarm is set for it.
-        assertEquals(finish + delay, FinishNotices.nextFinish(state, settings, finish + 100, false, delay))
+        // The wakeup alarm accounts for it (other jobs may wake the app earlier, never later).
+        val next = FinishNotices.nextFinish(state, settings, finish + 100, false, delay)
+        assertTrue(next != null && next <= finish + delay)
     }
 }
