@@ -77,13 +77,11 @@ fun SettingsSection(
     var permissionTick by remember { mutableIntStateOf(0) }
     val askPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { permissionTick++ }
     val notificationsAllowed = remember(now, permissionTick) { Notifier.allowed(context) }
-    var editName by rememberSaveable { mutableStateOf(false) }
     var confirmReset by rememberSaveable { mutableStateOf(false) }
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Text(stringResource(R.string.settings_autosave), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         SectionCard(stringResource(R.string.settings_section_village)) {
-            SettingRow(stringResource(R.string.settings_player_name), settings.displayName, stringResource(R.string.settings_player_name_desc)) { editName = true }
             var autoClip by remember { mutableStateOf(ClipboardAutoSync.enabled(context)) }
             SwitchRow(stringResource(R.string.settings_auto_clipboard), autoClip) { on ->
                 autoClip = on
@@ -228,14 +226,6 @@ fun SettingsSection(
         OutlinedButton(onClick = { confirmReset = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
             Text(stringResource(R.string.settings_reset))
         }
-    }
-    if (editName) {
-        PlayerNameDialog(
-            current = settings.playerName,
-            firstLaunch = false,
-            onDone = { name -> onChange { it.copy(playerName = name) }; editName = false },
-            onDismiss = { editName = false },
-        )
     }
     if (confirmReset) {
         AlertDialog(
