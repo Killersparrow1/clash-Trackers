@@ -351,6 +351,19 @@ private fun VillageSummary(model: WidgetModel) {
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            val dayUnit = stringResource(R.string.time_day_short)
+            val builderTotal = model.builderRows.filter { it.kind == RowKind.RUNNING }.sumOf { it.remaining }
+            val labTotal = (listOf(model.labRow) + model.extraLabRows).filter { it.kind == RowKind.RUNNING }.sumOf { it.remaining }
+            if (builderTotal > 0 || labTotal > 0) {
+                Text(
+                    listOfNotNull(
+                        builderTotal.takeIf { it > 0 }?.let { stringResource(R.string.total_builder_time, Countdown.text(it, dayUnit)) },
+                        labTotal.takeIf { it > 0 }?.let { stringResource(R.string.total_lab_time, Countdown.text(it, dayUnit)) },
+                    ).joinToString(" · "),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             model.nextRunningTimer()?.let { next ->
                 next.row.finishAt?.let { finishAt ->
                     Spacer(Modifier.size(4.dp))

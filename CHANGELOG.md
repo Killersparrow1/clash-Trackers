@@ -8,6 +8,9 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ### Added
 
+- Idle reminder (off by default): a notification when a builder or the lab has sat free for 1 to 12 hours since your last sync.
+- Timers: the village card shows the total builder work and lab time left.
+- App icon shortcuts: long-press the icon for Sync from clipboard and Open game.
 - Support tab: Recent activity moved into Developer options (the issue report still includes it); it now has Copy and Share buttons.
 - Header button now shows the installed game's icon with "Open game" (plain arrow icon if the game is not installed).
 - Widget theme: new "Pitch black" theme (true black panel, dark rows) for OLED screens.

@@ -257,4 +257,12 @@
     <string name="potions_none">No active boosts</string>
     <string name="widget_theme_black">Pitch black (saves battery on OLED)</string>
     <string name="open_game_short">Open game</string>
+    <string name="settings_idle_alert">Remind me when a builder or the lab is still free</string>
+    <string name="settings_idle_alert_desc">Sends a reminder when a builder or the lab has sat free for %1$d h since your last sync. Starting an upgrade and syncing clears it. Needs finish alerts to be on.</string>
+    <string name="total_builder_time">Builders: %1$s of work left</string>
+    <string name="total_lab_time">Lab: %1$s left</string>
+    <string name="shortcut_sync_short">Sync</string>
+    <string name="shortcut_sync_long">Sync from clipboard</string>
+    <string name="shortcut_game_short">Open game</string>
+    <string name="shortcut_game_long">Open Clash of Clans</string>
 </resources>

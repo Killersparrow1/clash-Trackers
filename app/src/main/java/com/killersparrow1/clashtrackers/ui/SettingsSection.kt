@@ -40,6 +40,10 @@ import androidx.compose.runtime.Composable
 import com.killersparrow1.clashtrackers.sync.ClipboardAutoSync
 import androidx.compose.runtime.rememberCoroutineScope
 import com.killersparrow1.clashtrackers.sync.ClockTowerTracking
+import com.killersparrow1.clashtrackers.sync.IdleAlert
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.FilterChip
 import com.killersparrow1.clashtrackers.sync.GoldPassStore
 import com.killersparrow1.clashtrackers.core.GoldPassLogic
 import androidx.compose.runtime.getValue
@@ -149,6 +153,31 @@ fun SettingsSection(
                 Notifier.setRespectDnd(context, on)
             }
             Text(stringResource(R.string.settings_follow_dnd_desc), style = MaterialTheme.typography.bodyMedium)
+            var idleOn by remember { mutableStateOf(IdleAlert.enabled(context)) }
+            var idleHours by remember { mutableIntStateOf(IdleAlert.hours(context)) }
+            val idleScope = rememberCoroutineScope()
+            SwitchRow(stringResource(R.string.settings_idle_alert), idleOn) { on ->
+                idleOn = on
+                IdleAlert.setEnabled(context, on)
+                idleScope.launch { SyncRunner.refreshWidgets(context.applicationContext, "settings") }
+            }
+            Text(stringResource(R.string.settings_idle_alert_desc, idleHours), style = MaterialTheme.typography.bodyMedium)
+            if (idleOn) {
+                Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    IdleAlert.CHOICES.forEach { h ->
+                        FilterChip(
+                            selected = idleHours == h,
+                            onClick = {
+                                idleHours = h
+                                IdleAlert.setHours(context, h)
+                                idleScope.launch { SyncRunner.refreshWidgets(context.applicationContext, "settings") }
+                            },
+                            label = { Text("$h h") },
+                            modifier = Modifier.heightIn(min = 48.dp),
+                        )
+                    }
+                }
+            }
             if (settings.notificationsEnabled && !notificationsAllowed) {
                 Text(stringResource(R.string.settings_notif_blocked), color = MaterialTheme.colorScheme.error)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

@@ -96,4 +96,20 @@ class FinishRedrawTest {
             }
         }
     }
+
+    @Test fun idleReminderComesOnceAfterTheDelay() {
+        val delay = 2 * 3600L
+        val idleKey = FinishNotices.IDLE_KEY + moduleKey
+        // Nothing before the delay (the normal finish notice is separate).
+        assertTrue(FinishNotices.check(state, settings, names, finish + delay - 10, false, delay).notices.none { it.jobKey == idleKey })
+        val r = FinishNotices.check(state, settings, names, finish + delay + 5, false, delay)
+        assertEquals(1, r.notices.count { it.jobKey == idleKey })
+        // Marked as notified, so it is not repeated.
+        val again = FinishNotices.check(state.copy(notified = r.notified), settings, names, finish + delay + 60, false, delay)
+        assertTrue(again.notices.none { it.jobKey == idleKey })
+        // Off by default.
+        assertTrue(FinishNotices.check(state, settings, names, finish + delay + 5).notices.none { it.jobKey == idleKey })
+        // The wakeup alarm is set for it.
+        assertEquals(finish + delay, FinishNotices.nextFinish(state, settings, finish + 100, false, delay))
+    }
 }
