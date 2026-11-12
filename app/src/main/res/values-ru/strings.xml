@@ -261,7 +261,7 @@
     <string name="stat_free_now">Свободно</string>
     <string name="potions_helpers_title">Зелья и помощники</string>
     <string name="potions_none">Нет активных бустов</string>
-    <string name="widget_theme_black">Чёрная (экономит заряд на OLED)</string>
+    <string name="widget_theme_black">Material чёрная</string>
     <string name="open_game_short">Открыть игру</string>
     <string name="settings_idle_alert">Напоминать, если строитель или лаборатория свободны</string>
     <string name="settings_idle_alert_desc">Отправляет напоминание, если строитель или лаборатория свободны уже %1$d ч с последней синхронизации. Начните улучшение и синхронизируйте, чтобы сбросить. Нужны включённые уведомления о завершении.</string>

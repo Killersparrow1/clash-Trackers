@@ -14,7 +14,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 - App icon shortcuts: long-press the icon for Sync from clipboard and Open game.
 - Support tab: Recent activity moved into Developer options (the issue report still includes it); it now has Copy and Share buttons.
 - Header button now shows the installed game's icon with "Open game" (plain arrow icon if the game is not installed).
-- Widget theme: new "Pitch black" theme (true black panel, dark rows) for OLED screens.
+- Widget theme: new "Material pitch dark" theme: your Material You colours on a true black panel.
 - Settings: removed the Player name row; rename an account from the account drop-down on the Timers tab.
 - Timers tab: the Boosts & Events card is replaced by three stat tiles (builders busy, next free builder, next lab) and nothing else (the Potions & helpers card was dropped).
 - Easter egg: the title shakes for as long as the sound plays.
