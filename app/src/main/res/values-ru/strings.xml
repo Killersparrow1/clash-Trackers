@@ -253,4 +253,6 @@
     <string name="gold_pass_ask_monthly">Спрашивать каждый месяц</string>
     <string name="open_game_settings">Открыть настройки Clash of Clans</string>
     <string name="open_game_failed">Не удалось открыть Clash of Clans</string>
+    <string name="settings_section_gold_pass">Золотой пропуск</string>
+    <string name="settings_section_clock_tower">Часовая башня</string>
 </resources>

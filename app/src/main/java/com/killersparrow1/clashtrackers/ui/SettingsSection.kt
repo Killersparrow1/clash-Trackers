@@ -90,10 +90,11 @@ fun SettingsSection(
                 ClipboardAutoSync.setEnabled(context, on)
             }
             Text(stringResource(R.string.settings_auto_clipboard_desc), style = MaterialTheme.typography.bodyMedium)
+        }
+        SectionCard(stringResource(R.string.settings_section_gold_pass)) {
             val gpScope = rememberCoroutineScope()
             var gpOpen by remember { mutableStateOf(false) }
             val gp = remember(selectedTag, GoldPassStore.version) { GoldPassStore.answer(context, selectedTag) }
-            Text(stringResource(R.string.gold_pass_title_short), style = MaterialTheme.typography.titleSmall)
             Text(
                 if (gp.month == null) stringResource(R.string.gold_pass_not_set)
                 else if (gp.gold) stringResource(R.string.gold_pass_summary_gold, gp.builder, gp.research)
@@ -115,6 +116,8 @@ fun SettingsSection(
                     onLater = { gpOpen = false },
                 )
             }
+        }
+        SectionCard(stringResource(R.string.settings_section_clock_tower)) {
             val ctScope = rememberCoroutineScope()
             var ctTrack by remember { mutableStateOf(ClockTowerTracking.enabled(context)) }
             SwitchRow(stringResource(R.string.settings_clock_tower), ctTrack) { on ->
