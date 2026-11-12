@@ -112,4 +112,23 @@ class PotionBoostsTest {
         assertTrue(FinishNotices.check(state, settings, names, end + 5, false).notices.none { it.jobKey.startsWith("clocktower:") })
         assertEquals(end, FinishNotices.nextFinish(state, settings, end - 100, true)?.takeIf { it == end })
     }
+
+    private fun pillAt(boosts: String, offset: Long): ClockTowerPill? {
+        val (export, state) = sync(boosts)
+        return WidgetModelBuilder.build(state, AppSettings(), SampleExports.names, SampleExports.times, export.timestamp + offset).clockTower
+    }
+
+    @Test fun clockTowerChipCountsDownThenStaysAsReady() {
+        val counting = pillAt("""{"clocktower_cooldown":600}""", 100)!!
+        assertTrue(!counting.ready)
+        assertEquals(500L, counting.secondsLeft)
+        val ready = pillAt("""{"clocktower_cooldown":600}""", 700)!!
+        assertTrue(ready.ready)
+        assertEquals("\u2713", ready.text)
+        assertTrue(ready.highlighted)
+    }
+
+    @Test fun clockTowerWithNoCooldownIsReady() {
+        assertTrue(pillAt("""{"builder_boost":100}""", 10)!!.ready)
+    }
 }

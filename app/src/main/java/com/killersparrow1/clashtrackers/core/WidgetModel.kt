@@ -95,14 +95,22 @@ data class BoostPill(
             }
 }
 
-/** Read-only chip: time until the Builder Base Clock Tower can be used again (gold while its boost runs). */
+/**
+ * Read-only chip: time until the Builder Base Clock Tower can be used again (gold while its boost runs).
+ * When the cooldown is over, or the export shows none, it stays as a gold check mark ([ready]).
+ */
 data class ClockTowerPill(
     val secondsLeft: Long,
     val boostActive: Boolean,
     val level: Int? = null,
     val localized: WidgetText = WidgetText.EN,
+    val ready: Boolean = false,
 ) {
-    val text: String get() = localized.formatPill(secondsLeft)
+    val text: String get() = if (ready) READY_MARK else localized.formatPill(secondsLeft)
+    /** Drawn in the highlighted (gold) style: a running boost, or ready to use. */
+    val highlighted: Boolean get() = boostActive || ready
+
+    companion object { const val READY_MARK = "\u2713" }
 }
 
 enum class FooterTone { NORMAL, IDLE, ERROR }
@@ -272,11 +280,16 @@ object WidgetModelBuilder {
         // Clock Tower cooldown: absolute end = export time + remaining; hidden once it has passed.
         val ctEnd = export.clockTowerCooldownRemaining?.let { export.timestamp + it }
         val ctBoostEnd = export.clockTowerBoostRemaining?.let { export.timestamp + it }
-        val clockTower = ctEnd?.takeIf { it > now }?.let {
-            ClockTowerPill(it - now, boostActive = ctBoostEnd != null && ctBoostEnd > now, level = export.clockTowerLevel, localized = text)
+        val clockTower = when {
+            ctEnd != null && ctEnd > now ->
+                ClockTowerPill(ctEnd - now, boostActive = ctBoostEnd != null && ctBoostEnd > now, level = export.clockTowerLevel, localized = text)
+            // The village has a Clock Tower and its cooldown is over (or none was exported): ready to use.
+            export.clockTowerLevel != null ->
+                ClockTowerPill(0, boostActive = false, level = export.clockTowerLevel, localized = text, ready = true)
+            else -> null
         }
         val edges = buildList {
-            clockTower?.let { add(now + pillEdgeIn(it.secondsLeft)); add(ctEnd!!) }
+            clockTower?.takeIf { !it.ready }?.let { add(now + pillEdgeIn(it.secondsLeft)); add(ctEnd!!) }
             ctBoostEnd?.takeIf { it > now }?.let { add(it) }
             // A row turns Completed GRACE_SEC before its finish; redraw again GRACE_SEC after it as a safety net.
             finish.values.forEach { add(it - Finish.GRACE_SEC); add(it + Finish.GRACE_SEC) }

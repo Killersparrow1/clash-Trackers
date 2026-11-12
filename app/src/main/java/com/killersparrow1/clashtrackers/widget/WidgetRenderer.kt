@@ -247,8 +247,8 @@ class WidgetRenderer(private val context: Context) {
             if (slot == PILL_CLOCKTOWER) {
                 val ct = model.clockTower ?: continue
                 v.setTextViewText(R.id.mp_ct, "CT ${ct.text}".uppercase())
-                v.setTextColor(R.id.mp_ct, if (ct.boostActive) 0xFFD71921.toInt() else 0xFFFFFFFF.toInt())
-                v.setInt(R.id.mp_ct, "setBackgroundResource", if (ct.boostActive) R.drawable.minimal_chip_on else R.drawable.minimal_chip)
+                v.setTextColor(R.id.mp_ct, if (ct.highlighted) 0xFFD71921.toInt() else 0xFFFFFFFF.toInt())
+                v.setInt(R.id.mp_ct, "setBackgroundResource", if (ct.highlighted) R.drawable.minimal_chip_on else R.drawable.minimal_chip)
                 v.setViewVisibility(R.id.mp_ct, View.VISIBLE)
                 continue
             }
@@ -636,8 +636,8 @@ class WidgetRenderer(private val context: Context) {
                 val bmp = icons.bitmapForLevel(GameIds.CLOCK_TOWER, ct.level, (14 * density).roundToInt())
                 if (bmp != null) v.setImageViewBitmap(R.id.pill_ct_icon, bmp) else v.setImageViewResource(R.id.pill_ct_icon, R.drawable.ic_clock_tower)
                 v.setTextViewText(R.id.pill_ct_text, ct.text)
-                v.setTextColor(R.id.pill_ct_text, if (ct.boostActive) t.gold else t.text)
-                v.setInt(R.id.pill_ct, "setBackgroundResource", if (ct.boostActive) t.pillOn else t.pillOff)
+                v.setTextColor(R.id.pill_ct_text, if (ct.highlighted) t.gold else t.text)
+                v.setInt(R.id.pill_ct, "setBackgroundResource", if (ct.highlighted) t.pillOn else t.pillOff)
             }
             PILL_BITE -> pill(v, PillIds(R.id.pill_bite, R.id.pill_bite_add, R.id.pill_bite_undo, R.id.pill_bite_icon, R.id.pill_bite_text),
                 model.bite, "builder_bite", R.drawable.ic_builder_bite, model.accountTag, t, true)
