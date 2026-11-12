@@ -24,10 +24,10 @@ import com.killersparrow1.clashtrackers.R
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 
-private const val HOLD_MS = 5_000L
+private const val HOLD_MS = 3_000L
 
 /**
- * Hold the app title for 5 seconds: the title wobbles, the phone gives one buzz and a sound plays on the media
+ * Hold the app title for 3 seconds: the title wobbles, the phone gives one buzz and a sound plays on the media
  * volume. Holding again while it plays stops it. Everything is local and skipped quietly if the sound can't play.
  */
 @Composable
