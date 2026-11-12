@@ -8,67 +8,43 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ### Added
 
-- Gold Pass reminder on the Timers tab: on Day 4 and Day 8, a Gold Pass player below 15% or 20% gets a dismissible "update your builder boost?" banner (the unlock days are not confirmed against the game).
-- Settings: removed the "Changes save automatically" line.
-- Settings: the "Sync from clipboard when the app opens" switch moved to Developer options (still on by default), so the Your village card is gone.
-- Idle reminder (off by default): a notification when a builder or the lab has sat free for 1 to 12 hours since your last sync.
-- Timers: the village card shows the total builder work and lab time left.
+**Widget**
+- Clock Tower cooldown chip on the Builder Base line (List, Grid and Minimal). It counts down with the other pills, is gold while the boost runs, and stays as a gold check mark once the tower is ready. Read from the export; a Settings switch turns it off.
+- Clock Tower ready alert: a notification with its own sound when the cooldown ends (once per export; own switch; needs finish alerts on).
+- Study Soup: a **Soup** button and an active "time left" pill on the Lab line, read from the export. Its saving is adjustable in Settings.
+- Active Builder Bite, research potion and pet potion are now read from the village export, like the builder potion.
+- Widget styles Grid (progress rings) and Minimal (black, dot-matrix type), plus small layouts. Every style scrolls, so every timer fits at any size.
+- Widget themes: Material You, Clash, Dark, Light and **Material pitch dark** (Material You colours on a true black panel). Pick a default in Settings or override it per widget.
+
+**App**
+- Three stat tiles under the village card: builders busy, next free builder and next lab. The village card also shows the total builder and lab time left.
+- A highlighted "Next finish" chip, and a completion-time chip on every running timer card.
+- Gold Pass: the export has no Gold Pass data, so you set it yourself in a popup that asks once a month (Gold with 10, 15 or 20% Builder and Research reductions, or Silver) and in Settings. It is used for each job's progress bar only, since exported times already include the discount. On Day 4 and Day 8 a dismissible banner asks whether your builder boost has gone up (the unlock days are not confirmed against the game).
+- **Open game** button in the header (shows the installed game's icon) that opens Clash of Clans' More Settings, where Export Data is.
 - App icon shortcuts: long-press the icon for Sync from clipboard and Open game.
-- Support tab: Recent activity moved into Developer options (the issue report still includes it); it now has Copy and Share buttons.
-- Header button now shows the installed game's icon with "Open game" (plain arrow icon if the game is not installed).
-- Widget theme: new "Material pitch dark" theme: your Material You colours on a true black panel.
-- Settings: removed the Player name row; rename an account from the account drop-down on the Timers tab.
-- Timers tab: the Boosts & Events card is replaced by three stat tiles (builders busy, next free builder, next lab) and nothing else (the Potions & helpers card was dropped).
-- Easter egg: the title shakes for as long as the sound plays.
-- Settings: Gold Pass and Clock Tower options now sit in their own cards.
-- Clock Tower: detected from the export (building `1000039`, `boosts.clocktower_boost` and `boosts.clocktower_cooldown`). The widget's Builder Base line gets a read-only cooldown chip (List, Grid and Minimal) that counts down with the other pills; missing, zero or invalid values show nothing. A Settings switch turns it off. Pet Potion (`pet_boost`) was already detected.
-- Clock Tower ready alert: a notification when the exported cooldown ends (same sound and Do Not Disturb choice as upgrade alerts; own switch in Settings; needs finish alerts on). It fires once per export.
-- Support: Diagnostics now starts with a health checklist (saved village, notifications, exact alarms, battery, icons) and Copy / Share report buttons. Report an issue copies that report and opens a GitHub issue to paste it into. The report never includes the player tag or name. "See open issues" is now a button.
-- Android 17: the widget's rows are now sent inside the widget instead of being fetched by the launcher through the list service (CT1.2, which had no service, drew correct icons on Android 17). Older Android versions are unchanged; if the rows are too large to send, it falls back to the service and logs that in Recent activity.
-- Themed app icon: a monochrome icon layer, so on Android 13+ the icon follows your wallpaper colours when "Themed icons" is turned on in your launcher or wallpaper settings.
-- Easter egg: hold the app title for 3 seconds.
-- Gold Pass: the game's export has no Gold Pass data, so you set it yourself. A popup asks once a month (Gold Pass with its Builder and Research reductions of 10, 15 or 20%, or Silver/free), and Settings has the same choice any time plus a switch to stop the monthly question. It is used for each job's progress bar, since the game's exported times already include the discount and are not reduced again.
-- Hidden developer options: tap the Support tab 11 times within 4 seconds. For now it can switch the app icon between "Follow my phone" (themed icons, the default) and "Always colour", and reset the Gold Pass popup for testing. Leaving the page hides it again.
-- Clock Tower chip: once the cooldown is over (or the export shows none) it stays on the widget as a gold check mark next to the Clock Tower icon instead of disappearing.
-- Header button (Timers tab, top right): opens Clash of Clans' More Settings, where Export Data is. Developer options also has an "Open a game link" box for trying other links.
-- Study Soup: a **Soup** button on the widget's Lab line (List, Grid and Minimal) and an "active, time left" pill, and an active soup is read from the village export (`boosts.lab_consumable`). Its saving is adjustable in Settings.
-- An active Builder Bite is now read from the village export (`boosts.builder_consumable`), like the potions, instead of only from the Bite button.
-- A short animated start-up screen with the app icon, drawn over the theme's own background. Tap to skip; it plays only on a fresh launch.
-- The system start-up screen no longer flashes a white icon before the animation; it shows only the theme background.
-- Releases are automated: a push to `main` builds the APK, then waits for the maintainer's approval before creating the next `CT` tag and GitHub Release with the APK attached. The version number comes from the newest `CT` tag (CT2.3 → CT2.4 … CT2.9 → CT3.0).
-- Support tab tidy-up: Last crash, Widget diagnostics, Saved village and Widget text preview now sit together in one collapsed Diagnostics card, and the About card has aligned, grouped sections.
-- Sync from the clipboard automatically when the app opens (Settings → Village, on by default). Only a fresh Clash of Clans export is used, once.
-- Recent activity keeps the latest 100 entries and drops older ones by itself.
-- Support → Recent activity is collapsed behind a + / − header and has a Clear activity button.
-- The "Next finish" line in the Timers summary card is now a highlighted chip.
-- A highlighted completion-time chip on every running timer card in the Timers tab.
-- The Timers account switcher and filter chips now fade out and collapse together while you scroll down the list and come back when you scroll up (the title stays).
-- Support → About has a prominent Check for updates card plus Report an issue, Request a feature and See open issues buttons.
-- Custom sound for finished upgrades.
-- A **Check for updates** button in Support → About that opens the latest GitHub release in the browser (the app stays offline). The app now shows its version as `CT2.2`.
-- A third widget style, Minimal: black card, white dot-matrix type (Doto, SIL OFL), thin progress lines and a red accent. It scrolls like the others and keeps the helper, Goblin and potion buttons.
-- A "Follow Do Not Disturb" switch in Settings → Notifications (on by default): finish alerts stay quiet during Do Not Disturb and use the notification volume. Turn it off for the old alarm-style alert that rings through Do Not Disturb.
-- The Timers account dropdown shows each account's Town Hall level next to its name, with a round picture of the Town Hall at that level.
-- The small widget size now scrolls through every timer instead of showing 3 and "+N more".
-- The List and Grid widgets now scroll, so every timer fits however small you make them.
-- A second widget style, Grid: round progress rings with the building icon in the middle, grouped by Builders, Lab, Pets and Builder Base, with the helper button and the Goblin badge. Choose it when you add or reconfigure a widget; List stays the default.
-- Language picker in Settings and a first Russian translation. More languages can be added with one XML file; see CONTRIBUTING.md.
-- Small home-screen widget layouts with the soonest running upgrades.
-- Widget themes: Material You, Clash, Dark and Light. Choose a default in Settings or override it per widget.
-- Tablet and foldable layouts with a navigation rail and a two-column timers grid.
-- In-app Help guide with step-by-step sync and widget setup instructions.
-- Russian translations for the new widget theme, Help and small-widget texts.
+- Idle reminder (off by default): a notification when a builder or the lab has sat free for 1 to 12 hours since your last sync.
+- Themed app icon: on Android 13+ it follows your wallpaper colours when *Themed icons* is on.
+- Sync from the clipboard when the app opens. Only a fresh Clash of Clans export is used, once.
+- Notifications: custom finish sound, and a "Follow Do Not Disturb" switch (on by default).
+- Support: Diagnostics starts with a health checklist and has Copy / Share report buttons. *Report an issue* copies the report (no player tag or name) and opens a GitHub issue. Also a **Check for updates** button (opens the latest release in the browser; the app stays offline) and *Request a feature* / *See open issues* buttons.
+- Tablet and foldable layouts, an in-app Help guide, a language picker with a first Russian translation, account Town Hall pictures in the switcher, and a short start-up animation.
+
+### Changed
+
+- The Boosts & Events card on the Timers tab is gone; potions, Hammer Jam and Bonanza come from the export. Account switcher and filter chips collapse while you scroll.
+- Settings are grouped into cards (Gold Pass, Clock Tower, Notifications, Language). The Player name row was removed; rename an account from the account drop-down on the Timers tab.
+- Support: Last crash, Widget diagnostics, Saved village and Widget text preview now sit in one collapsed Diagnostics card.
+- Recent activity keeps the latest 100 entries and moved out of the Support tab.
 
 ### Fixed
-- Widget progress bars now follow the chosen theme: Clash keeps the original green, Dark and Light use their own fixed colours (and a fresh neutral look), and only Material You follows the phone's accent. Fixes unreadable dark-on-dark rows in Light.
 
+- Android 17: the widget's rows are now sent inside the widget, which fixes wrong icons there (older Android is unchanged; it falls back to the old route and logs it if the rows are too large).
+- Widget progress bars follow the chosen theme (fixes unreadable dark-on-dark rows in Light).
 - When several upgrades finish together, only the first notification makes a sound.
-- An active research potion is now read from the village export (`lab_boost`), like the builder potion. The pet potion is read too if the game names its field with "pet" and "boost".
-- Small widget row count now follows the actual widget height.
-- Widget setup screen no longer hides its title under the status bar, and the theme choices are listed vertically.
-- The notification icon is now the new stopwatch image.
-- The small widget's soonest-timers list only includes running upgrades, not completed rows.
-- The widget "+X more" label now follows the selected language.
+- The small widget's row count follows its height and lists only running upgrades; its "+X more" label follows the language.
+- The widget setup screen no longer hides its title under the status bar.
+- The start-up screen no longer flashes a white icon before the animation.
+- The notification icon is the new stopwatch image.
 
 ## [1.0.2] - 2026-11-03
 

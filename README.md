@@ -55,9 +55,11 @@ Five colour themes, chosen per widget: **Material You** (follows your phone's wa
 - **Authentic Typography**: Built with the bundled **Lilita One** Clash font for headings, numbers, and badges, paired with clean, legible tabular system typography for body text.
 - **Completion Time on Every Card**: Each running timer shows a highlighted chip with the exact date and time it finishes, calculated from the same finish time as the countdown (boosts, potions and helpers included).
 - **Filters That Get Out of the Way**: On the Timers tab the filter chips fade out and collapse as you scroll down the list and return when you scroll back up or reach the top.
-- **Sync on Open**: Copy your village from Clash of Clans and just open the app; a fresh export is synced automatically (switch in **Settings → Village**). Other clipboard text is ignored and each export is used once.
-- **Gold Pass**: set once a month in a popup (or any time in **Settings**): Gold Pass with its Builder and Research reductions, or Silver (free). The game's export doesn't include it. Exported timers already contain the discount, so it is only used for things the export can't tell, like a job's full length for its progress bar.
+- **Sync on Open**: Copy your village from Clash of Clans and just open the app; a fresh export is synced automatically. Other clipboard text is ignored and each export is used once.
+- **Gold Pass**: set once a month in a popup (or any time in **Settings**): Gold Pass with its Builder and Research reductions, or Silver (free). The game's export doesn't include it. Exported timers already contain the discount, so it is only used for things the export can't tell, like a job's full length for its progress bar. Around Day 4 and Day 8 a dismissible banner asks if your builder boost has gone up.
 - **Themed app icon**: on Android 13+ the launcher icon follows your wallpaper colours when *Themed icons* is on in your launcher or wallpaper settings.
+- **Stat Tiles and Totals**: Builders busy, next free builder and next lab at a glance, plus the total builder and lab time left.
+- **Quick Actions**: An **Open game** button in the header (Clash of Clans' More Settings, where Export Data is) and long-press shortcuts on the app icon for Sync and Open game.
 - **Short Navigation Bar**: Fluid navigation between **Timers**, **Settings**, and **Support**.
 - **Dynamic Theming**: Full support for Material You dynamic color extraction (Android 12+) with expressive light and dark palettes.
 
@@ -70,8 +72,7 @@ Five colour themes, chosen per widget: **Material You** (follows your phone's wa
 - **Builder Base Clock Tower**: Tracks the 10× speed boost with durations calibrated to verified Clock Tower levels (Level 1: 14 min to Level 10: 32 min), including estimated time saved.
 - **Clock Tower Potion**: 30-minute 10× speed boost for Builder Base construction and research.
 - **Home Village Builder Potion & Snacks**: 10× Builder Potions, 2× Builder Bites, 2× Study Soup (Laboratory), Research Potions, and Pet Potions with consecutive stacking rules. Active potions, the Builder Bite and the Study Soup are read straight from the village export, so you only need to tap their buttons for ones you use after copying the export.
-- **Clock Tower (Builder Base) auto-detection**: the Clock Tower (building `1000039`) and its `clocktower_boost` / `clocktower_cooldown` timers are read from the export. Missing, zero or invalid values show nothing, and the timers are ignored if the export has no Clock Tower.
-- **Clock Tower cooldown chip**: the widget's Builder Base line (List, Grid and Minimal) shows the Clock Tower's level art with the time until it can be used again, counting down like the other pills and gold while its boost runs. When the cooldown is over it stays as a gold check mark. It can be switched off in **Settings**.
+- **Clock Tower auto-detection and chip**: the Clock Tower (building `1000039`) and its `clocktower_boost` / `clocktower_cooldown` timers are read from the export (nothing shows for missing, zero or invalid values). The widget's Builder Base line (List, Grid and Minimal) shows its level art with the time until it can be used again, gold while the boost runs and a gold check mark once ready. It can be switched off in **Settings**.
 - **Pet Potion**: an active Pet Potion (`boosts.pet_boost`) is detected on sync and shown on the Pets line.
 - **Special Upgrade Events**: Hammer Jam and Builder Base Bonanza reductions are already part of the upgrade times in the Clash of Clans export, so the app reads them from there and has no separate event buttons.
 - **Time-Segment Simulation**: Uses a deterministic interval simulation algorithm that accurately factors in boost start, expiration, and overlapping intervals without floating-point drift.
@@ -82,7 +83,7 @@ Five colour themes, chosen per widget: **Material You** (follows your phone's wa
 - **Three Styles** (pick one per widget): Choose **List** (a row with a progress bar for every timer), **Grid** (round progress rings with the building icon) or **Minimal** (a black, Nothing-inspired look with white dot-matrix type, thin progress lines and one red accent). All are grouped by Builders, Lab, Pets and Builder Base. Minimal keeps its own colours, so the theme choice does not apply to it.
 - **Scrolls at Any Size**: Resize the widget as small as you like and scroll to reach every timer. Nothing is cut off with a "+N more".
 - **Goblin Badge**: Timers worked on by the event Goblin Builder or Goblin Researcher are marked on both styles.
-- **Widget Themes**: Pick **Material You**, **Clash**, **Dark**, **Material pitch dark** or **Light** as the default, and override the theme for individual widgets.
+- **Widget Themes**: Pick a default in **Settings** and override it per widget (see [Widget Themes](#widget-themes)).
 - **Helper Integration**: Tap `+` to assign the Builder's Apprentice or Lab Assistant and see realistic predicted finish times.
 - **Exact Alarms**: Accurate re-renders at completion edges with no background battery drain.
 - **Per-Widget Account Binding**: Place the widget as many times as you like. Each time, a picker asks which account that widget should show, so you can keep one widget per account side by side. You can change a widget's account, style and theme later by reconfiguring it.
@@ -110,20 +111,20 @@ Five colour themes, chosen per widget: **Material You** (follows your phone's wa
 ### 🔔 Notifications
 - **Finish Alerts**: A notification when a builder, the lab or a pet is free, with the Clash of Clans finish sound.
 - **Clock Tower Ready Alert**: a notification with its own sound when the exported Clock Tower cooldown ends (once per export, own switch in **Settings**, needs finish alerts on).
+- **Idle Reminder** (off by default): a notification when a builder or the lab has sat free for 1 to 12 hours since your last sync.
 - **Follow Do Not Disturb**: A switch in **Settings → Notifications** (on by default) keeps alerts quiet during Do Not Disturb and uses your notification volume. Turn it off for an alarm-style alert that rings through Do Not Disturb.
 
 ### ⬆️ Updates, Feedback & Releases
 - **Check for updates**: A prominent card in **Support → About** opens the latest GitHub release in your browser. The app itself stays offline; only your browser goes online.
 - **Issues and feature requests**: **Support → About** also has *Report an issue*, *Request a feature* and *See open issues* buttons that open [GitHub Issues](https://github.com/Killersparrow1/clash-Trackers/issues/). *Report an issue* also copies a diagnostic report to your clipboard so you can paste it into the issue.
 - **Diagnostics and report**: **Support → Diagnostics** starts with a health checklist (saved village, notifications, exact alarms, battery restriction, icons) and has **Copy report** / **Share report** buttons. The report lists app, Android and phone info, widget sizes, what the last import detected, which icon each widget row uses, recent activity and the last crash. It never includes your player tag or name.
-- **Android 17**: the widget's rows are sent inside the widget itself on Android 17, which fixed wrong icons some users saw there. Older Android versions are unchanged.
 - **Install over the old version**: Builds are signed with a fixed key, so a new APK installs on top of the previous one without uninstalling (the version number must be higher).
-- **Release names**: Releases are named `CT2.1`, `CT2.2` ... `CT3.0`. The app shows the same name in **Support → About**, and merging into `main` builds the APK and, after your approval, publishes the release automatically (see **Releasing** below).
+- **Release names**: Releases are named `CT2.1`, `CT2.2` ... `CT3.0`, and the app shows the same name in **Support → About** (see **Releasing** below).
 
 ### 🔒 100% Offline Privacy
 - **Zero Internet Permission**: The app does not request `android.permission.INTERNET`. It cannot send or receive data over the network.
 - **No Accounts & No Ads**: Completely private; your village data never leaves your device.
-- **On-Demand Clipboard Sync**: The clipboard is read exclusively when you tap **Sync**.
+- **Clipboard Only For Village Data**: The clipboard is read when you tap **Sync** or open the app, and only a Clash of Clans village export is used.
 
 ---
 
@@ -157,7 +158,7 @@ clash-trackers/
 │   │   │   ├── ClashTrackersContent.kt # Adaptive scaffold with bottom bar or navigation rail
 │   │   │   ├── TimerDashboard.kt    # Upgrade cards (with completion time), collapsing filters, & sync controls
 │   │   │   ├── AboutSection.kt      # Version, update card, issue/feature links, credits
-│   │   │   ├── BoostEventSection.kt # Interactive Clock Tower & potion controls
+│   │   │   ├── BoostEventSection.kt # Boost controls (not shown on the Timers tab)
 │   │   │   ├── HelpDialog.kt        # Setup and sync guide with looping video
 │   │   │   ├── SettingsSection.kt   # Grouped settings & dialog editors
 │   │   │   ├── SupportScreen.kt     # Health checks, diagnostic report, crash reports, & widget preview
