@@ -15,6 +15,7 @@
         android:layout_height="wrap_content"
         android:fontFamily="@font/lilita_one"
         android:paddingBottom="6dp"
+        android:ellipsize="end"
         android:singleLine="true"
         android:textColor="@color/w_white"
         android:textSize="14sp" />

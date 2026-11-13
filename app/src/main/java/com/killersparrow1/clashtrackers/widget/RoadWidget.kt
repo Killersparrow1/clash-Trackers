@@ -13,6 +13,7 @@ import android.view.View
 import android.widget.RemoteViews
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,11 +21,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -97,20 +103,21 @@ object RoadWidgetUpdater {
         val renderer = WidgetRenderer(app)
         for (id in ids) {
             val tag = repo.getWidgetAccount(id) ?: fallback
+            val name = accounts.firstOrNull { it.tag == tag }?.displayName
             val export = tag?.let { repo.getAccountState(it).export }
             val road = export?.let { RoadToMaxCalc.compute(data, it) }
             val theme = repo.getWidgetTheme(id)
             val widthDp = manager.getAppWidgetOptions(id).getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 250)
             // The countdown alarms call this often; only send the widget when something it shows has changed.
-            val signature = java.util.Objects.hash(road, theme, widthDp >= WIDE_DP, tag, java.util.Locale.getDefault())
+            val signature = java.util.Objects.hash(road, theme, widthDp >= WIDE_DP, tag, name, java.util.Locale.getDefault())
             if (!force && lastDrawn[id] == signature) continue
-            runCatching { manager.updateAppWidget(id, render(app, renderer, road, theme, widthDp >= WIDE_DP)) }
+            runCatching { manager.updateAppWidget(id, render(app, renderer, road, theme, widthDp >= WIDE_DP, name)) }
                 .onSuccess { lastDrawn[id] = signature }
         }
         return ids.size
     }
 
-    private fun render(context: Context, renderer: WidgetRenderer, road: RoadToMax?, theme: String, wide: Boolean): RemoteViews {
+    private fun render(context: Context, renderer: WidgetRenderer, road: RoadToMax?, theme: String, wide: Boolean, name: String?): RemoteViews {
         val ctx = LanguageManager.wrap(context)
         val t = renderer.palette(theme)
         val icons = WidgetIcons.get(context)
@@ -122,7 +129,7 @@ object RoadWidgetUpdater {
         rv.setTextColor(R.id.empty, t.text)
 
         if (road == null) {
-            rv.setTextViewText(R.id.who, ctx.getString(R.string.road_widget_title))
+            rv.setTextViewText(R.id.who, listOfNotNull(name, ctx.getString(R.string.road_widget_title)).joinToString(" · "))
             rv.setViewVisibility(R.id.body, View.GONE)
             rv.setViewVisibility(R.id.empty, View.VISIBLE)
             rv.setTextViewText(R.id.empty, ctx.getString(R.string.road_widget_empty))
@@ -131,7 +138,7 @@ object RoadWidgetUpdater {
         }
         rv.setViewVisibility(R.id.empty, View.GONE)
         rv.setViewVisibility(R.id.body, View.VISIBLE)
-        rv.setTextViewText(R.id.who, ctx.getString(R.string.road_title, road.townHall))
+        rv.setTextViewText(R.id.who, listOfNotNull(name, ctx.getString(R.string.road_title, road.townHall)).joinToString(" · "))
         rv.setOnClickPendingIntent(R.id.panel, openAppIntent(context))
 
         fun row(label: String, value: String, building: Int?, drawable: Int?): RemoteViews {
@@ -188,7 +195,7 @@ object RoadWidgetUpdater {
     }
 }
 
-/** Setup screen for the Road to max widget: only the theme (the account follows the one selected in the app). */
+/** Setup screen for the Road to max widget: the account (when there are several) and the theme. */
 class RoadWidgetConfigActivity : ComponentActivity() {
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(LanguageManager.wrap(newBase))
@@ -214,14 +221,37 @@ class RoadWidgetConfigActivity : ComponentActivity() {
                         "black" to stringResource(R.string.widget_theme_black),
                         "light" to stringResource(R.string.widget_theme_light),
                     )
+                    val repo = remember { StateRepository(this@RoadWidgetConfigActivity) }
+                    val accounts by repo.accounts.collectAsState(initial = emptyList())
                     var theme by rememberSaveable { mutableStateOf<String?>(null) }
+                    var tag by rememberSaveable { mutableStateOf<String?>(null) }
                     androidx.compose.runtime.LaunchedEffect(appWidgetId) {
-                        theme = StateRepository(this@RoadWidgetConfigActivity).getWidgetTheme(appWidgetId)
+                        theme = repo.getWidgetTheme(appWidgetId)
+                        tag = repo.getWidgetAccount(appWidgetId) ?: repo.selectedAccountTag.first()
+                    }
+                    androidx.compose.runtime.LaunchedEffect(accounts) {
+                        if (tag == null || accounts.none { it.tag == tag }) tag = accounts.firstOrNull()?.tag
                     }
                     Column(Modifier.fillMaxSize().systemBarsPadding().padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                         Text(stringResource(R.string.road_widget_name), style = MaterialTheme.typography.titleLarge)
-                        Text(stringResource(R.string.widget_theme), style = MaterialTheme.typography.titleMedium)
-                        Column(Modifier.fillMaxWidth().weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Column(Modifier.fillMaxWidth().weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            if (accounts.isNotEmpty()) {
+                                Text(stringResource(R.string.widget_choose_account), style = MaterialTheme.typography.titleMedium)
+                                accounts.forEach { acct ->
+                                    Card(
+                                        modifier = Modifier.fillMaxWidth().clickable { tag = acct.tag },
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = if (acct.tag == tag) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerLow,
+                                        ),
+                                    ) {
+                                        Column(Modifier.padding(16.dp)) {
+                                            Text(acct.displayName, style = MaterialTheme.typography.titleMedium)
+                                            Text(acct.tag, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        }
+                                    }
+                                }
+                            }
+                            Text(stringResource(R.string.widget_theme), style = MaterialTheme.typography.titleMedium)
                             themes.forEach { (key, label) ->
                                 FilterChip(selected = theme == key, onClick = { theme = key }, label = { Text(label) }, modifier = Modifier.fillMaxWidth())
                             }
@@ -230,7 +260,8 @@ class RoadWidgetConfigActivity : ComponentActivity() {
                             Button(onClick = { finish() }) { Text(stringResource(R.string.action_cancel)) }
                             Button(onClick = {
                                 scope.launch {
-                                    StateRepository(this@RoadWidgetConfigActivity).setWidgetTheme(appWidgetId, theme ?: "material_you")
+                                    tag?.let { repo.setWidgetAccount(appWidgetId, it) }
+                                    repo.setWidgetTheme(appWidgetId, theme ?: "material_you")
                                     RoadWidgetUpdater.updateAll(this@RoadWidgetConfigActivity, force = true)
                                     setResult(RESULT_OK, Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId))
                                     finish()

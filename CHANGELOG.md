@@ -8,6 +8,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ### Added
 
+- Road to max widget: pick the account in its setup screen and show the account name in its title.
 - Widget picker: both widgets show a preview with sample data, the same default size (4x4), and a title ("Upgrade timers", "Road to max") with a description.
 - README: "Get it on Obtainium" button above the screenshots that opens the add-app screen.
 
