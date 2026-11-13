@@ -59,6 +59,7 @@ Five colour themes, chosen per widget: **Material You** (follows your phone's wa
 - **Gold Pass**: set once a month in a popup (or any time in **Settings**): Gold Pass with its Builder and Research reductions, or Silver (free). The game's export doesn't include it. Exported timers already contain the discount, so it is only used for things the export can't tell, like a job's full length for its progress bar. Around Day 4 and Day 8 a dismissible banner asks if your builder boost has gone up.
 - **Themed app icon**: on Android 13+ the launcher icon follows your wallpaper colours when *Themed icons* is on in your launcher or wallpaper settings.
 - **Road to Max**: a collapsed Timers card with the time and Gold / Elixir / Dark Elixir still needed to max your Town Hall (buildings, defenses, traps, heroes, lab and pets, plus an optional walls total). It is an estimate from your export and bundled game data (`tools/gen_max_data.cjs`), without potions, helpers, events or the Gold Pass.
+- **Road to Max Widget**: a second home-screen widget with the same numbers (builder, lab and pet time, plus the three resources when it is wide), in any of the five widget themes.
 - **Stat Tiles and Totals**: Builders busy, next free builder and next lab at a glance, plus the total builder and lab time left.
 - **Quick Actions**: An **Open game** button in the header (Clash of Clans' More Settings, where Export Data is) and long-press shortcuts on the app icon for Sync and Open game.
 - **Short Navigation Bar**: Fluid navigation between **Timers**, **Settings**, and **Support**.

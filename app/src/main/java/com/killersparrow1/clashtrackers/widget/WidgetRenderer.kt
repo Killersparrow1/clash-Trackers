@@ -81,7 +81,7 @@ class WidgetRenderer(private val context: Context) {
         return id
     }
 
-    private fun palette(theme: String): Palette = basePalette(theme).copy(
+    internal fun palette(theme: String): Palette = basePalette(theme).copy(
         fillId = when (theme) {
             "clash" -> R.id.row_fill_clash
             "dark" -> R.id.row_fill_dark

@@ -104,6 +104,27 @@
             </intent-filter>
         </activity>
 
+        <!-- Road to max widget (widget/RoadWidget.kt): its own small provider and a theme-only setup screen. -->
+        <receiver
+            android:name=".widget.RoadWidgetReceiver"
+            android:exported="true"
+            android:label="@string/road_widget_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/road_widget_info" />
+        </receiver>
+        <activity
+            android:name=".widget.RoadWidgetConfigActivity"
+            android:exported="true"
+            android:theme="@style/Theme.ClashTimer">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
+
         <service
             android:name=".widget.WidgetListService"
             android:exported="false"

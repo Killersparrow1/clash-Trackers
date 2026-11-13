@@ -280,4 +280,9 @@
     <string name="road_walls_cost">Walls (Gold or Elixir)</string>
     <string name="road_include_walls">Include walls</string>
     <string name="road_note">Estimate from the village export and bundled game data: base times and costs, without potions, helpers, events or the Gold Pass. With several builders it is a best case.</string>
+    <string name="road_widget_name">Road to max</string>
+    <string name="road_widget_description">Time and resources still needed to max your Town Hall</string>
+    <string name="road_widget_title">Road to max</string>
+    <string name="road_widget_empty">Tap to sync your village</string>
+    <string name="road_widget_builders">Builders</string>
 </resources>

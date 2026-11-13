@@ -286,4 +286,9 @@
     <string name="road_walls_cost">Стены (золото или эликсир)</string>
     <string name="road_include_walls">Учитывать стены</string>
     <string name="road_note">Оценка по экспорту деревни и встроенным данным игры: базовое время и цены, без зелий, помощников, событий и золотого пропуска. При нескольких строителях это лучший случай.</string>
+    <string name="road_widget_name">Путь к максимуму</string>
+    <string name="road_widget_description">Время и ресурсы, которые ещё нужны для максимума вашей Ратуши</string>
+    <string name="road_widget_title">Путь к максимуму</string>
+    <string name="road_widget_empty">Нажмите, чтобы синхронизировать деревню</string>
+    <string name="road_widget_builders">Строители</string>
 </resources>

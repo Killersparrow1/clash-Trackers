@@ -278,4 +278,9 @@
     <string name="road_walls_cost">दीवारें (गोल्ड या एलिक्सिर)</string>
     <string name="road_include_walls">दीवारें शामिल करें</string>
     <string name="road_note">गाँव एक्सपोर्ट और ऐप में मौजूद गेम डेटा से अनुमान: बेस समय और कीमतें, पोशन, हेल्पर, इवेंट या गोल्ड पास के बिना। कई बिल्डर हों तो यह सबसे अच्छा मामला है।</string>
+    <string name="road_widget_name">मैक्स तक का सफ़र</string>
+    <string name="road_widget_description">आपके टाउन हॉल को मैक्स करने के लिए बचा समय और संसाधन</string>
+    <string name="road_widget_title">मैक्स तक का सफ़र</string>
+    <string name="road_widget_empty">गाँव सिंक करने के लिए टैप करें</string>
+    <string name="road_widget_builders">बिल्डर</string>
 </resources>

@@ -17,6 +17,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 - Widget themes: Material You, Clash, Dark, Light and **Material pitch dark** (Material You colours on a true black panel). Pick a default in Settings or override it per widget.
 
 **App**
+- **Road to max widget**: a second, resizable home-screen widget with the builder, lab and pet time (and, when wide, Gold, Elixir and Dark Elixir) to max your Town Hall. It uses the same five themes as the timer widget, follows the account selected in the app and refreshes on every sync.
 - **Road to max** card on the Timers tab (collapsed): the builder, lab and pet time and the Gold, Elixir and Dark Elixir still needed to max your current Town Hall, with an optional walls total, each line with its building or resource icon. It is an estimate from the village export and bundled game data (base times and costs; no potions, helpers, events or Gold Pass). Regenerate the data with `tools/gen_max_data.cjs`.
 - Three stat tiles under the village card: builders busy, next free builder and next lab. The village card also shows the total builder work left, and no longer repeats the tiles' builder and lab numbers.
 - A highlighted "Next finish" chip, and a completion-time chip on every running timer card.

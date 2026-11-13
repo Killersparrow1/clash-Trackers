@@ -198,10 +198,12 @@ object WidgetUpdater {
             WidgetAlarm.scheduleFinish(app, allFinishTimes.minOrNull()?.times(1000))
 
             val manager = AppWidgetManager.getInstance(app)
+            // The Road to max widget only changes with the data, so it is redrawn here and needs no alarm.
+            val roadCount = RoadWidgetUpdater.updateAll(app)
             val ids = widgetIds(app)
             if (ids.isEmpty()) {
                 WidgetAlarm.cancelRedraw(app)
-                return 0
+                return roadCount
             }
 
             val renderer = WidgetRenderer(app)
@@ -237,7 +239,7 @@ object WidgetUpdater {
                 WidgetSchedule.nextUpdateMs(model, nowMs, settings.liveCountdown)?.let { nextUpdates.add(it) }
             }
             WidgetAlarm.scheduleRedraw(app, nextUpdates.minOrNull())
-            ids.size
+            ids.size + roadCount
         } catch (t: Throwable) {
             repo.log(source, false, "Widget refresh failed: ${t.javaClass.simpleName}: ${t.message}")
             -1
