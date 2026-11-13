@@ -19,6 +19,10 @@ Redesigned with **Material 3 Expressive**, authentic Clash typography, an advanc
 
 > **Unofficial Fan Project**: This application is not affiliated with, endorsed, sponsored, or approved by Supercell. See the [Disclaimer](#disclaimer).
 
+<p align="center">
+  <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%7B%22id%22%3A%22com.killersparrow1.clashtrackers%22%2C%22url%22%3A%22https%3A%2F%2Fgithub.com%2FKillersparrow1%2Fclash-trackers%22%2C%22author%22%3A%22Killersparrow1%22%2C%22name%22%3A%22Clash%20Trackers%22%7D"><img src="docs/badge_obtainium.png" alt="Get it on Obtainium" height="56"></a>
+</p>
+
 ---
 
 ## Screenshots

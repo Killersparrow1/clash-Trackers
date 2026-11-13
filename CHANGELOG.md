@@ -8,6 +8,8 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ### Added
 
+- README: "Get it on Obtainium" button above the screenshots that opens the add-app screen.
+
 **Widget**
 - Clock Tower cooldown chip on the Builder Base line (List, Grid and Minimal). It counts down with the other pills, is gold while the boost runs, and stays as a gold check mark once the tower is ready. Read from the export; a Settings switch turns it off.
 - Clock Tower ready alert: a notification with its own sound when the cooldown ends (once per export; own switch; needs finish alerts on).
