@@ -29,6 +29,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 - Sync from the clipboard when the app opens. Only a fresh Clash of Clans export is used, once.
 - Notifications: custom finish sound, and a "Follow Do Not Disturb" switch (on by default).
 - Support: Diagnostics starts with a health checklist and has Copy / Share report buttons. *Report an issue* copies the report (no player tag or name) and opens a GitHub issue. Also a **Check for updates** button (opens the latest release in the browser; the app stays offline) and *Request a feature* / *See open issues* buttons.
+- README: how to get automatic updates with Obtainium.
 - Tablet and foldable layouts, an in-app Help guide, a language picker with a first Russian translation, account Town Hall pictures in the switcher, and a short start-up animation.
 
 ### Changed

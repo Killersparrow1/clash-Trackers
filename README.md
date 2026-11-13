@@ -120,6 +120,7 @@ Five colour themes, chosen per widget: **Material You** (follows your phone's wa
 - **Check for updates**: A prominent card in **Support → About** opens the latest GitHub release in your browser. The app itself stays offline; only your browser goes online.
 - **Issues and feature requests**: **Support → About** also has *Report an issue*, *Request a feature* and *See open issues* buttons that open [GitHub Issues](https://github.com/Killersparrow1/clash-Trackers/issues/). *Report an issue* also copies a diagnostic report to your clipboard so you can paste it into the issue.
 - **Diagnostics and report**: **Support → Diagnostics** starts with a health checklist (saved village, notifications, exact alarms, battery restriction, icons) and has **Copy report** / **Share report** buttons. The report lists app, Android and phone info, widget sizes, what the last import detected, which icon each widget row uses, recent activity and the last crash. It never includes your player tag or name.
+- **Obtainium (automatic updates)**: Add the app to [Obtainium](https://github.com/ImranR98/Obtainium) and it tells you about every new release, then downloads and installs the APK for you. In Obtainium tap **Add App**, paste `https://github.com/Killersparrow1/clash-Trackers`, and tap **Add**. Each release has a single APK named `ClashTrackers-CT<version>.apk`, so the defaults work. Your updates install over the old version because the builds are signed with a fixed key. The app itself stays offline; Obtainium does the checking.
 - **Install over the old version**: Builds are signed with a fixed key, so a new APK installs on top of the previous one without uninstalling (the version number must be higher).
 - **Release names**: Releases are named `CT2.1`, `CT2.2` ... `CT3.0`, and the app shows the same name in **Support → About** (see **Releasing** below).
 
@@ -132,7 +133,7 @@ Five colour themes, chosen per widget: **Material You** (follows your phone's wa
 
 ## Quick Setup
 
-1. **Get the APK**: Download the latest build or compile via GitHub Actions.
+1. **Get the APK**: Download the latest build or compile via GitHub Actions. For automatic updates, add the repository to [Obtainium](#️-updates-feedback--releases) (see **Updates, Feedback & Releases**).
 2. **Open Clash of Clans**: Go to **Settings → Data Export → Copy**.
 3. **Open Clash Trackers**: Tap **Sync from clipboard**.
 4. **Add the Widget**: Long-press your home screen, choose **Widgets → Clash Trackers**, and place it.
