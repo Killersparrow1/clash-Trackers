@@ -276,7 +276,6 @@
     <string name="gold_pass_banner_dismiss">Пока нет</string>
     <string name="road_title">Путь к максимуму · Ратуша %1$d</string>
     <string name="road_builders">Строители (здания и герои)</string>
-    <string name="road_builders_split">Около %1$s при %2$d строителях</string>
     <string name="road_lab">Лаборатория</string>
     <string name="road_pets">Дом питомцев</string>
     <string name="road_cost">Нужные ресурсы</string>

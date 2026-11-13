@@ -55,9 +55,9 @@ internal fun RoadToMaxCard(export: VillageExport?, builders: Int, modifier: Modi
     CollapsibleCard(stringResource(R.string.road_title, road.townHall), "road_to_max", modifier) {
         RoadRow(
             label = stringResource(R.string.road_builders),
-            value = formatDuration(builderWork.seconds, dayUnit),
+            value = formatDuration(builderWork.seconds / builders.coerceAtLeast(1), dayUnit),
             detail = if (builders > 1 && builderWork.seconds > 0)
-                stringResource(R.string.road_builders_split, formatDuration(builderWork.seconds / builders, dayUnit), builders)
+                stringResource(R.string.road_builders_work, builders, formatDuration(builderWork.seconds, dayUnit))
             else null,
             buildingId = 1000015,
         )

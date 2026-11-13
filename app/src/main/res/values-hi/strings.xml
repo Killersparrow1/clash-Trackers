@@ -268,7 +268,6 @@
     <string name="gold_pass_banner_dismiss">अभी नहीं</string>
     <string name="road_title">मैक्स तक का सफ़र · टाउन हॉल %1$d</string>
     <string name="road_builders">बिल्डर (इमारतें और हीरो)</string>
-    <string name="road_builders_split">%2$d बिल्डरों के साथ लगभग %1$s</string>
     <string name="road_lab">लैबोरेटरी</string>
     <string name="road_pets">पेट हाउस</string>
     <string name="road_cost">ज़रूरी संसाधन</string>

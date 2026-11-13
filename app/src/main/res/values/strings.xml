@@ -270,7 +270,7 @@
     <string name="gold_pass_banner_dismiss">Not yet</string>
     <string name="road_title">Road to max · Town Hall %1$d</string>
     <string name="road_builders">Builders (buildings and heroes)</string>
-    <string name="road_builders_split">About %1$s with %2$d builders</string>
+    <string name="road_builders_work">Split across %1$d builders (%2$s of work in total)</string>
     <string name="road_lab">Laboratory</string>
     <string name="road_pets">Pet House</string>
     <string name="road_cost">Resources needed</string>
@@ -279,7 +279,7 @@
     <string name="resource_dark_elixir">Dark Elixir</string>
     <string name="road_walls_cost">Walls (Gold or Elixir)</string>
     <string name="road_include_walls">Include walls</string>
-    <string name="road_note">Estimate from the village export and bundled game data: base times and costs, without potions, helpers, events or the Gold Pass. With several builders it is a best case.</string>
+    <string name="road_note">Estimate from the village export and bundled game data: base times and costs, without potions, helpers, events or the Gold Pass. Builder time assumes the work is shared evenly between your builders.</string>
     <string name="road_widget_name">Road to max</string>
     <string name="road_widget_description">Time and resources still needed to max your Town Hall</string>
     <string name="road_widget_title">Road to max</string>

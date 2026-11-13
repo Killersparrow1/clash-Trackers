@@ -40,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.killersparrow1.clashtrackers.R
+import com.killersparrow1.clashtrackers.core.AppSettings
 import com.killersparrow1.clashtrackers.core.Countdown
 import com.killersparrow1.clashtrackers.core.RoadToMax
 import com.killersparrow1.clashtrackers.core.RoadToMaxCalc
@@ -104,20 +105,22 @@ object RoadWidgetUpdater {
         for (id in ids) {
             val tag = repo.getWidgetAccount(id) ?: fallback
             val name = accounts.firstOrNull { it.tag == tag }?.displayName
+            val builders = if (tag == null) 1 else
+                AppSettings(totalBuildersOverride = repo.getAccountSettings(tag).totalBuildersOverride).totalBuilders(export)
             val export = tag?.let { repo.getAccountState(it).export }
             val road = export?.let { RoadToMaxCalc.compute(data, it) }
             val theme = repo.getWidgetTheme(id)
             val widthDp = manager.getAppWidgetOptions(id).getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 250)
             // The countdown alarms call this often; only send the widget when something it shows has changed.
-            val signature = java.util.Objects.hash(road, theme, widthDp >= WIDE_DP, tag, name, java.util.Locale.getDefault())
+            val signature = java.util.Objects.hash(road, theme, widthDp >= WIDE_DP, tag, name, builders, java.util.Locale.getDefault())
             if (!force && lastDrawn[id] == signature) continue
-            runCatching { manager.updateAppWidget(id, render(app, renderer, road, theme, widthDp >= WIDE_DP, name)) }
+            runCatching { manager.updateAppWidget(id, render(app, renderer, road, theme, widthDp >= WIDE_DP, name, builders)) }
                 .onSuccess { lastDrawn[id] = signature }
         }
         return ids.size
     }
 
-    private fun render(context: Context, renderer: WidgetRenderer, road: RoadToMax?, theme: String, wide: Boolean, name: String?): RemoteViews {
+    private fun render(context: Context, renderer: WidgetRenderer, road: RoadToMax?, theme: String, wide: Boolean, name: String?, builders: Int): RemoteViews {
         val ctx = LanguageManager.wrap(context)
         val t = renderer.palette(theme)
         val icons = WidgetIcons.get(context)
@@ -160,7 +163,7 @@ object RoadWidgetUpdater {
         val day = ctx.getString(R.string.time_day_short)
         val all = road.builderWork + road.lab + road.pets
         rv.removeAllViews(R.id.col_time)
-        rv.addView(R.id.col_time, row(ctx.getString(R.string.road_widget_builders), duration(road.builderWork.seconds, day), 1000015, null))
+        rv.addView(R.id.col_time, row(ctx.getString(R.string.road_widget_builders), duration(road.builderWork.seconds / builders.coerceAtLeast(1), day), 1000015, null))
         rv.addView(R.id.col_time, row(ctx.getString(R.string.road_lab), duration(road.lab.seconds, day), 1000007, null))
         rv.addView(R.id.col_time, row(ctx.getString(R.string.road_pets), duration(road.pets.seconds, day), 1000068, null))
 
