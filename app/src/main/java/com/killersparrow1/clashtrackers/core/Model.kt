@@ -82,6 +82,12 @@ data class VillageExport(
     val clockTowerBoostRemaining: Long? = null,
     /** `boosts.clocktower_cooldown`: seconds until the Clock Tower can be used again; null when absent, zero or no Clock Tower. */
     val clockTowerCooldownRemaining: Long? = null,
+    /**
+     * Home-village items the player owns, for the "Road to max" card: data id -> one level per owned copy
+     * (an upgrade in progress counts as its next level). Covers buildings, traps, guardians, troops, spells,
+     * siege machines, heroes and pets; empty for exports that carry none of them.
+     */
+    val ownedLevels: Map<Int, List<Int>> = emptyMap(),
 ) {
     /** Builders derived from the export: huts + B.O.B. Null if no huts were found. */
     val derivedTotalBuilders: Int?

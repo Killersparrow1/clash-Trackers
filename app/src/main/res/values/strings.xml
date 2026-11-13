@@ -268,4 +268,16 @@
     <string name="gold_pass_banner">Day %1$d: with your Gold Pass, your builder boost may now be %2$d%%. Update it?</string>
     <string name="gold_pass_banner_update">Update</string>
     <string name="gold_pass_banner_dismiss">Not yet</string>
+    <string name="road_title">Road to max · Town Hall %1$d</string>
+    <string name="road_builders">Builders (buildings and heroes)</string>
+    <string name="road_builders_split">About %1$s with %2$d builders</string>
+    <string name="road_lab">Laboratory</string>
+    <string name="road_pets">Pet House</string>
+    <string name="road_cost">Resources needed</string>
+    <string name="resource_gold">Gold</string>
+    <string name="resource_elixir">Elixir</string>
+    <string name="resource_dark_elixir">Dark Elixir</string>
+    <string name="road_walls_cost">Walls (Gold or Elixir)</string>
+    <string name="road_include_walls">Include walls</string>
+    <string name="road_note">Estimate from the village export and bundled game data: base times and costs, without potions, helpers, events or the Gold Pass. With several builders it is a best case.</string>
 </resources>

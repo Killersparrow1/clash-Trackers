@@ -266,4 +266,16 @@
     <string name="gold_pass_banner">दिन %1$d: आपके गोल्ड पास के साथ, आपका बिल्डर बूस्ट अब %2$d%% हो सकता है। अपडेट करें?</string>
     <string name="gold_pass_banner_update">अपडेट करें</string>
     <string name="gold_pass_banner_dismiss">अभी नहीं</string>
+    <string name="road_title">मैक्स तक का सफ़र · टाउन हॉल %1$d</string>
+    <string name="road_builders">बिल्डर (इमारतें और हीरो)</string>
+    <string name="road_builders_split">%2$d बिल्डरों के साथ लगभग %1$s</string>
+    <string name="road_lab">लैबोरेटरी</string>
+    <string name="road_pets">पेट हाउस</string>
+    <string name="road_cost">ज़रूरी संसाधन</string>
+    <string name="resource_gold">गोल्ड</string>
+    <string name="resource_elixir">एलिक्सिर</string>
+    <string name="resource_dark_elixir">डार्क एलिक्सिर</string>
+    <string name="road_walls_cost">दीवारें (गोल्ड या एलिक्सिर)</string>
+    <string name="road_include_walls">दीवारें शामिल करें</string>
+    <string name="road_note">गाँव एक्सपोर्ट और ऐप में मौजूद गेम डेटा से अनुमान: बेस समय और कीमतें, पोशन, हेल्पर, इवेंट या गोल्ड पास के बिना। कई बिल्डर हों तो यह सबसे अच्छा मामला है।</string>
 </resources>

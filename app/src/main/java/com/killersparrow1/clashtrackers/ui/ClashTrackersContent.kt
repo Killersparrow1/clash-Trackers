@@ -163,6 +163,7 @@ fun ClashTrackersContent(
                                     selectedTag = selectedTag,
                                     now = now,
                                     busy = busy,
+                                    export = state.export,
                                     onSync = onSync,
                                     onUpdateBoosts = { transform ->
                                         onStateChange { s -> s.copy(activeBoosts = transform(s.activeBoosts)) }

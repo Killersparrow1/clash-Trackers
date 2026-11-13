@@ -17,6 +17,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 - Widget themes: Material You, Clash, Dark, Light and **Material pitch dark** (Material You colours on a true black panel). Pick a default in Settings or override it per widget.
 
 **App**
+- **Road to max** card on the Timers tab (collapsed): the builder, lab and pet time and the Gold, Elixir and Dark Elixir still needed to max your current Town Hall, with an optional walls total. It is an estimate from the village export and bundled game data (base times and costs; no potions, helpers, events or Gold Pass). Regenerate the data with `tools/gen_max_data.cjs`.
 - Three stat tiles under the village card: builders busy, next free builder and next lab. The village card also shows the total builder work left, and no longer repeats the tiles' builder and lab numbers.
 - A highlighted "Next finish" chip, and a completion-time chip on every running timer card.
 - Gold Pass: the export has no Gold Pass data, so you set it yourself in a popup that asks once a month (Gold with 10, 15 or 20% Builder and Research reductions, or Silver) and in Settings. It is used for each job's progress bar only, since exported times already include the discount. On Day 4 and Day 8 a dismissible banner asks whether your builder boost has gone up (the unlock days are not confirmed against the game).

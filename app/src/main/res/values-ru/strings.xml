@@ -274,4 +274,16 @@
     <string name="gold_pass_banner">День %1$d: с золотым пропуском бонус строителей может быть уже %2$d%%. Обновить?</string>
     <string name="gold_pass_banner_update">Обновить</string>
     <string name="gold_pass_banner_dismiss">Пока нет</string>
+    <string name="road_title">Путь к максимуму · Ратуша %1$d</string>
+    <string name="road_builders">Строители (здания и герои)</string>
+    <string name="road_builders_split">Около %1$s при %2$d строителях</string>
+    <string name="road_lab">Лаборатория</string>
+    <string name="road_pets">Дом питомцев</string>
+    <string name="road_cost">Нужные ресурсы</string>
+    <string name="resource_gold">Золото</string>
+    <string name="resource_elixir">Эликсир</string>
+    <string name="resource_dark_elixir">Тёмный эликсир</string>
+    <string name="road_walls_cost">Стены (золото или эликсир)</string>
+    <string name="road_include_walls">Учитывать стены</string>
+    <string name="road_note">Оценка по экспорту деревни и встроенным данным игры: базовое время и цены, без зелий, помощников, событий и золотого пропуска. При нескольких строителях это лучший случай.</string>
 </resources>

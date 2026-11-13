@@ -76,6 +76,7 @@ import com.killersparrow1.clashtrackers.core.Countdown
 import com.killersparrow1.clashtrackers.core.EventSettings
 import com.killersparrow1.clashtrackers.core.RowButton
 import com.killersparrow1.clashtrackers.core.RowKind
+import com.killersparrow1.clashtrackers.core.VillageExport
 import com.killersparrow1.clashtrackers.core.SyncLogEntry
 import com.killersparrow1.clashtrackers.core.WidgetModel
 import com.killersparrow1.clashtrackers.sync.SyncRunner
@@ -91,6 +92,7 @@ fun TimerDashboard(
     selectedTag: String?,
     now: Long,
     busy: Boolean,
+    export: VillageExport? = null,
     onSync: () -> Unit,
     onUpdateBoosts: ((ActiveBoostState) -> ActiveBoostState) -> Unit,
     onUpdateEvents: ((EventSettings) -> EventSettings) -> Unit,
@@ -187,6 +189,7 @@ fun TimerDashboard(
 
             if (model.hasData) {
                 item(key = "stats", span = { GridItemSpan(maxLineSpan) }) { StatTiles(model) }
+                item(key = "road_to_max", span = { GridItemSpan(maxLineSpan) }) { RoadToMaxCard(export, model.buildersTotal) }
             }
 
             if (model.hasData) {
