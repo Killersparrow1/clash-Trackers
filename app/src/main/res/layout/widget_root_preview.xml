@@ -2,7 +2,7 @@
 <!-- Launcher widget-picker preview of the timer widget with sample rows. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="match_parent" android:background="@android:color/transparent">
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_gravity="top"
+    <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent"
         android:background="@drawable/widget_panel" android:orientation="vertical" android:padding="10dp">
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical"
             android:orientation="horizontal" android:paddingStart="4dp" android:paddingEnd="4dp" android:paddingBottom="6dp">
@@ -12,7 +12,7 @@
                 android:fontFamily="@font/lilita_one" android:paddingStart="10dp" android:paddingTop="4dp" android:paddingEnd="10dp"
                 android:paddingBottom="6dp" android:text="@string/widget_sync" android:textColor="@color/w_sync_text" android:textSize="13dp" />
         </LinearLayout>
-        <LinearLayout android:layout_width="match_parent" android:layout_height="30dp" android:layout_marginBottom="3dp"
+        <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:layout_marginBottom="3dp"
             android:background="@drawable/row_slot" android:gravity="center_vertical" android:orientation="horizontal"
             android:paddingStart="8dp" android:paddingEnd="8dp">
             <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:fontFamily="@font/lilita_one"
@@ -20,7 +20,7 @@
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="@font/lilita_one"
                 android:text="2:51:02" android:textColor="@color/w_white" android:textSize="13dp" />
         </LinearLayout>
-        <LinearLayout android:layout_width="match_parent" android:layout_height="30dp" android:layout_marginBottom="3dp"
+        <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:layout_marginBottom="3dp"
             android:background="@drawable/row_slot" android:gravity="center_vertical" android:orientation="horizontal"
             android:paddingStart="8dp" android:paddingEnd="8dp">
             <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:fontFamily="@font/lilita_one"
@@ -28,7 +28,7 @@
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="@font/lilita_one"
                 android:text="1d 4h" android:textColor="@color/w_white" android:textSize="13dp" />
         </LinearLayout>
-        <LinearLayout android:layout_width="match_parent" android:layout_height="30dp" android:layout_marginBottom="3dp"
+        <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:layout_marginBottom="3dp"
             android:background="@drawable/row_slot" android:gravity="center_vertical" android:orientation="horizontal"
             android:paddingStart="8dp" android:paddingEnd="8dp">
             <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:fontFamily="@font/lilita_one"
@@ -36,7 +36,7 @@
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="@font/lilita_one"
                 android:text="3d 9h" android:textColor="@color/w_white" android:textSize="13dp" />
         </LinearLayout>
-        <LinearLayout android:layout_width="match_parent" android:layout_height="30dp" android:layout_marginBottom="3dp"
+        <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:layout_marginBottom="3dp"
             android:background="@drawable/row_slot" android:gravity="center_vertical" android:orientation="horizontal"
             android:paddingStart="8dp" android:paddingEnd="8dp">
             <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:fontFamily="@font/lilita_one"
@@ -44,13 +44,21 @@
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="@font/lilita_one"
                 android:text="5d 2h" android:textColor="@color/w_white" android:textSize="13dp" />
         </LinearLayout>
-        <LinearLayout android:layout_width="match_parent" android:layout_height="30dp" android:layout_marginBottom="3dp"
+        <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:layout_marginBottom="3dp"
             android:background="@drawable/row_slot" android:gravity="center_vertical" android:orientation="horizontal"
             android:paddingStart="8dp" android:paddingEnd="8dp">
             <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:fontFamily="@font/lilita_one"
                 android:singleLine="true" android:text="Monkey King ➛ 90" android:textColor="@color/w_white" android:textSize="13.5dp" />
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="@font/lilita_one"
                 android:text="6d 0h" android:textColor="@color/w_white" android:textSize="13dp" />
+        </LinearLayout>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:layout_marginBottom="3dp"
+            android:background="@drawable/row_slot" android:gravity="center_vertical" android:orientation="horizontal"
+            android:paddingStart="8dp" android:paddingEnd="8dp">
+            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:fontFamily="@font/lilita_one"
+                android:singleLine="true" android:text="Gold Mine ➛ 14" android:textColor="@color/w_white" android:textSize="13.5dp" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="@font/lilita_one"
+                android:text="2d 18h" android:textColor="@color/w_white" android:textSize="13dp" />
         </LinearLayout>
     </LinearLayout>
 </FrameLayout>

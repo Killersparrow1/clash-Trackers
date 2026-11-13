@@ -1,78 +1,80 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Launcher widget-picker preview of Road to max with sample numbers (the real layout is empty until it is filled). -->
+<!-- Launcher widget-picker preview of Road to max with sample numbers, laid out like the real widget (three time rows, three resource rows). -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="match_parent"
     android:background="@drawable/widget_panel" android:orientation="vertical" android:padding="10dp">
-    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:fontFamily="@font/lilita_one"
-        android:paddingBottom="6dp" android:singleLine="true" android:text="Road to max · TH16"
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:ellipsize="end" android:fontFamily="@font/lilita_one"
+        android:paddingBottom="6dp" android:singleLine="true" android:text="Chief · Road to max · Town Hall 16"
         android:textColor="@color/w_white" android:textSize="14sp" />
     <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:orientation="horizontal">
         <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:orientation="vertical">
         <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
             android:layout_marginBottom="3dp" android:background="@drawable/row_slot" android:gravity="center_vertical"
-            android:orientation="vertical" android:paddingStart="8dp" android:paddingEnd="8dp">
-            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:singleLine="true"
-                android:text="Builders" android:textColor="@color/w_sub" android:textSize="10sp" />
-            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:fontFamily="@font/lilita_one"
-                android:singleLine="true" android:text="42d 6h" android:textColor="@color/w_white" android:textSize="15sp" />
+            android:orientation="horizontal" android:paddingStart="6dp" android:paddingEnd="8dp">
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:singleLine="true"
+                    android:text="Builders" android:textColor="@color/w_sub" android:textSize="10sp" />
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:fontFamily="@font/lilita_one"
+                    android:singleLine="true" android:text="42 d" android:textColor="@color/w_white" android:textSize="15sp" />
+            </LinearLayout>
         </LinearLayout>
         <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
             android:layout_marginBottom="3dp" android:background="@drawable/row_slot" android:gravity="center_vertical"
-            android:orientation="vertical" android:paddingStart="8dp" android:paddingEnd="8dp">
-            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:singleLine="true"
-                android:text="Heroes" android:textColor="@color/w_sub" android:textSize="10sp" />
-            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:fontFamily="@font/lilita_one"
-                android:singleLine="true" android:text="18d 2h" android:textColor="@color/w_white" android:textSize="15sp" />
+            android:orientation="horizontal" android:paddingStart="6dp" android:paddingEnd="8dp">
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:singleLine="true"
+                    android:text="Laboratory" android:textColor="@color/w_sub" android:textSize="10sp" />
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:fontFamily="@font/lilita_one"
+                    android:singleLine="true" android:text="31 d" android:textColor="@color/w_white" android:textSize="15sp" />
+            </LinearLayout>
         </LinearLayout>
         <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
             android:layout_marginBottom="3dp" android:background="@drawable/row_slot" android:gravity="center_vertical"
-            android:orientation="vertical" android:paddingStart="8dp" android:paddingEnd="8dp">
-            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:singleLine="true"
-                android:text="Laboratory" android:textColor="@color/w_sub" android:textSize="10sp" />
-            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:fontFamily="@font/lilita_one"
-                android:singleLine="true" android:text="31d 9h" android:textColor="@color/w_white" android:textSize="15sp" />
-        </LinearLayout>
-        <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
-            android:layout_marginBottom="3dp" android:background="@drawable/row_slot" android:gravity="center_vertical"
-            android:orientation="vertical" android:paddingStart="8dp" android:paddingEnd="8dp">
-            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:singleLine="true"
-                android:text="Pet House" android:textColor="@color/w_sub" android:textSize="10sp" />
-            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:fontFamily="@font/lilita_one"
-                android:singleLine="true" android:text="6d 12h" android:textColor="@color/w_white" android:textSize="15sp" />
+            android:orientation="horizontal" android:paddingStart="6dp" android:paddingEnd="8dp">
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:singleLine="true"
+                    android:text="Pet House" android:textColor="@color/w_sub" android:textSize="10sp" />
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:fontFamily="@font/lilita_one"
+                    android:singleLine="true" android:text="6 d" android:textColor="@color/w_white" android:textSize="15sp" />
+            </LinearLayout>
         </LinearLayout>
         </LinearLayout>
         <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="6dp" android:layout_weight="1" android:orientation="vertical">
         <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
             android:layout_marginBottom="3dp" android:background="@drawable/row_slot" android:gravity="center_vertical"
-            android:orientation="vertical" android:paddingStart="8dp" android:paddingEnd="8dp">
-            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:singleLine="true"
-                android:text="Gold" android:textColor="@color/w_sub" android:textSize="10sp" />
-            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:fontFamily="@font/lilita_one"
-                android:singleLine="true" android:text="182M" android:textColor="@color/w_white" android:textSize="15sp" />
+            android:orientation="horizontal" android:paddingStart="6dp" android:paddingEnd="8dp">
+            <ImageView android:layout_width="26dp" android:layout_height="26dp" android:layout_marginEnd="6dp"
+                android:contentDescription="@null" android:src="@drawable/road_gold" />
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:singleLine="true"
+                    android:text="Gold" android:textColor="@color/w_sub" android:textSize="10sp" />
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:fontFamily="@font/lilita_one"
+                    android:singleLine="true" android:text="182M" android:textColor="@color/w_white" android:textSize="15sp" />
+            </LinearLayout>
         </LinearLayout>
         <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
             android:layout_marginBottom="3dp" android:background="@drawable/row_slot" android:gravity="center_vertical"
-            android:orientation="vertical" android:paddingStart="8dp" android:paddingEnd="8dp">
-            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:singleLine="true"
-                android:text="Elixir" android:textColor="@color/w_sub" android:textSize="10sp" />
-            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:fontFamily="@font/lilita_one"
-                android:singleLine="true" android:text="204M" android:textColor="@color/w_white" android:textSize="15sp" />
+            android:orientation="horizontal" android:paddingStart="6dp" android:paddingEnd="8dp">
+            <ImageView android:layout_width="26dp" android:layout_height="26dp" android:layout_marginEnd="6dp"
+                android:contentDescription="@null" android:src="@drawable/road_elixir" />
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:singleLine="true"
+                    android:text="Elixir" android:textColor="@color/w_sub" android:textSize="10sp" />
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:fontFamily="@font/lilita_one"
+                    android:singleLine="true" android:text="204M" android:textColor="@color/w_white" android:textSize="15sp" />
+            </LinearLayout>
         </LinearLayout>
         <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
             android:layout_marginBottom="3dp" android:background="@drawable/row_slot" android:gravity="center_vertical"
-            android:orientation="vertical" android:paddingStart="8dp" android:paddingEnd="8dp">
-            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:singleLine="true"
-                android:text="Dark Elixir" android:textColor="@color/w_sub" android:textSize="10sp" />
-            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:fontFamily="@font/lilita_one"
-                android:singleLine="true" android:text="3.1M" android:textColor="@color/w_white" android:textSize="15sp" />
-        </LinearLayout>
-        <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
-            android:layout_marginBottom="3dp" android:background="@drawable/row_slot" android:gravity="center_vertical"
-            android:orientation="vertical" android:paddingStart="8dp" android:paddingEnd="8dp">
-            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:singleLine="true"
-                android:text="Walls" android:textColor="@color/w_sub" android:textSize="10sp" />
-            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:fontFamily="@font/lilita_one"
-                android:singleLine="true" android:text="46M" android:textColor="@color/w_white" android:textSize="15sp" />
+            android:orientation="horizontal" android:paddingStart="6dp" android:paddingEnd="8dp">
+            <ImageView android:layout_width="26dp" android:layout_height="26dp" android:layout_marginEnd="6dp"
+                android:contentDescription="@null" android:src="@drawable/road_dark_elixir" />
+            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:singleLine="true"
+                    android:text="Dark Elixir" android:textColor="@color/w_sub" android:textSize="10sp" />
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:fontFamily="@font/lilita_one"
+                    android:singleLine="true" android:text="3.1M" android:textColor="@color/w_white" android:textSize="15sp" />
+            </LinearLayout>
         </LinearLayout>
         </LinearLayout>
     </LinearLayout>
