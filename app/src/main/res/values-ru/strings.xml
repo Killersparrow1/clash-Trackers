@@ -265,7 +265,7 @@
     <string name="open_game_short">Открыть игру</string>
     <string name="settings_idle_alert">Напоминать, если строитель или лаборатория свободны</string>
     <string name="settings_idle_alert_desc">Отправляет напоминание, если строитель или лаборатория свободны уже %1$d ч с последней синхронизации. Начните улучшение и синхронизируйте, чтобы сбросить. Нужны включённые уведомления о завершении.</string>
-    <string name="total_builder_time">Строители: осталось работы %1$s</string>
+    <string name="total_builder_time">Всего работы строителей: %1$s</string>
     <string name="total_lab_time">Лаборатория: осталось %1$s</string>
     <string name="shortcut_sync_short">Синхр.</string>
     <string name="shortcut_sync_long">Синхронизация из буфера</string>

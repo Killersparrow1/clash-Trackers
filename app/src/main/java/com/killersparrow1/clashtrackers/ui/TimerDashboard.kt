@@ -346,7 +346,6 @@ private fun VillageSummary(model: WidgetModel) {
             Text(
                 listOfNotNull(
                     model.townHall?.let { stringResource(R.string.town_hall, it) },
-                    stringResource(R.string.builders_busy, model.buildersBusy, model.buildersTotal),
                     if (model.goblinWorking) stringResource(R.string.goblin_working) else null,
                     if (model.showBuilderBase) stringResource(R.string.bb_active) else null,
                 ).joinToString(" · "),
@@ -355,13 +354,9 @@ private fun VillageSummary(model: WidgetModel) {
             )
             val dayUnit = stringResource(R.string.time_day_short)
             val builderTotal = model.builderRows.filter { it.kind == RowKind.RUNNING }.sumOf { it.remaining }
-            val labTotal = (listOf(model.labRow) + model.extraLabRows).filter { it.kind == RowKind.RUNNING }.sumOf { it.remaining }
-            if (builderTotal > 0 || labTotal > 0) {
+            if (builderTotal > 0) {
                 Text(
-                    listOfNotNull(
-                        builderTotal.takeIf { it > 0 }?.let { stringResource(R.string.total_builder_time, Countdown.text(it, dayUnit)) },
-                        labTotal.takeIf { it > 0 }?.let { stringResource(R.string.total_lab_time, Countdown.text(it, dayUnit)) },
-                    ).joinToString(" · "),
+                    stringResource(R.string.total_builder_time, Countdown.text(builderTotal, dayUnit)),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
