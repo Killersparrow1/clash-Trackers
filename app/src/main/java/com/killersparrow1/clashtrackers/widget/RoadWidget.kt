@@ -105,9 +105,9 @@ object RoadWidgetUpdater {
         for (id in ids) {
             val tag = repo.getWidgetAccount(id) ?: fallback
             val name = accounts.firstOrNull { it.tag == tag }?.displayName
+            val export = tag?.let { repo.getAccountState(it).export }
             val builders = if (tag == null) 1 else
                 AppSettings(totalBuildersOverride = repo.getAccountSettings(tag).totalBuildersOverride).totalBuilders(export)
-            val export = tag?.let { repo.getAccountState(it).export }
             val road = export?.let { RoadToMaxCalc.compute(data, it) }
             val theme = repo.getWidgetTheme(id)
             val widthDp = manager.getAppWidgetOptions(id).getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 250)
