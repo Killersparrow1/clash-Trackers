@@ -11,6 +11,8 @@
         <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
             android:layout_marginBottom="3dp" android:background="@drawable/row_slot" android:gravity="center_vertical"
             android:orientation="horizontal" android:paddingStart="6dp" android:paddingEnd="8dp">
+            <ImageView android:layout_width="26dp" android:layout_height="26dp" android:layout_marginEnd="6dp"
+                android:contentDescription="@null" android:src="@drawable/road_builders" />
             <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
                 <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:singleLine="true"
                     android:text="Builders" android:textColor="@color/w_sub" android:textSize="10sp" />
@@ -21,6 +23,8 @@
         <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
             android:layout_marginBottom="3dp" android:background="@drawable/row_slot" android:gravity="center_vertical"
             android:orientation="horizontal" android:paddingStart="6dp" android:paddingEnd="8dp">
+            <ImageView android:layout_width="26dp" android:layout_height="26dp" android:layout_marginEnd="6dp"
+                android:contentDescription="@null" android:src="@drawable/road_lab" />
             <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
                 <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:singleLine="true"
                     android:text="Laboratory" android:textColor="@color/w_sub" android:textSize="10sp" />
@@ -31,6 +35,8 @@
         <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
             android:layout_marginBottom="3dp" android:background="@drawable/row_slot" android:gravity="center_vertical"
             android:orientation="horizontal" android:paddingStart="6dp" android:paddingEnd="8dp">
+            <ImageView android:layout_width="26dp" android:layout_height="26dp" android:layout_marginEnd="6dp"
+                android:contentDescription="@null" android:src="@drawable/road_pets" />
             <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
                 <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:singleLine="true"
                     android:text="Pet House" android:textColor="@color/w_sub" android:textSize="10sp" />
