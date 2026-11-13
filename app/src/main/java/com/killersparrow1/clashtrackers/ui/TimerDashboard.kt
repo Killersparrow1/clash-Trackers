@@ -483,7 +483,7 @@ private fun TimerCard(timer: DashboardTimer) {
                         modifier = Modifier.size(48.dp).clip(MaterialTheme.shapes.medium),
                     )
                 }
-                Text(SyncRunner.plainText(row.label), style = MaterialTheme.typography.titleLargeEmphasized)
+                Text(row.label.replace(" → ", " ➛ "), style = MaterialTheme.typography.titleLargeEmphasized)
             }
             BasicText(
                 if (row.kind == RowKind.RUNNING) Countdown.text(row.remaining, stringResource(R.string.time_day_short)) else row.staticStatus,
