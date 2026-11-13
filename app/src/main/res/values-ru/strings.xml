@@ -6,7 +6,7 @@
 -->
 <resources>
     <string name="app_name">Clash Trackers</string>
-    <string name="widget_name">Clash Trackers</string>
+    <string name="widget_name">Таймеры улучшений</string>
     <string name="widget_description">Таймеры строителей, лаборатории и питомцев из экспорта данных деревни</string>
     <string name="action_cancel">Отмена</string>
     <string name="action_close">Закрыть</string>
