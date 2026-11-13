@@ -73,7 +73,7 @@ fun SupportScreen(state: AppState, model: WidgetModel, log: SyncLog, timesCount:
 
     // The current state is a key: diagnostics never keep the initial, empty export captured.
     LaunchedEffect(state, now / 10) {
-        widgetCount = runCatching { WidgetUpdater.widgetIds(context).size }.getOrDefault(-1)
+        widgetCount = runCatching { WidgetUpdater.widgetIds(context).size + com.killersparrow1.clashtrackers.widget.RoadWidgetUpdater.ids(context).size }.getOrDefault(-1)
         widgetSizes = runCatching { widgetSizeReport(context, state) }.getOrDefault("")
     }
 
@@ -185,7 +185,15 @@ internal fun widgetSizeReport(context: android.content.Context, state: AppState)
     val r = context.resources
     val manager = AppWidgetManager.getInstance(context)
     val rows = (state.export?.jobs?.size ?: 0) + 2
-    return WidgetUpdater.widgetIds(context).joinToString("\n") { id ->
+    val road = com.killersparrow1.clashtrackers.widget.RoadWidgetUpdater.ids(context).joinToString("\n") { id ->
+        val o = manager.getAppWidgetOptions(id)
+        val w = WidgetRenderer.reportedWidthDp(o)
+        val h = WidgetRenderer.reportedHeightDp(o)
+        val size = if (w != null && h != null) r.getString(R.string.support_size_dp, w, h)
+            else r.getString(R.string.support_size_not_reported)
+        "Road to max #$id: $size, ${if ((w ?: 0) >= 200) "two columns" else "times only"}"
+    }
+    val timers = WidgetUpdater.widgetIds(context).joinToString("\n") { id ->
         val o = manager.getAppWidgetOptions(id)
         val w = WidgetRenderer.reportedWidthDp(o)
         val h = WidgetRenderer.reportedHeightDp(o)
@@ -196,6 +204,7 @@ internal fun widgetSizeReport(context: android.content.Context, state: AppState)
         val need = r.getString(R.string.support_rows_need, rowSize, WidgetRenderer.normalHeightDp(rows))
         r.getString(R.string.support_widget_size_line, id, size, need)
     }
+    return listOf(timers, road).filter { it.isNotEmpty() }.joinToString("\n")
 }
 
 /** The widget model as text, so a rendering problem can be told apart from a data problem. */
