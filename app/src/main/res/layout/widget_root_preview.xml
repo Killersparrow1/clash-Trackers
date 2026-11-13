@@ -1,64 +1,153 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Launcher widget-picker preview of the timer widget with sample rows. -->
+<!-- Launcher widget-picker preview of the timer widget: the real header, builders line and row design with sample data. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="match_parent" android:background="@android:color/transparent">
-    <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent"
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_gravity="top"
         android:background="@drawable/widget_panel" android:orientation="vertical" android:padding="10dp">
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical"
-            android:orientation="horizontal" android:paddingStart="4dp" android:paddingEnd="4dp" android:paddingBottom="6dp">
-            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
-                android:fontFamily="@font/lilita_one" android:text="Chief" android:textColor="@color/w_white" android:textSize="17dp" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:background="@drawable/btn_sync"
-                android:fontFamily="@font/lilita_one" android:paddingStart="10dp" android:paddingTop="4dp" android:paddingEnd="10dp"
-                android:paddingBottom="6dp" android:text="@string/widget_sync" android:textColor="@color/w_sync_text" android:textSize="13dp" />
+            android:orientation="horizontal" android:paddingStart="4dp" android:paddingTop="2dp" android:paddingEnd="4dp" android:paddingBottom="6dp">
+            <TextView style="@style/WidgetText" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                android:ellipsize="end" android:fontFamily="@font/lilita_one" android:singleLine="true" android:text="Chief" android:textSize="17dp" />
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:background="@drawable/btn_sync"
+                android:gravity="center_vertical" android:orientation="horizontal" android:paddingStart="10dp" android:paddingTop="4dp" android:paddingEnd="10dp" android:paddingBottom="6dp">
+                <ImageView android:layout_width="13dp" android:layout_height="13dp" android:layout_marginEnd="5dp" android:src="@drawable/ic_sync" />
+                <TextView style="@style/WidgetText" android:fontFamily="@font/lilita_one" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:shadowDy="0" android:shadowRadius="0" android:text="@string/widget_sync" android:textColor="@color/w_sync_text" android:textSize="13dp" />
+            </LinearLayout>
         </LinearLayout>
-        <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:layout_marginBottom="3dp"
-            android:background="@drawable/row_slot" android:gravity="center_vertical" android:orientation="horizontal"
-            android:paddingStart="8dp" android:paddingEnd="8dp">
-            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:fontFamily="@font/lilita_one"
-                android:singleLine="true" android:text="Archer Queen ➛ 63" android:textColor="@color/w_white" android:textSize="13.5dp" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="@font/lilita_one"
-                android:text="2:51:02" android:textColor="@color/w_white" android:textSize="13dp" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="2dp" android:layout_marginTop="4dp"
+            android:layout_marginEnd="2dp" android:layout_marginBottom="3dp" android:gravity="center_vertical" android:orientation="horizontal" android:paddingStart="2dp" android:paddingEnd="2dp">
+            <TextView style="@style/WidgetText.Section" android:fontFamily="@font/lilita_one" android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:text="Builders 5/5" />
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="22dp" android:background="@drawable/pill_off" android:gravity="center_vertical"
+                android:orientation="horizontal" android:paddingStart="7dp" android:paddingEnd="7dp">
+                <ImageView android:layout_width="14dp" android:layout_height="14dp" android:layout_marginEnd="3dp" android:src="@drawable/ic_builder_bite" />
+                <TextView style="@style/WidgetText.Pill" android:fontFamily="@font/lilita_one" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Bite" />
+            </LinearLayout>
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="22dp" android:layout_marginStart="5dp" android:background="@drawable/pill_off"
+                android:gravity="center_vertical" android:orientation="horizontal" android:paddingStart="7dp" android:paddingEnd="7dp">
+                <ImageView android:layout_width="14dp" android:layout_height="14dp" android:layout_marginEnd="3dp" android:src="@drawable/ic_builder_potion" />
+                <TextView style="@style/WidgetText.Pill" android:fontFamily="@font/lilita_one" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="+1" />
+            </LinearLayout>
         </LinearLayout>
-        <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:layout_marginBottom="3dp"
-            android:background="@drawable/row_slot" android:gravity="center_vertical" android:orientation="horizontal"
-            android:paddingStart="8dp" android:paddingEnd="8dp">
-            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:fontFamily="@font/lilita_one"
-                android:singleLine="true" android:text="Cannon ➛ 21" android:textColor="@color/w_white" android:textSize="13.5dp" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="@font/lilita_one"
-                android:text="1d 4h" android:textColor="@color/w_white" android:textSize="13dp" />
-        </LinearLayout>
-        <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:layout_marginBottom="3dp"
-            android:background="@drawable/row_slot" android:gravity="center_vertical" android:orientation="horizontal"
-            android:paddingStart="8dp" android:paddingEnd="8dp">
-            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:fontFamily="@font/lilita_one"
-                android:singleLine="true" android:text="Laboratory ➛ 16" android:textColor="@color/w_white" android:textSize="13.5dp" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="@font/lilita_one"
-                android:text="3d 9h" android:textColor="@color/w_white" android:textSize="13dp" />
-        </LinearLayout>
-        <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:layout_marginBottom="3dp"
-            android:background="@drawable/row_slot" android:gravity="center_vertical" android:orientation="horizontal"
-            android:paddingStart="8dp" android:paddingEnd="8dp">
-            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:fontFamily="@font/lilita_one"
-                android:singleLine="true" android:text="Wizard Tower ➛ 17" android:textColor="@color/w_white" android:textSize="13.5dp" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="@font/lilita_one"
-                android:text="5d 2h" android:textColor="@color/w_white" android:textSize="13dp" />
-        </LinearLayout>
-        <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:layout_marginBottom="3dp"
-            android:background="@drawable/row_slot" android:gravity="center_vertical" android:orientation="horizontal"
-            android:paddingStart="8dp" android:paddingEnd="8dp">
-            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:fontFamily="@font/lilita_one"
-                android:singleLine="true" android:text="Monkey King ➛ 90" android:textColor="@color/w_white" android:textSize="13.5dp" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="@font/lilita_one"
-                android:text="6d 0h" android:textColor="@color/w_white" android:textSize="13dp" />
-        </LinearLayout>
-        <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:layout_marginBottom="3dp"
-            android:background="@drawable/row_slot" android:gravity="center_vertical" android:orientation="horizontal"
-            android:paddingStart="8dp" android:paddingEnd="8dp">
-            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:fontFamily="@font/lilita_one"
-                android:singleLine="true" android:text="Gold Mine ➛ 14" android:textColor="@color/w_white" android:textSize="13.5dp" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="@font/lilita_one"
-                android:text="2d 18h" android:textColor="@color/w_white" android:textSize="13dp" />
-        </LinearLayout>
+        <FrameLayout android:layout_width="match_parent" android:layout_height="30dp" android:layout_marginBottom="3dp" android:background="@drawable/row_slot">
+            <ProgressBar style="@android:style/Widget.ProgressBar.Horizontal" android:layout_width="match_parent" android:layout_height="match_parent"
+                android:layout_margin="1.5dp" android:indeterminate="false" android:indeterminateOnly="false" android:max="1000"
+                android:maxHeight="200dp" android:minHeight="0dp" android:progress="720" android:progressDrawable="@drawable/row_fill" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical" android:orientation="horizontal">
+                <FrameLayout android:layout_width="24dp" android:layout_height="24dp" android:layout_marginStart="3dp" android:layout_marginEnd="6dp" android:background="@drawable/icon_slot">
+                    <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null"
+                        android:padding="1dp" android:scaleType="fitCenter" android:src="@drawable/prev_queen" />
+                </FrameLayout>
+                <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center_vertical" android:orientation="horizontal">
+                    <TextView style="@style/WidgetText.Name" android:fontFamily="@font/lilita_one" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:singleLine="true" android:text="Archer Queen" android:textSize="13.5dp" />
+                    <ImageView android:layout_width="10dp" android:layout_height="10dp" android:layout_marginStart="4dp" android:layout_marginEnd="2dp" android:src="@drawable/ic_arrow" />
+                    <TextView style="@style/WidgetText.Level" android:fontFamily="@font/lilita_one" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:layout_marginStart="2dp" android:text="63" android:textSize="11dp" />
+                </LinearLayout>
+                <ImageView android:layout_width="12dp" android:layout_height="12dp" android:layout_marginStart="4dp" android:layout_marginEnd="3dp" android:src="@drawable/ic_clock" />
+                <TextView style="@style/WidgetText.Time" android:fontFamily="@font/lilita_one" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:paddingEnd="4dp" android:text="2:51:02" android:textSize="13dp" />
+            <FrameLayout android:layout_width="22dp" android:layout_height="22dp" android:layout_marginEnd="4dp" android:background="@drawable/btn_plus">
+                <TextView style="@style/WidgetSmallSans" android:layout_width="match_parent" android:layout_height="match_parent"
+                    android:fontFamily="sans-serif" android:text="+" android:textColor="#FFFFFF" android:textSize="15dp" android:textStyle="bold" />
+            </FrameLayout>
+            </LinearLayout>
+        </FrameLayout>
+        <FrameLayout android:layout_width="match_parent" android:layout_height="30dp" android:layout_marginBottom="3dp" android:background="@drawable/row_slot">
+            <ProgressBar style="@android:style/Widget.ProgressBar.Horizontal" android:layout_width="match_parent" android:layout_height="match_parent"
+                android:layout_margin="1.5dp" android:indeterminate="false" android:indeterminateOnly="false" android:max="1000"
+                android:maxHeight="200dp" android:minHeight="0dp" android:progress="450" android:progressDrawable="@drawable/row_fill" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical" android:orientation="horizontal">
+                <FrameLayout android:layout_width="24dp" android:layout_height="24dp" android:layout_marginStart="3dp" android:layout_marginEnd="6dp" android:background="@drawable/icon_slot">
+                    <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null"
+                        android:padding="1dp" android:scaleType="fitCenter" android:src="@drawable/prev_cannon" />
+                </FrameLayout>
+                <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center_vertical" android:orientation="horizontal">
+                    <TextView style="@style/WidgetText.Name" android:fontFamily="@font/lilita_one" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:singleLine="true" android:text="Cannon" android:textSize="13.5dp" />
+                    <ImageView android:layout_width="10dp" android:layout_height="10dp" android:layout_marginStart="4dp" android:layout_marginEnd="2dp" android:src="@drawable/ic_arrow" />
+                    <TextView style="@style/WidgetText.Level" android:fontFamily="@font/lilita_one" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:layout_marginStart="2dp" android:text="21" android:textSize="11dp" />
+                </LinearLayout>
+                <ImageView android:layout_width="12dp" android:layout_height="12dp" android:layout_marginStart="4dp" android:layout_marginEnd="3dp" android:src="@drawable/ic_clock" />
+                <TextView style="@style/WidgetText.Time" android:fontFamily="@font/lilita_one" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:paddingEnd="4dp" android:text="1d 4h" android:textSize="13dp" />
+            <FrameLayout android:layout_width="22dp" android:layout_height="22dp" android:layout_marginEnd="4dp" android:background="@drawable/btn_plus">
+                <TextView style="@style/WidgetSmallSans" android:layout_width="match_parent" android:layout_height="match_parent"
+                    android:fontFamily="sans-serif" android:text="+" android:textColor="#FFFFFF" android:textSize="15dp" android:textStyle="bold" />
+            </FrameLayout>
+            </LinearLayout>
+        </FrameLayout>
+        <FrameLayout android:layout_width="match_parent" android:layout_height="30dp" android:layout_marginBottom="3dp" android:background="@drawable/row_slot">
+            <ProgressBar style="@android:style/Widget.ProgressBar.Horizontal" android:layout_width="match_parent" android:layout_height="match_parent"
+                android:layout_margin="1.5dp" android:indeterminate="false" android:indeterminateOnly="false" android:max="1000"
+                android:maxHeight="200dp" android:minHeight="0dp" android:progress="200" android:progressDrawable="@drawable/row_fill" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical" android:orientation="horizontal">
+                <FrameLayout android:layout_width="24dp" android:layout_height="24dp" android:layout_marginStart="3dp" android:layout_marginEnd="6dp" android:background="@drawable/icon_slot">
+                    <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null"
+                        android:padding="1dp" android:scaleType="fitCenter" android:src="@drawable/prev_wizard" />
+                </FrameLayout>
+                <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center_vertical" android:orientation="horizontal">
+                    <TextView style="@style/WidgetText.Name" android:fontFamily="@font/lilita_one" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:singleLine="true" android:text="Wizard Tower" android:textSize="13.5dp" />
+                    <ImageView android:layout_width="10dp" android:layout_height="10dp" android:layout_marginStart="4dp" android:layout_marginEnd="2dp" android:src="@drawable/ic_arrow" />
+                    <TextView style="@style/WidgetText.Level" android:fontFamily="@font/lilita_one" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:layout_marginStart="2dp" android:text="17" android:textSize="11dp" />
+                </LinearLayout>
+                <ImageView android:layout_width="12dp" android:layout_height="12dp" android:layout_marginStart="4dp" android:layout_marginEnd="3dp" android:src="@drawable/ic_clock" />
+                <TextView style="@style/WidgetText.Time" android:fontFamily="@font/lilita_one" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:paddingEnd="4dp" android:text="5d 2h" android:textSize="13dp" />
+            <FrameLayout android:layout_width="22dp" android:layout_height="22dp" android:layout_marginEnd="4dp" android:background="@drawable/btn_plus">
+                <TextView style="@style/WidgetSmallSans" android:layout_width="match_parent" android:layout_height="match_parent"
+                    android:fontFamily="sans-serif" android:text="+" android:textColor="#FFFFFF" android:textSize="15dp" android:textStyle="bold" />
+            </FrameLayout>
+            </LinearLayout>
+        </FrameLayout>
+        <FrameLayout android:layout_width="match_parent" android:layout_height="30dp" android:layout_marginBottom="3dp" android:background="@drawable/row_slot">
+            <ProgressBar style="@android:style/Widget.ProgressBar.Horizontal" android:layout_width="match_parent" android:layout_height="match_parent"
+                android:layout_margin="1.5dp" android:indeterminate="false" android:indeterminateOnly="false" android:max="1000"
+                android:maxHeight="200dp" android:minHeight="0dp" android:progress="600" android:progressDrawable="@drawable/row_fill" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical" android:orientation="horizontal">
+                <FrameLayout android:layout_width="24dp" android:layout_height="24dp" android:layout_marginStart="3dp" android:layout_marginEnd="6dp" android:background="@drawable/icon_slot">
+                    <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null"
+                        android:padding="1dp" android:scaleType="fitCenter" android:src="@drawable/prev_lab" />
+                </FrameLayout>
+                <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center_vertical" android:orientation="horizontal">
+                    <TextView style="@style/WidgetText.Name" android:fontFamily="@font/lilita_one" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:singleLine="true" android:text="Laboratory" android:textSize="13.5dp" />
+                    <ImageView android:layout_width="10dp" android:layout_height="10dp" android:layout_marginStart="4dp" android:layout_marginEnd="2dp" android:src="@drawable/ic_arrow" />
+                    <TextView style="@style/WidgetText.Level" android:fontFamily="@font/lilita_one" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:layout_marginStart="2dp" android:text="16" android:textSize="11dp" />
+                </LinearLayout>
+                <ImageView android:layout_width="12dp" android:layout_height="12dp" android:layout_marginStart="4dp" android:layout_marginEnd="3dp" android:src="@drawable/ic_clock" />
+                <TextView style="@style/WidgetText.Time" android:fontFamily="@font/lilita_one" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:paddingEnd="4dp" android:text="3d 9h" android:textSize="13dp" />
+            <ImageView android:layout_width="22dp" android:layout_height="22dp" android:layout_marginEnd="4dp" android:visibility="invisible" />
+            </LinearLayout>
+        </FrameLayout>
+        <FrameLayout android:layout_width="match_parent" android:layout_height="30dp" android:layout_marginBottom="3dp" android:background="@drawable/row_slot">
+            <ProgressBar style="@android:style/Widget.ProgressBar.Horizontal" android:layout_width="match_parent" android:layout_height="match_parent"
+                android:layout_margin="1.5dp" android:indeterminate="false" android:indeterminateOnly="false" android:max="1000"
+                android:maxHeight="200dp" android:minHeight="0dp" android:progress="300" android:progressDrawable="@drawable/row_fill" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center_vertical" android:orientation="horizontal">
+                <FrameLayout android:layout_width="24dp" android:layout_height="24dp" android:layout_marginStart="3dp" android:layout_marginEnd="6dp" android:background="@drawable/icon_slot">
+                    <ImageView android:layout_width="match_parent" android:layout_height="match_parent" android:contentDescription="@null"
+                        android:padding="1dp" android:scaleType="fitCenter" android:src="@drawable/prev_pet" />
+                </FrameLayout>
+                <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center_vertical" android:orientation="horizontal">
+                    <TextView style="@style/WidgetText.Name" android:fontFamily="@font/lilita_one" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:singleLine="true" android:text="Pet House" android:textSize="13.5dp" />
+                    <ImageView android:layout_width="10dp" android:layout_height="10dp" android:layout_marginStart="4dp" android:layout_marginEnd="2dp" android:src="@drawable/ic_arrow" />
+                    <TextView style="@style/WidgetText.Level" android:fontFamily="@font/lilita_one" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:layout_marginStart="2dp" android:text="6" android:textSize="11dp" />
+                </LinearLayout>
+                <ImageView android:layout_width="12dp" android:layout_height="12dp" android:layout_marginStart="4dp" android:layout_marginEnd="3dp" android:src="@drawable/ic_clock" />
+                <TextView style="@style/WidgetText.Time" android:fontFamily="@font/lilita_one" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:paddingEnd="4dp" android:text="2:05:09" android:textSize="13dp" />
+            <ImageView android:layout_width="22dp" android:layout_height="22dp" android:layout_marginEnd="4dp" android:visibility="invisible" />
+            </LinearLayout>
+        </FrameLayout>
     </LinearLayout>
 </FrameLayout>
