@@ -41,8 +41,7 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -234,18 +233,18 @@ fun TimerDashboard(
  * are deleted by that step, so no new files are needed.)
  */
 @Composable
-private fun AccountPicture(townHall: Int?) {
+private fun AccountPicture(townHall: Int?, size: androidx.compose.ui.unit.Dp = 28.dp) {
     val context = LocalContext.current
     val density = LocalDensity.current
-    val bitmap = remember(townHall) {
-        val px = with(density) { 28.dp.roundToPx() }
+    val bitmap = remember(townHall, size) {
+        val px = with(density) { size.roundToPx() }
         WidgetIcons.get(context).bitmapForLevel(1000001, townHall, px)?.asImageBitmap()
     }
     if (bitmap != null) {
         Image(
             bitmap = bitmap,
             contentDescription = null,
-            modifier = Modifier.size(28.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceContainerHighest).padding(2.dp),
+            modifier = Modifier.size(size).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceContainerHighest).padding(2.dp),
         )
     }
 }
@@ -262,47 +261,72 @@ private fun AccountSwitcherBar(
     var showDeleteConfirm by remember { mutableStateOf(false) }
     val selectedAccount = accounts.firstOrNull { it.tag == selectedTag } ?: accounts.firstOrNull()
 
-    var menuOpen by remember { mutableStateOf(false) }
-    // One compact button: tap it for every account, plus Rename / Delete for the current one.
+    var sheetOpen by remember { mutableStateOf(false) }
+    // One compact button; tapping it opens the Accounts sheet (every account, Rename / Delete for the current one, how to add another).
     Box(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
         AssistChip(
-            onClick = { menuOpen = true },
+            onClick = { sheetOpen = true },
             label = { Text("${selectedAccount?.displayName ?: ""}${selectedAccount?.townHall?.let { " \u00B7 TH$it" } ?: ""} \u25BE") },
             leadingIcon = { AccountPicture(selectedAccount?.townHall) },
         )
-        DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
-            accounts.forEach { acct ->
-                DropdownMenuItem(
-                    leadingIcon = { AccountPicture(acct.townHall) },
-                    text = {
-                        Column {
-                            Text((if (acct.tag == selectedAccount?.tag) "\u2713  " else "") + acct.displayName + (acct.townHall?.let { " \u00B7 TH$it" } ?: ""))
-                            Text(acct.tag, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                    },
-                    onClick = {
-                        menuOpen = false
-                        onSelect(acct.tag)
-                    },
-                )
-            }
-            if (selectedAccount != null) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.action_rename)) },
-                    onClick = {
-                        menuOpen = false
-                        showRenameDialog = true
-                    },
-                )
-                if (accounts.size > 1) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) },
-                        onClick = {
-                            menuOpen = false
-                            showDeleteConfirm = true
-                        },
+    }
+
+    if (sheetOpen) {
+        @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+        ModalBottomSheet(onDismissRequest = { sheetOpen = false }) {
+            Column(Modifier.padding(horizontal = 24.dp).padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Text(stringResource(R.string.accounts_title), style = MaterialTheme.typography.headlineSmall)
+                    Text(
+                        stringResource(R.string.accounts_count, accounts.size),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
+                Spacer(Modifier.size(8.dp))
+                accounts.forEach { acct ->
+                    val selected = acct.tag == selectedAccount?.tag
+                    Row(
+                        Modifier.fillMaxWidth().clip(MaterialTheme.shapes.large)
+                            .clickable { sheetOpen = false; onSelect(acct.tag) }
+                            .padding(vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(14.dp),
+                    ) {
+                        Box(
+                            Modifier.size(52.dp).clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+                                .then(if (selected) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, CircleShape) else Modifier),
+                            contentAlignment = Alignment.Center,
+                        ) { AccountPicture(acct.townHall, 44.dp) }
+                        Column(Modifier.weight(1f)) {
+                            Text(acct.displayName, style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                listOfNotNull(acct.townHall?.let { stringResource(R.string.town_hall, it) }, acct.tag).joinToString(" \u00B7 "),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        if (selected) Icon(painterResource(R.drawable.ic_check), contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                    }
+                    if (selected) {
+                        Row(Modifier.padding(start = 66.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            TextButton(onClick = { sheetOpen = false; showRenameDialog = true }) { Text(stringResource(R.string.action_rename)) }
+                            if (accounts.size > 1) {
+                                TextButton(onClick = { sheetOpen = false; showDeleteConfirm = true }) {
+                                    Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error)
+                                }
+                            }
+                        }
+                    }
+                }
+                Spacer(Modifier.size(8.dp))
+                Text(stringResource(R.string.accounts_add), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
+                Text(
+                    stringResource(R.string.accounts_add_hint),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
     }

@@ -6,6 +6,10 @@
     <string name="action_close">Close</string>
     <string name="action_configure">Configure</string>
     <string name="action_delete">Delete</string>
+    <string name="accounts_title">Accounts</string>
+    <string name="accounts_count">%1$d saved</string>
+    <string name="accounts_add">+ Add account</string>
+    <string name="accounts_add_hint">Switch to the other account in Clash of Clans, copy its Data Export, then tap Import village from clipboard. Each player tag becomes its own account.</string>
     <string name="action_rename">Rename</string>
     <string name="action_reset">Reset</string>
     <string name="action_save">Save</string>
