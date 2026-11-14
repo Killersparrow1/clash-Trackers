@@ -48,6 +48,7 @@ import com.killersparrow1.clashtrackers.core.WidgetModel
 
 private enum class Destination(@StringRes val labelRes: Int, val icon: Int) {
     TIMERS(R.string.nav_timers, R.drawable.ic_timers),
+    PLAN(R.string.nav_plan, R.drawable.ic_plan),
     SETTINGS(R.string.nav_settings, R.drawable.ic_settings),
     SUPPORT(R.string.nav_support, R.drawable.ic_support),
 }
@@ -176,6 +177,7 @@ fun ClashTrackersContent(
                                     onDeleteAccount = onDeleteAccount,
                                     wide = wide,
                                 )
+                                Destination.PLAN -> PlanScreen(state.export, model, now)
                                 Destination.SETTINGS -> LazyColumn(
                                     modifier = Modifier.fillMaxSize(),
                                     contentPadding = PaddingValues(16.dp),

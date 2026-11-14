@@ -9,6 +9,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 ### Added
 
 - Road to max: the Builders time is now per builder count (work divided by your builders, in the card and the widget); the total work is shown under it.
+- New **Plan** tab (second tab). It holds Road to max (moved out of Timers) and **Bedtime**: pick when you sleep and see what to start in each free builder, lab or pet slot so it runs through the night and ends while you are awake. Estimates from base times.
 - Timers: the account button opens an Accounts sheet (Town Hall picture, name, tag, tick on the current one, Rename and Delete, how to add another).
 - Town Hall pictures are now 384 px for a sharp card.
 - Header: the Open game button is just the game icon now (no pill or text).

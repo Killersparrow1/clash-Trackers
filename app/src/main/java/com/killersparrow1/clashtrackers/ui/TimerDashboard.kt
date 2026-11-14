@@ -192,7 +192,6 @@ fun TimerDashboard(
 
             if (model.hasData) {
                 item(key = "stats", span = { GridItemSpan(maxLineSpan) }) { StatTiles(model) }
-                item(key = "road_to_max", span = { GridItemSpan(maxLineSpan) }) { RoadToMaxCard(export, model.buildersTotal) }
             }
 
             if (model.hasData) {

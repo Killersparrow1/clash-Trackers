@@ -110,6 +110,7 @@ Five colour themes, chosen per widget: **Material You** (follows your phone's wa
 ### 🌍 Languages
 - **In-app Language Picker**: Choose a language in **Settings → Language** (or use Android's *App languages* screen on Android 13+). The home-screen widget follows your choice.
 - **Available now**: English and Russian (first Russian draft, native-speaker review welcome).
+- **Plan tab**: **Road to max** (time and resources left to max your Town Hall, estimated from the export and bundled game data) and **Bedtime**: set when you sleep and it lists the upgrades to start in each free builder, lab or pet slot so they run through the night and finish after you wake. Estimates use base times, so potions, helpers and the Gold Pass are not counted.
 - **Fully Localized**: Upgrade and building names (all 250 game IDs: buildings, troops, pets, spells, hero equipment and traps), countdown units such as `1д 20:12:05`, the widget's footer and labels ("Готово", "Помощники: …"), and the Support diagnostics are all translated.
 - **Add your language**: Copy one XML file, optionally one JSON file, and add one line each — no coding needed. See [Adding a language](CONTRIBUTING.md#adding-a-language).
 - **Still English**: The About section body (Supercell's required fan-content wording and licence text), the sync toast summary and the runtime sync-log lines.
