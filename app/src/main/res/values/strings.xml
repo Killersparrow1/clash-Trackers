@@ -226,7 +226,16 @@
     <string name="widget_style_minimal">Minimal</string>
     <string name="about_version">Clash Trackers %1$s</string>
     <string name="about_check_updates">Check for updates</string>
-    <string name="about_updates_note">Opens the latest release on GitHub in your browser. The app itself stays offline.</string>
+    <string name="about_updates_note">Checks GitHub for a newer release and installs it here. The only time this app goes online is when you tap these buttons.</string>
+    <string name="update_checking">Checking…</string>
+    <string name="update_up_to_date">You have the latest version.</string>
+    <string name="update_available">Version %1$s is available</string>
+    <string name="update_download_install">Download and install</string>
+    <string name="update_downloading">Downloading… %1$d%%</string>
+    <string name="update_allow_install">Allow installs from this app</string>
+    <string name="update_allow_note">Android needs your OK once: turn on "Allow from this source", then come back and tap Download and install.</string>
+    <string name="update_failed">Could not update: %1$s</string>
+    <string name="update_releases_page">Open the releases page</string>
     <string name="about_no_browser">No browser found on this phone.</string>
     <string name="about_feedback_title">Issues and feature requests</string>
     <string name="about_feedback_note">Found a bug or have an idea? Open it on GitHub (opens in your browser, a free GitHub account is needed to post).</string>

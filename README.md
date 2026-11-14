@@ -8,12 +8,12 @@
 
 ![Android 8.0+](https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white)
 ![Material 3 Expressive](https://img.shields.io/badge/Material_3-Expressive-6750A4?logo=googlematerial&logoColor=white)
-![Fully Offline](https://img.shields.io/badge/Privacy-100%25%20Offline-00C853)
+![Fully Offline](https://img.shields.io/badge/Privacy-No%20tracking-00C853)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 </div>
 
-A modern, offline Android application and home-screen widget for **Clash of Clans** that tracks your Home Village and Builder Base upgrade countdowns, potions, and special events in real time.
+A modern Android application and home-screen widget for **Clash of Clans** that tracks your Home Village and Builder Base upgrade countdowns, potions, and special events in real time.
 
 Redesigned with **Material 3 Expressive**, authentic Clash typography, an advanced boost calculation engine, and full Builder Base support.
 
@@ -122,15 +122,15 @@ Five colour themes, chosen per widget: **Material You** (follows your phone's wa
 - **Follow Do Not Disturb**: A switch in **Settings → Notifications** (on by default) keeps alerts quiet during Do Not Disturb and uses your notification volume. Turn it off for an alarm-style alert that rings through Do Not Disturb.
 
 ### ⬆️ Updates, Feedback & Releases
-- **Check for updates**: A prominent card in **Support → About** opens the latest GitHub release in your browser. The app itself stays offline; only your browser goes online.
+- **Update from inside the app**: **Support → About → Check for updates** looks up the latest GitHub release, shows what is new, downloads the APK and hands it to Android's installer. Android asks once to allow installs from this app and always asks you to confirm. Builds use a fixed signing key, so updates install over the old version.
 - **Issues and feature requests**: **Support → About** also has *Report an issue*, *Request a feature* and *See open issues* buttons that open [GitHub Issues](https://github.com/Killersparrow1/clash-Trackers/issues/). *Report an issue* also copies a diagnostic report to your clipboard so you can paste it into the issue.
 - **Diagnostics and report**: **Support → Diagnostics** starts with a health checklist (saved village, notifications, exact alarms, battery restriction, icons) and has **Copy report** / **Share report** buttons. The report lists app, Android and phone info, widget sizes, what the last import detected, which icon each widget row uses, recent activity and the last crash. It never includes your player tag or name.
-- **Obtainium (automatic updates)**: Add the app to [Obtainium](https://github.com/ImranR98/Obtainium) and it tells you about every new release, then downloads and installs the APK for you. In Obtainium tap **Add App**, paste `https://github.com/Killersparrow1/clash-Trackers`, and tap **Add**. Each release has a single APK named `ClashTrackers-CT<version>.apk`, so the defaults work. Your updates install over the old version because the builds are signed with a fixed key. The app itself stays offline; Obtainium does the checking.
+- **Obtainium (automatic updates)**: Add the app to [Obtainium](https://github.com/ImranR98/Obtainium) and it tells you about every new release, then downloads and installs the APK for you. In Obtainium tap **Add App**, paste `https://github.com/Killersparrow1/clash-Trackers`, and tap **Add**. Each release has a single APK named `ClashTrackers-CT<version>.apk`, so the defaults work. Your updates install over the old version because the builds are signed with a fixed key. 
 - **Install over the old version**: Builds are signed with a fixed key, so a new APK installs on top of the previous one without uninstalling (the version number must be higher).
 - **Release names**: Releases are named `CT2.1`, `CT2.2` ... `CT3.0`, and the app shows the same name in **Support → About** (see **Releasing** below).
 
-### 🔒 100% Offline Privacy
-- **Zero Internet Permission**: The app does not request `android.permission.INTERNET`. It cannot send or receive data over the network.
+### 🔒 Privacy
+- **Internet only for updates**: The app requests `android.permission.INTERNET` solely for the in-app update (a GitHub release lookup and APK download, started by you). Your village data never leaves the phone; there is no account, no ads and no tracking.
 - **No Accounts & No Ads**: Completely private; your village data never leaves your device.
 - **Clipboard Only For Village Data**: The clipboard is read when you tap **Sync** or open the app, and only a Clash of Clans village export is used.
 
@@ -213,9 +213,10 @@ cd clash-trackers
 | `USE_EXACT_ALARM` / `SCHEDULE_EXACT_ALARM` | Schedules exact alarms to wake and re-render the widget at upgrade completion times. |
 | `POST_NOTIFICATIONS` | Alerts you the exact second an upgrade finishes so you can start the next one. |
 | `RECEIVE_BOOT_COMPLETED` | Reschedules active timer alarms after device reboot. |
-| `INTERNET` | **NOT REQUESTED**. The app cannot make network calls. |
+| `INTERNET` | Only for the in-app update check and download from GitHub, when you tap it. |
+| `REQUEST_INSTALL_PACKAGES` | Lets the app hand the downloaded update to Android's installer. |
 
-**Updates and feedback:** the Support tab's **Check for updates** button and the issue / feature-request buttons open GitHub in your browser. The browser does the networking, so the app itself still has no internet permission.
+**Updates and feedback:** the Support tab's **Check for updates** button talks to GitHub directly; the issue / feature-request buttons open GitHub in your browser.
 
 ---
 
