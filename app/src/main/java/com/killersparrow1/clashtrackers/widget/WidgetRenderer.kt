@@ -127,18 +127,18 @@ class WidgetRenderer(private val context: Context) {
         )
     }
 
-    /** Android 17+: put the rows inside the widget itself instead of having the launcher call WidgetListService. */
+    /** Android 16+: put the rows inside the widget itself instead of having the launcher call WidgetListService. */
     var embedItems: Boolean = true
     private var itemStyle: String? = null
 
     /**
-     * Connects the scrolling list. Android 17 (API 37) builds the rows here and sends them with the widget
+     * Connects the scrolling list. Android 16 and newer (API 36+) build the rows here and sends them with the widget
      * (RemoteCollectionItems): CT1.2, which had no list service, drew correct icons on Android 17 while the
      * service-backed list showed wrong ones. Everything older keeps the service. If the rows are too big to send,
      * the caller turns [embedItems] off and the service is used.
      */
     private fun attachList(rv: RemoteViews, appWidgetId: Int, small: Boolean, cols: Int, model: WidgetModel, live: Boolean) {
-        if (embedItems && Build.VERSION.SDK_INT >= 37) {
+        if (embedItems && Build.VERSION.SDK_INT >= 36) {
             val items = runCatching {
                 val factory = WidgetListService.Factory(context, appWidgetId, small, cols, WidgetListService.Preset(model, live, itemStyle))
                 factory.onCreate()
@@ -796,6 +796,25 @@ class WidgetIcons private constructor(private val context: Context) {
             for (l in level downTo 1) bitmap("${id}_$l", sizePx)?.let { return it }
         }
         return bitmap(id.toString(), sizePx)
+    }
+
+    /** Big, sharp Town Hall art for the app (`assets/townhall/th_<level>.webp`, 384 px); the nearest lower level if one is missing. */
+    fun townHall(level: Int?, sizePx: Int): Bitmap? {
+        val top = (level ?: return null).coerceIn(1, 40)
+        for (l in top downTo 1) {
+            val key = "th_$l@$sizePx"
+            cache.get(key)?.let { return it }
+            val decoded = runCatching {
+                context.assets.open("townhall/th_$l.webp").use { BitmapFactory.decodeStream(it) }
+            }.getOrNull() ?: continue
+            val scale = sizePx.toFloat() / maxOf(decoded.width, decoded.height)
+            val out = if (scale >= 1f) decoded else Bitmap.createScaledBitmap(
+                decoded, (decoded.width * scale).roundToInt().coerceAtLeast(1), (decoded.height * scale).roundToInt().coerceAtLeast(1), true,
+            )
+            cache.put(key, out)
+            return out
+        }
+        return null
     }
 
     /** Which asset file [bitmapForLevel] would use for these ids (first that exists), or null. For diagnostics. */

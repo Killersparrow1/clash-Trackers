@@ -11,6 +11,8 @@ All notable changes to this project are listed here. The format is based on [Kee
 - Road to max: the Builders time is now per builder count (work divided by your builders, in the card and the widget); the total work is shown under it.
 - New **Plan** tab (second tab). It holds Road to max (moved out of Timers) and **Bedtime**: pick when you sleep and see what to start in each free builder, lab or pet slot so it runs through the night and ends while you are awake. Estimates from base times.
 - Timers: the account button opens an Accounts sheet (Town Hall picture, name, tag, tick on the current one, Rename and Delete, how to add another).
+- Town Hall pictures: kept in their own folder (assets/townhall) at 384 px so the CI icon step no longer shrinks them to 64 px.
+- Widget list rows are now embedded on Android 16 too (they were wrong icons from the list service on some phones).
 - Town Hall pictures are now 384 px for a sharp card.
 - Header: the Open game button is just the game icon now (no pill or text).
 - Timers: the village card and the sync card are one card now, with the Town Hall picture (one per level up to TH18) and the sync button under the next finish.

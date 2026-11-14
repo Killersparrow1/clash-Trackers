@@ -229,7 +229,7 @@ fun TimerDashboard(
 
 /**
  * Round picture of an account's Town Hall at its level, like a profile photo.
- * Uses `1000001_<level>.webp`, which the CI icon step (tools/gen_icons.cjs) already makes for every level;
+ * Uses `assets/townhall/th_<level>.webp` (384 px, kept apart from `assets/icons` because the CI icon step rewrites that folder at 64 px);
  * until the level is known it shows the plain Town Hall icon. (Extra files placed in assets/icons by hand
  * are deleted by that step, so no new files are needed.)
  */
@@ -239,7 +239,7 @@ private fun AccountPicture(townHall: Int?, size: androidx.compose.ui.unit.Dp = 2
     val density = LocalDensity.current
     val bitmap = remember(townHall, size) {
         val px = with(density) { size.roundToPx() }
-        WidgetIcons.get(context).bitmapForLevel(1000001, townHall, px)?.asImageBitmap()
+        WidgetIcons.get(context).townHall(townHall, px)?.asImageBitmap()
     }
     if (bitmap != null) {
         Image(
@@ -371,7 +371,7 @@ private fun VillageOverviewCard(model: WidgetModel, last: SyncLogEntry?, busy: B
     val context = LocalContext.current
     val density = LocalDensity.current
     val picture = remember(model.townHall) {
-        WidgetIcons.get(context).bitmapForLevel(1000001, model.townHall, with(density) { 96.dp.roundToPx() })?.asImageBitmap()
+        WidgetIcons.get(context).townHall(model.townHall, with(density) { 96.dp.roundToPx() })?.asImageBitmap()
     }
     Card(
         modifier = Modifier.fillMaxWidth(),
