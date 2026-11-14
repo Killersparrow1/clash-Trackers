@@ -139,9 +139,9 @@ Five colour themes, chosen per widget: **Material You** (follows your phone's wa
 
 1. **Get the APK**: Download the latest build or compile via GitHub Actions. For automatic updates, add the repository to [Obtainium](#️-updates-feedback--releases) (see **Updates, Feedback & Releases**).
 2. **Open Clash of Clans**: Go to **Settings → Data Export → Copy**.
-3. **Open Clash Trackers**: Tap **Sync from clipboard**.
+3. **Open Clash Trackers**: Tap **Import village from clipboard**.
 4. **Add the Widget**: Long-press your home screen, choose **Widgets → Clash Trackers**, and place it.
-5. **(Optional) Add more accounts**: Switch to your other account in Clash of Clans, copy its export the same way, and tap **Sync from clipboard** again. Each player tag becomes its own account. When you place a widget, choose which account it should show.
+5. **(Optional) Add more accounts**: Switch to your other account in Clash of Clans, copy its export the same way, and tap **Import village from clipboard** again. Each player tag becomes its own account. When you place a widget, choose which account it should show.
 6. **(Optional) Notifications**: Enable finish alerts in **Settings → Notifications** to receive reminders when a builder or lab is free.
 
 ---
