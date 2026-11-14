@@ -130,7 +130,7 @@ Five colour themes, chosen per widget: **Material You** (follows your phone's wa
 - **Release names**: Releases are named `CT2.1`, `CT2.2` ... `CT3.0`, and the app shows the same name in **Support → About** (see **Releasing** below).
 
 ### 🔒 Privacy
-- **Internet only for updates**: The app requests `android.permission.INTERNET` solely for the in-app update (a GitHub release lookup and APK download, started by you). Your village data never leaves the phone; there is no account, no ads and no tracking.
+- **Internet only for updates**: The app requests `android.permission.INTERNET` solely for the in-app update (a GitHub release lookup when the app opens, at most every 12 hours and switchable off in About, plus the APK download you start). Your village data never leaves the phone; there is no account, no ads and no tracking.
 - **No Accounts & No Ads**: Completely private; your village data never leaves your device.
 - **Clipboard Only For Village Data**: The clipboard is read when you tap **Sync** or open the app, and only a Clash of Clans village export is used.
 
@@ -213,7 +213,7 @@ cd clash-trackers
 | `USE_EXACT_ALARM` / `SCHEDULE_EXACT_ALARM` | Schedules exact alarms to wake and re-render the widget at upgrade completion times. |
 | `POST_NOTIFICATIONS` | Alerts you the exact second an upgrade finishes so you can start the next one. |
 | `RECEIVE_BOOT_COMPLETED` | Reschedules active timer alarms after device reboot. |
-| `INTERNET` | Only for the in-app update check and download from GitHub, when you tap it. |
+| `INTERNET` | Only for the in-app update check and download from GitHub. |
 | `REQUEST_INSTALL_PACKAGES` | Lets the app hand the downloaded update to Android's installer. |
 
 **Updates and feedback:** the Support tab's **Check for updates** button talks to GitHub directly; the issue / feature-request buttons open GitHub in your browser.

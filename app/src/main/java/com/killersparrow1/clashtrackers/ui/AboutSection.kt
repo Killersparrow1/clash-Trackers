@@ -127,6 +127,19 @@ fun AboutSection(reportProvider: () -> String = { "" }) {
                     }
                     UpdateState.Idle -> UpdateButton(R.string.about_check_updates) { check() }
                 }
+                var auto by remember { mutableStateOf(com.killersparrow1.clashtrackers.update.UpdatePrefs.autoCheck(context)) }
+                Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                    Text(
+                        stringResource(R.string.update_auto),
+                        modifier = Modifier.weight(1f),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    )
+                    androidx.compose.material3.Switch(checked = auto, onCheckedChange = {
+                        auto = it
+                        com.killersparrow1.clashtrackers.update.UpdatePrefs.setAutoCheck(context, it)
+                    })
+                }
                 TextButton(onClick = { openUrl(context, RELEASES_URL) }, modifier = Modifier.heightIn(min = 48.dp), contentPadding = PaddingValues(0.dp)) {
                     Text(stringResource(R.string.update_releases_page), color = MaterialTheme.colorScheme.onPrimaryContainer)
                 }
@@ -151,7 +164,7 @@ fun AboutSection(reportProvider: () -> String = { "" }) {
         AboutGroup("Works offline") {
             Text(
                 "Your village data is read from the clipboard you copy in Clash of Clans and stays on this phone. " +
-                    "The internet permission is used only for the update check and download above, when you tap them. " +
+                    "The internet permission is used only for the update check and download above. " +
                     "No account, no ads, no tracking.",
                 style = MaterialTheme.typography.bodyMedium,
             )

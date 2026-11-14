@@ -73,6 +73,7 @@ fun ClashTrackersContent(
     onDeleteAccount: (String) -> Unit,
     snackbarHost: SnackbarHostState = remember { SnackbarHostState() },
 ) {
+    UpdatePrompt()
     var destination by rememberSaveable { mutableStateOf(Destination.TIMERS) }
     var developerOpen by rememberSaveable { mutableStateOf(false) }
     val tapScope = androidx.compose.runtime.rememberCoroutineScope()
