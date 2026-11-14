@@ -31,7 +31,7 @@ Redesigned with **Material 3 Expressive**, authentic Clash typography, an advanc
 </p>
 
 ## Widget Themes
-Five colour themes, chosen per widget: **Material You** (follows your phone's wallpaper colours), **Clash** (the original wood panel and green bars), **Dark** (neutral dark with a blue bar), **Material pitch dark** (Material You colours on a true black panel) and **Light** (clean white with a pale blue bar). Each theme has its own progress-bar colour, so text stays readable on every one.
+Five colour themes, chosen per widget: **Material You** (follows your phone's wallpaper colours), **Classic** (the original wood panel and green bars), **Dark** (neutral dark with a blue bar), **Material dark** (Material You colours on a true black panel) and **Light** (clean white with a pale blue bar). Each theme has its own progress-bar colour, so text stays readable on every one.
 
 <p align="center">
   <img src="docs/screenshots/material.jpg" alt="Material You theme" width="22%">

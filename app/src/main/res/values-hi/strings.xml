@@ -137,8 +137,8 @@
     <string name="language_system">सिस्टम डिफ़ॉल्ट</string>
     <string name="language_desc">होम-स्क्रीन विजेट भी बदलता है।</string>
     <string name="widget_theme">विजेट थीम</string>
-    <string name="widget_theme_material_you">Material You (वॉलपेपर रंग)</string>
-    <string name="widget_theme_clash">Clash (भूरा)</string>
+    <string name="widget_theme_material_you">Material You</string>
+    <string name="widget_theme_clash">क्लासिक</string>
     <string name="widget_theme_dark">डार्क</string>
     <string name="widget_theme_light">लाइट</string>
     <string name="help_title">Clash Trackers का उपयोग कैसे करें</string>
@@ -253,7 +253,7 @@
     <string name="stat_free_now">अभी खाली</string>
     <string name="potions_helpers_title">पोशन और हेल्पर</string>
     <string name="potions_none">कोई सक्रिय बूस्ट नहीं</string>
-    <string name="widget_theme_black">Material पिच डार्क</string>
+    <string name="widget_theme_black">Material डार्क</string>
     <string name="open_game_short">गेम खोलें</string>
     <string name="settings_idle_alert">बिल्डर या लैब के अभी भी खाली होने पर याद दिलाएं</string>
     <string name="settings_idle_alert_desc">जब कोई बिल्डर या लैब आपके अंतिम सिंक से %1$d घंटे से खाली बैठा हो तो अनुस्मारक भेजता है। अपग्रेड शुरू करके सिंक करने से यह हट जाता है। फिनिश अलर्ट चालू होना जरूरी है।</string>

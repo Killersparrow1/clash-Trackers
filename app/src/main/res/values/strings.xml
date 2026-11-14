@@ -141,8 +141,8 @@
     <string name="language_system">System default</string>
     <string name="language_desc">Also changes the home-screen widget.</string>
     <string name="widget_theme">Widget theme</string>
-    <string name="widget_theme_material_you">Material You (wallpaper colors)</string>
-    <string name="widget_theme_clash">Clash (brown)</string>
+    <string name="widget_theme_material_you">Material You</string>
+    <string name="widget_theme_clash">Classic</string>
     <string name="widget_theme_dark">Dark</string>
     <string name="widget_theme_light">Light</string>
     <string name="help_title">How to use Clash Trackers</string>
@@ -259,7 +259,7 @@
     <string name="stat_free_now">Free now</string>
     <string name="potions_helpers_title">Potions &amp; helpers</string>
     <string name="potions_none">No active boosts</string>
-    <string name="widget_theme_black">Material pitch dark</string>
+    <string name="widget_theme_black">Material dark</string>
     <string name="open_game_short">Open game</string>
     <string name="settings_idle_alert">Remind me when a builder or the lab is still free</string>
     <string name="settings_idle_alert_desc">Sends a reminder when a builder or the lab has sat free for %1$d h since your last sync. Starting an upgrade and syncing clears it. Needs finish alerts to be on.</string>

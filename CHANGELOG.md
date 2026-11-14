@@ -23,7 +23,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 - Study Soup: a **Soup** button and an active "time left" pill on the Lab line, read from the export. Its saving is adjustable in Settings.
 - Active Builder Bite, research potion and pet potion are now read from the village export, like the builder potion.
 - Widget styles Grid (progress rings) and Minimal (black, dot-matrix type), plus small layouts. Every style scrolls, so every timer fits at any size.
-- Widget themes: Material You, Clash, Dark, Light and **Material pitch dark** (Material You colours on a true black panel). Pick a default in Settings or override it per widget.
+- Widget themes: Material You, Classic, Dark, Light and **Material dark** (Material You colours on a true black panel). Pick a default in Settings or override it per widget.
 
 **App**
 - **Road to max widget**: a second, resizable home-screen widget with the builder, lab and pet time (and, when wide, Gold, Elixir and Dark Elixir) to max your Town Hall. It uses the same five themes as the timer widget, follows the account selected in the app and refreshes on every sync.
