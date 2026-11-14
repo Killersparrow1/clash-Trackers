@@ -1,4 +1,4 @@
-@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class, androidx.compose.material3.ExperimentalMaterial3Api::class)
 
 package com.killersparrow1.clashtrackers.ui
 
@@ -272,7 +272,6 @@ private fun AccountSwitcherBar(
     }
 
     if (sheetOpen) {
-        @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
         ModalBottomSheet(onDismissRequest = { sheetOpen = false }) {
             Column(Modifier.padding(horizontal = 24.dp).padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
