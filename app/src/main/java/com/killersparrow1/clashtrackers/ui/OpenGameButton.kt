@@ -2,16 +2,11 @@ package com.killersparrow1.clashtrackers.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -28,7 +23,7 @@ import com.killersparrow1.clashtrackers.R
 
 private const val GAME_PACKAGE = "com.supercell.clashofclans"
 
-/** Small pill for the header: the installed game's own icon plus "Open game". Falls back to a plain arrow icon. */
+/** Minimal header button: just the installed game's own icon. Falls back to a plain arrow icon. */
 @Composable
 fun OpenGameButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
     val context = LocalContext.current
@@ -36,24 +31,17 @@ fun OpenGameButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
     val gameIcon = remember {
         runCatching { context.packageManager.getApplicationIcon(GAME_PACKAGE).toBitmap(96, 96).asImageBitmap() }.getOrNull()
     }
-    Surface(
-        modifier = modifier.padding(end = 8.dp).heightIn(min = 40.dp).clip(RoundedCornerShape(20.dp))
-            .clickable(role = Role.Button, onClick = onClick),
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.secondaryContainer,
-        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+    val label = stringResource(R.string.open_game_short)
+    // Icon only (no pill, no text): the game's own icon is recognisable, and the label stays for screen readers.
+    Box(
+        modifier = modifier.padding(end = 8.dp).size(48.dp).clip(RoundedCornerShape(14.dp))
+            .clickable(role = Role.Button, onClickLabel = label, onClick = onClick),
+        contentAlignment = Alignment.Center,
     ) {
-        Row(
-            Modifier.padding(start = 6.dp, end = 12.dp, top = 4.dp, bottom = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            if (gameIcon != null) {
-                Image(gameIcon, contentDescription = null, modifier = Modifier.size(28.dp).clip(RoundedCornerShape(8.dp)))
-            } else {
-                Icon(painterResource(R.drawable.ic_open_in_new), contentDescription = null, modifier = Modifier.padding(start = 4.dp).size(20.dp))
-            }
-            Text(stringResource(R.string.open_game_short), style = MaterialTheme.typography.labelLarge, maxLines = 1)
+        if (gameIcon != null) {
+            Image(gameIcon, contentDescription = label, modifier = Modifier.size(34.dp).clip(RoundedCornerShape(9.dp)))
+        } else {
+            Icon(painterResource(R.drawable.ic_open_in_new), contentDescription = label, modifier = Modifier.size(24.dp))
         }
     }
 }
