@@ -99,7 +99,7 @@
     <string name="sync_copy_hint">Copy fresh data in Clash before syncing. The clipboard is read only when you tap Sync.</string>
     <string name="sync_details">Sync details</string>
     <string name="sync_failed">Sync failed</string>
-    <string name="sync_from_clipboard">Sync from clipboard</string>
+    <string name="sync_from_clipboard">Import village from clipboard</string>
     <string name="sync_last">Last synced</string>
     <string name="sync_retry">Retry from clipboard</string>
     <string name="sync_retry_hint">Copy fresh village data in Clash, then try again.</string>
@@ -261,7 +261,7 @@
     <string name="settings_idle_alert_desc">Sends a reminder when a builder or the lab has sat free for %1$d h since your last sync. Starting an upgrade and syncing clears it. Needs finish alerts to be on.</string>
     <string name="total_lab_time">Lab: %1$s left</string>
     <string name="shortcut_sync_short">Sync</string>
-    <string name="shortcut_sync_long">Sync from clipboard</string>
+    <string name="shortcut_sync_long">Import village from clipboard</string>
     <string name="shortcut_game_short">Open game</string>
     <string name="shortcut_game_long">Open Clash of Clans</string>
     <string name="gold_pass_banner">Day %1$d: with your Gold Pass, your builder boost may now be %2$d%%. Update it?</string>

@@ -99,7 +99,7 @@
     <string name="sync_copy_hint">सिंक करने से पहले Clash में ताज़ा डेटा कॉपी करें। क्लिपबोर्ड केवल तब पढ़ा जाता है जब आप सिंक पर टैप करते हैं।</string>
     <string name="sync_details">सिंक विवरण</string>
     <string name="sync_failed">सिंक विफल</string>
-    <string name="sync_from_clipboard">क्लिपबोर्ड से सिंक करें</string>
+    <string name="sync_from_clipboard">क्लिपबोर्ड से गाँव इम्पोर्ट करें</string>
     <string name="sync_last">अंतिम सिंक</string>
     <string name="sync_retry">क्लिपबोर्ड से फिर कोशिश करें</string>
     <string name="sync_retry_hint">Clash में ताज़ा गाँव डेटा कॉपी करें, फिर फिर कोशिश करें।</string>
@@ -259,7 +259,7 @@
     <string name="settings_idle_alert_desc">जब कोई बिल्डर या लैब आपके अंतिम सिंक से %1$d घंटे से खाली बैठा हो तो अनुस्मारक भेजता है। अपग्रेड शुरू करके सिंक करने से यह हट जाता है। फिनिश अलर्ट चालू होना जरूरी है।</string>
     <string name="total_lab_time">लैब: %1$s बाकी</string>
     <string name="shortcut_sync_short">सिंक</string>
-    <string name="shortcut_sync_long">क्लिपबोर्ड से सिंक करें</string>
+    <string name="shortcut_sync_long">क्लिपबोर्ड से गाँव इम्पोर्ट करें</string>
     <string name="shortcut_game_short">गेम खोलें</string>
     <string name="shortcut_game_long">Clash of Clans खोलें</string>
     <string name="gold_pass_banner">दिन %1$d: आपके गोल्ड पास के साथ, आपका बिल्डर बूस्ट अब %2$d%% हो सकता है। अपडेट करें?</string>
