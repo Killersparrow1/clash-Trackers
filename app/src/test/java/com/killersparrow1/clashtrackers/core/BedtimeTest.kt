@@ -50,9 +50,10 @@ class BedtimeTest {
     @Test fun dropsUpgradesThatWouldFinishWhileAsleep() {
         // Level 3 -> 4 takes 100 h from 7:44 pm: ends 11:44 pm four days on, asleep. Level 2 -> 3 (14 h) ends 9:44 am.
         val plan = Bedtime.plan(data, export(mapOf(1 to listOf(2))), PlanSlot.BUILDER, at(19, 44), sleep, utc)!!
-        assertEquals(listOf(3), plan.items.map { it.level })
+        // (The hero and the lab item are not owned, so they show up as things to build or unlock: look at item 1 only.)
+        assertEquals(listOf(3), plan.items.filter { it.id == 1 }.map { it.level })
         val long = Bedtime.plan(data, export(mapOf(1 to listOf(3))), PlanSlot.BUILDER, at(19, 44), sleep, utc)!!
-        assertTrue(long.items.isEmpty())
+        assertTrue(long.items.none { it.id == 1 })
     }
 
     @Test fun anUpgradeAlreadyRunningIsNotOffered() {
