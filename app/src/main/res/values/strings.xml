@@ -226,7 +226,8 @@
     <string name="widget_style_minimal">Minimal</string>
     <string name="about_version">Clash Trackers %1$s</string>
     <string name="about_check_updates">Check for updates</string>
-    <string name="about_updates_note">Checks GitHub for a newer release and installs it here. The only time this app goes online is when you tap these buttons.</string>
+    <string name="about_updates_note">Checks GitHub for a newer release and installs it here. This is the only time the app goes online.</string>
+    <string name="update_auto">Check when the app opens and offer new versions</string>
     <string name="update_checking">Checking…</string>
     <string name="update_up_to_date">You have the latest version.</string>
     <string name="update_available">Version %1$s is available</string>
