@@ -162,7 +162,7 @@ fun TimerDashboard(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             if (model.hasData) {
-                item(key = "village", span = { GridItemSpan(maxLineSpan) }) { VillageSummary(model) }
+                item(key = "village", span = { GridItemSpan(maxLineSpan) }) { VillageOverviewCard(model, lastSync, busy, onSync) }
             } else {
                 item(key = "welcome", span = { GridItemSpan(maxLineSpan) }) {
                     SectionCard(stringResource(R.string.welcome_title)) {
@@ -183,7 +183,9 @@ fun TimerDashboard(
                 }
             }
 
-            item(key = "sync", span = { GridItemSpan(maxLineSpan) }) { SyncCard(lastSync, busy, onSync) }
+            if (!model.hasData) {
+                item(key = "sync", span = { GridItemSpan(maxLineSpan) }) { SyncCard(lastSync, busy, onSync) }
+            }
 
             item(key = "gold_pass_banner", span = { GridItemSpan(maxLineSpan) }) { GoldPassBanner(selectedTag, now) }
 
@@ -337,36 +339,44 @@ private fun AccountSwitcherBar(
     }
 }
 
+/** One card for the village: name, Town Hall (with its picture), the next finish, the sync button and when it last ran. */
 @Composable
-private fun VillageSummary(model: WidgetModel) {
+private fun VillageOverviewCard(model: WidgetModel, last: SyncLogEntry?, busy: Boolean, onSync: () -> Unit) {
+    val failed = last?.ok == false
+    var showDetails by rememberSaveable { mutableStateOf(false) }
+    val context = LocalContext.current
+    val density = LocalDensity.current
+    val picture = remember(model.townHall) {
+        WidgetIcons.get(context).bitmapForLevel(1000001, model.townHall, with(density) { 96.dp.roundToPx() })?.asImageBitmap()
+    }
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+        colors = CardDefaults.cardColors(
+            containerColor = if (failed) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
+        ),
         shape = MaterialTheme.shapes.extraLarge,
     ) {
-        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(model.playerName, style = MaterialTheme.typography.headlineMedium)
-            Text(
-                listOfNotNull(
-                    model.townHall?.let { stringResource(R.string.town_hall, it) },
-                    if (model.goblinWorking) stringResource(R.string.goblin_working) else null,
-                    if (model.showBuilderBase) stringResource(R.string.bb_active) else null,
-                ).joinToString(" · "),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            val dayUnit = stringResource(R.string.time_day_short)
-            val builderTotal = model.builderRows.filter { it.kind == RowKind.RUNNING }.sumOf { it.remaining }
-            if (builderTotal > 0) {
-                Text(
-                    stringResource(R.string.total_builder_time, Countdown.text(builderTotal, dayUnit)),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(model.playerName, style = MaterialTheme.typography.headlineMedium)
+                    Text(
+                        listOfNotNull(
+                            model.townHall?.let { stringResource(R.string.town_hall, it) },
+                            if (model.goblinWorking) stringResource(R.string.goblin_working) else null,
+                            if (model.showBuilderBase) stringResource(R.string.bb_active) else null,
+                        ).joinToString(" · "),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                if (picture != null) {
+                    Spacer(Modifier.size(12.dp))
+                    Image(bitmap = picture, contentDescription = null, modifier = Modifier.size(96.dp))
+                }
             }
             model.nextRunningTimer()?.let { next ->
-                next.row.finishAt?.let { finishAt ->
-                    Spacer(Modifier.size(4.dp))
+                next.row.finishAt?.let {
                     // Highlighted like the completion chip on the timer cards, so the next finish stands out.
                     Text(
                         stringResource(R.string.next_finish, next.row.name, Countdown.text(next.row.remaining, stringResource(R.string.time_day_short))),
@@ -378,6 +388,44 @@ private fun VillageSummary(model: WidgetModel) {
                             .background(MaterialTheme.colorScheme.primaryContainer)
                             .padding(horizontal = 14.dp, vertical = 10.dp),
                     )
+                }
+            }
+            if (failed) {
+                Text(stringResource(R.string.sync_failed), style = MaterialTheme.typography.titleMedium)
+                last?.let { SelectionContainer { Text(SyncRunner.plainText(it.message), style = MaterialTheme.typography.bodyMedium) } }
+                Text(stringResource(R.string.sync_retry_hint), style = MaterialTheme.typography.bodyMedium)
+            }
+            Button(
+                onClick = onSync,
+                enabled = !busy,
+                modifier = Modifier.fillMaxWidth().heightIn(min = ButtonDefaults.MediumContainerHeight),
+                shapes = ButtonDefaults.shapesFor(ButtonDefaults.MediumContainerHeight),
+                contentPadding = ButtonDefaults.contentPaddingFor(ButtonDefaults.MediumContainerHeight),
+            ) {
+                if (busy) {
+                    LoadingIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                } else {
+                    Icon(painterResource(R.drawable.ic_sync), contentDescription = null, modifier = Modifier.size(ButtonDefaults.MediumIconSize))
+                }
+                Spacer(Modifier.size(8.dp))
+                Text(
+                    stringResource(if (busy) R.string.syncing else if (failed) R.string.sync_retry else R.string.sync_from_clipboard),
+                    style = ButtonDefaults.textStyleFor(ButtonDefaults.MediumContainerHeight),
+                )
+            }
+            if (last != null && !failed) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text(stringResource(R.string.sync_last), style = MaterialTheme.typography.labelLarge)
+                        Text(formatTimestamp(last.at), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    TextButton(onClick = { showDetails = !showDetails }) {
+                        Text(stringResource(if (showDetails) R.string.hide_details else R.string.sync_details))
+                    }
+                }
+                if (showDetails) {
+                    SelectionContainer { Text(SyncRunner.plainText(last.message), style = MaterialTheme.typography.bodyMedium) }
+                    Text(stringResource(R.string.sync_copy_hint), style = MaterialTheme.typography.bodySmall)
                 }
             }
         }

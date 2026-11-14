@@ -257,7 +257,6 @@
     <string name="open_game_short">गेम खोलें</string>
     <string name="settings_idle_alert">बिल्डर या लैब के अभी भी खाली होने पर याद दिलाएं</string>
     <string name="settings_idle_alert_desc">जब कोई बिल्डर या लैब आपके अंतिम सिंक से %1$d घंटे से खाली बैठा हो तो अनुस्मारक भेजता है। अपग्रेड शुरू करके सिंक करने से यह हट जाता है। फिनिश अलर्ट चालू होना जरूरी है।</string>
-    <string name="total_builder_time">बिल्डर: %1$s काम बाकी</string>
     <string name="total_lab_time">लैब: %1$s बाकी</string>
     <string name="shortcut_sync_short">सिंक</string>
     <string name="shortcut_sync_long">क्लिपबोर्ड से सिंक करें</string>

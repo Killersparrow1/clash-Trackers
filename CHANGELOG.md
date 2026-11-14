@@ -9,6 +9,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 ### Added
 
 - Road to max: the Builders time is now per builder count (work divided by your builders, in the card and the widget); the total work is shown under it.
+- Timers: the village card and the sync card are one card now, with the Town Hall picture (one per level up to TH18) and the sync button under the next finish.
 - Support diagnostics and the copied report now count the Road to max widget and list its size.
 - Road to max widget: pick the account in its setup screen and show the account name in its title.
 - Widget picker: both widgets show a preview with sample data (Road to max 4x2, timers 4x4) and a title ("Upgrade timers", "Road to max") with a description.
