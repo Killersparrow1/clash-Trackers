@@ -10,6 +10,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 - Road to max: the Builders time is now per builder count (work divided by your builders, in the card and the widget); the total work is shown under it.
 - Timers: the account button opens an Accounts sheet (Town Hall picture, name, tag, tick on the current one, Rename and Delete, how to add another).
+- Town Hall pictures are now 384 px for a sharp card.
 - Header: the Open game button is just the game icon now (no pill or text).
 - Timers: the village card and the sync card are one card now, with the Town Hall picture (one per level up to TH18) and the sync button under the next finish.
 - Support diagnostics and the copied report now count the Road to max widget and list its size.
