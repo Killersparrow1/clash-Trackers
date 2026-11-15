@@ -8,6 +8,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ### Fixed
 
+- Widget: the Sync button now opens the app, which reads the copied village data when it opens. The invisible Sync screen is no longer started from the widget, because some ROMs sent it stray taps.
 - Widget: only the Sync button starts a sync now (the title row no longer does), and a repeated Sync screen launch within 4 seconds is ignored, so stray launches stop covering other apps with "Sync failed".
 
 ### Added

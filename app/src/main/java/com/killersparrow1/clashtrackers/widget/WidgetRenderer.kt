@@ -32,7 +32,6 @@ import com.killersparrow1.clashtrackers.core.WidgetActions
 import com.killersparrow1.clashtrackers.core.WidgetModel
 import com.killersparrow1.clashtrackers.core.WidgetRow
 import com.killersparrow1.clashtrackers.locale.LanguageManager
-import com.killersparrow1.clashtrackers.sync.SyncActivity
 import kotlin.math.roundToInt
 
 /** Maps a [WidgetModel] onto `widget_root.xml` + one `widget_row*.xml` per row. */
@@ -709,10 +708,13 @@ class WidgetRenderer(private val context: Context) {
         return sb
     }
 
+    /**
+     * The Sync button opens the app, which reads the copied village data when it comes to the front (see MainActivity).
+     * The invisible Sync screen is no longer started from the widget: some ROMs sent it stray taps.
+     */
     private fun syncIntent(): PendingIntent {
-        val intent = Intent(context, SyncActivity::class.java).addFlags(
-            Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_ANIMATION or Intent.FLAG_ACTIVITY_CLEAR_TASK,
-        ).putExtra(SyncActivity.EXTRA_WIDGET_TAP, true)
+        val intent = Intent(context, com.killersparrow1.clashtrackers.MainActivity::class.java)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
         return PendingIntent.getActivity(
             context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
