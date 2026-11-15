@@ -8,6 +8,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ### Changed
 
+- A weekly GitHub Action checks for newer game data and opens a pull request to main only when the numbers changed.
 - Settings > Support: removed the "Works offline" card (the app now uses the internet for updates, events and game data). Credits are hidden behind a + / − header.
 
 ### Fixed
