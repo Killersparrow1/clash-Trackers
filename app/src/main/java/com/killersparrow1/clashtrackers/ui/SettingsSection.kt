@@ -434,6 +434,8 @@ private fun WidgetThemeSetting(settings: AppSettings, onChange: ((AppSettings) -
                                     onChange { it.copy(widgetTheme = key) }
                                     CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
                                         delay(300)
+                                        // A theme picked here is for every widget; each widget's own choice (from its settings) is dropped.
+                                        runCatching { com.killersparrow1.clashtrackers.data.StateRepository(context).clearWidgetThemes() }
                                         runCatching { SyncRunner.refreshWidgets(context, "theme") }
                                     }
                                 },
