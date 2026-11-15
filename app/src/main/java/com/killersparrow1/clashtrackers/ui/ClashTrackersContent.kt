@@ -90,6 +90,7 @@ fun ClashTrackersContent(
     snackbarHost: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     UpdatePrompt()
+    EventsAutoRefresh()
     var developerOpen by rememberSaveable { mutableStateOf(false) }
     val tapScope = androidx.compose.runtime.rememberCoroutineScope()
     // One pager holds every page, so swiping follows the finger and tabs and sub-tabs share the same motion.

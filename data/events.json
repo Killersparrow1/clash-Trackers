@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "note": "Event schedule the app downloads. 'overrides' changes the usual times of the built-in events (ids: clan_games, raid_weekend, cwl_signup, cwl_wars, season_end, league_reset; keys: day 1-28, hour 0-23 UTC, lengthDays, weekday 1=Mon..7=Sun, anchor, periodDays). 'extra' adds one-off events shown until they end.",
+  "overrides": {},
+  "extra": []
+}

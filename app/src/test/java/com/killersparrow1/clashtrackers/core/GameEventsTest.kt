@@ -55,4 +55,29 @@ class GameEventsTest {
         val rest = list.drop(1).map { it.target }
         assertEquals(rest.sorted(), rest)
     }
+
+    @Test fun downloadedScheduleChangesTimesAndAddsOneOffEvents() {
+        val config = EventsConfig.parse(
+            """{"overrides":{"clan_games":{"day":20,"hour":9,"lengthDays":5},"nonsense":{"day":3}},
+                "extra":[{"id":"snow","name":"Snowy Landing","start":"2026-11-14T00:00:00Z","end":"2026-11-20T00:00:00Z"},
+                         {"name":"Old","start":"2026-10-01T00:00:00Z","end":"2026-10-02T00:00:00Z"},
+                         {"name":"Backwards","start":"2026-12-02T00:00:00Z","end":"2026-12-01T00:00:00Z"}]}""",
+        )!!
+        val list = GameEvents.upcoming(at("2026-11-15T12:00:00Z"), config)
+        val clan = list.first { it.id == GameEvents.CLAN_GAMES }
+        assertEquals(at("2026-11-20T09:00:00Z"), clan.startsAt)
+        assertEquals(at("2026-11-25T09:00:00Z"), clan.endsAt)
+        val snow = list.first { it.id == "snow" }
+        assertTrue(snow.active)
+        assertEquals("Snowy Landing", snow.name)
+        assertEquals(1, list.count { it.name != null }) // the finished and the backwards ones are dropped
+    }
+
+    @Test fun invalidValuesAreIgnoredAndBadFilesRejected() {
+        val config = EventsConfig.parse("""{"overrides":{"raid_weekend":{"weekday":9,"hour":99,"lengthDays":0}}}""")!!
+        val raid = config.rule(GameEvents.RAID_WEEKEND, GameEvents.DEFAULTS.getValue(GameEvents.RAID_WEEKEND))
+        assertEquals(GameEvents.DEFAULTS.getValue(GameEvents.RAID_WEEKEND), raid)
+        assertEquals(null, EventsConfig.parse("not json"))
+        assertEquals(null, EventsConfig.parse("[1,2]"))
+    }
 }

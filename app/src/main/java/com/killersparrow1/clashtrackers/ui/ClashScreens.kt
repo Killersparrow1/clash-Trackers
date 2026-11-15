@@ -31,6 +31,7 @@ import com.killersparrow1.clashtrackers.core.GameEvent
 import com.killersparrow1.clashtrackers.core.GameEvents
 import com.killersparrow1.clashtrackers.data.MaxDataStore
 import com.killersparrow1.clashtrackers.update.DataUpdater
+import com.killersparrow1.clashtrackers.update.EventsStore
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -40,7 +41,14 @@ import kotlinx.coroutines.launch
 /** Clash > Events: countdowns to the game's regular events, computed from their usual schedule (no internet). */
 @Composable
 internal fun EventsPage(now: Long) {
-    val events = remember(now / 30) { GameEvents.upcoming(now) }
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    EventsStore.load(context)
+    val config = EventsStore.config
+    val events = remember(now / 30, config) { GameEvents.upcoming(now, config) }
+    var refreshing by remember { mutableStateOf(false) }
+    var refreshError by remember { mutableStateOf<String?>(null) }
+    var auto by remember { mutableStateOf(EventsStore.auto(context)) }
     val zone = remember { ZoneId.systemDefault() }
     val format = remember { DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT) }
     fun local(epoch: Long) = format.format(Instant.ofEpochSecond(epoch).atZone(zone))
@@ -50,7 +58,7 @@ internal fun EventsPage(now: Long) {
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         items(events, key = { it.id }) { e ->
-            val name = stringResource(eventName(e.id))
+            val name = e.name ?: stringResource(eventName(e.id))
             val left = Bedtime.durationLabel((e.target - now).coerceAtLeast(0))
             Card(
                 Modifier.fillMaxWidth(),
@@ -78,13 +86,51 @@ internal fun EventsPage(now: Long) {
             }
         }
         item {
-            Text(
-                stringResource(R.string.clash_ev_note),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    stringResource(R.string.clash_ev_note),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                    if (EventsStore.updatedAt > 0) stringResource(R.string.clash_ev_updated, local(EventsStore.updatedAt / 1000))
+                    else stringResource(R.string.clash_ev_never),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                refreshError?.let { Text(stringResource(R.string.update_failed, it), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error) }
+                androidx.compose.foundation.layout.Row(
+                    Modifier.fillMaxWidth(),
+                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                ) {
+                    Text(stringResource(R.string.clash_ev_auto), modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+                    androidx.compose.material3.Switch(checked = auto, onCheckedChange = {
+                        auto = it
+                        EventsStore.setAuto(context, it)
+                    })
+                }
+                OutlinedButton(
+                    enabled = !refreshing,
+                    onClick = {
+                        refreshing = true
+                        refreshError = null
+                        scope.launch {
+                            try { EventsStore.refresh(context) } catch (e: Exception) { refreshError = e.message ?: e.javaClass.simpleName }
+                            refreshing = false
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                ) { Text(stringResource(if (refreshing) R.string.update_checking else R.string.clash_ev_refresh)) }
+            }
         }
     }
+}
+
+/** Keeps the event schedule fresh: refreshes when the app opens (at most every 12 hours, if switched on in Clash > Events). */
+@Composable
+internal fun EventsAutoRefresh() {
+    val context = LocalContext.current
+    androidx.compose.runtime.LaunchedEffect(Unit) { EventsStore.refreshIfDue(context) }
 }
 
 private fun eventName(id: String): Int = when (id) {

@@ -189,91 +189,11 @@ object RoadWidgetUpdater {
         return PendingIntent.getActivity(context, 10, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
     }
 
-    /** Opens the app, which reads the copied village data when it comes to the front. */
+    /** Starts the invisible Sync screen, which reads the copied village data without opening the app. */
     private fun syncIntent(context: Context): PendingIntent {
-        val intent = Intent(context, com.killersparrow1.clashtrackers.MainActivity::class.java)
-            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-            .putExtra(com.killersparrow1.clashtrackers.MainActivity.EXTRA_SYNC_NOW, true)
+        val intent = Intent(context, com.killersparrow1.clashtrackers.sync.SyncActivity::class.java)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_ANIMATION or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+            .putExtra(com.killersparrow1.clashtrackers.sync.SyncActivity.EXTRA_WIDGET_TAP, true)
         return PendingIntent.getActivity(context, 11, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-    }
-}
-
-/** Setup screen for the Road to max widget: the account (when there are several) and the theme. */
-class RoadWidgetConfigActivity : ComponentActivity() {
-    override fun attachBaseContext(newBase: Context) {
-        super.attachBaseContext(LanguageManager.wrap(newBase))
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        val appWidgetId = intent?.extras?.getInt(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID)
-            ?: AppWidgetManager.INVALID_APPWIDGET_ID
-        if (appWidgetId == AppWidgetManager.INVALID_APPWIDGET_ID) {
-            finish()
-            return
-        }
-        setResult(RESULT_CANCELED)
-        val scope = CoroutineScope(Dispatchers.Main)
-        setContent {
-            ClashTimerTheme {
-                Surface(Modifier.fillMaxSize()) {
-                    val themes = listOf(
-                        "material_you" to stringResource(R.string.widget_theme_material_you),
-                        "clash" to stringResource(R.string.widget_theme_clash),
-                        "dark" to stringResource(R.string.widget_theme_dark),
-                        "black" to stringResource(R.string.widget_theme_black),
-                        "light" to stringResource(R.string.widget_theme_light),
-                    )
-                    val repo = remember { StateRepository(this@RoadWidgetConfigActivity) }
-                    val accounts by repo.accounts.collectAsState(initial = emptyList())
-                    var theme by rememberSaveable { mutableStateOf<String?>(null) }
-                    var tag by rememberSaveable { mutableStateOf<String?>(null) }
-                    androidx.compose.runtime.LaunchedEffect(appWidgetId) {
-                        theme = repo.getWidgetTheme(appWidgetId)
-                        tag = repo.getWidgetAccount(appWidgetId) ?: repo.selectedAccountTag.first()
-                    }
-                    androidx.compose.runtime.LaunchedEffect(accounts) {
-                        if (tag == null || accounts.none { it.tag == tag }) tag = accounts.firstOrNull()?.tag
-                    }
-                    Column(Modifier.fillMaxSize().systemBarsPadding().padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                        Text(stringResource(R.string.road_widget_name), style = MaterialTheme.typography.titleLarge)
-                        Column(Modifier.fillMaxWidth().weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            if (accounts.isNotEmpty()) {
-                                Text(stringResource(R.string.widget_choose_account), style = MaterialTheme.typography.titleMedium)
-                                accounts.forEach { acct ->
-                                    Card(
-                                        modifier = Modifier.fillMaxWidth().clickable { tag = acct.tag },
-                                        colors = CardDefaults.cardColors(
-                                            containerColor = if (acct.tag == tag) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerLow,
-                                        ),
-                                    ) {
-                                        Column(Modifier.padding(16.dp)) {
-                                            Text(acct.displayName, style = MaterialTheme.typography.titleMedium)
-                                            Text(acct.tag, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                        }
-                                    }
-                                }
-                            }
-                            Text(stringResource(R.string.widget_theme), style = MaterialTheme.typography.titleMedium)
-                            themes.forEach { (key, label) ->
-                                FilterChip(selected = theme == key, onClick = { theme = key }, label = { Text(label) }, modifier = Modifier.fillMaxWidth())
-                            }
-                        }
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Button(onClick = { finish() }) { Text(stringResource(R.string.action_cancel)) }
-                            Button(onClick = {
-                                scope.launch {
-                                    tag?.let { repo.setWidgetAccount(appWidgetId, it) }
-                                    repo.setWidgetTheme(appWidgetId, theme ?: "material_you")
-                                    RoadWidgetUpdater.updateAll(this@RoadWidgetConfigActivity, force = true)
-                                    setResult(RESULT_OK, Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId))
-                                    finish()
-                                }
-                            }) { Text(stringResource(R.string.action_save)) }
-                        }
-                    }
-                }
-            }
-        }
     }
 }

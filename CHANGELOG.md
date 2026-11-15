@@ -8,6 +8,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ### Fixed
 
+- Widget: the Sync button is back to starting the quiet Sync screen (no app window). The stray launches were Back Tap set to the app's Sync shortcut, which is also allowed through the launch guard now.
 - Personalization > Widget theme now changes every widget. A widget that had its own theme from its settings kept it and ignored the app-wide choice; picking a theme in the app now replaces those.
 - With "Sync from clipboard when the app opens" switched off, the app no longer reads the clipboard at all (it used to read it and only skip the import, which still triggered Android's "pasted from clipboard" notice). The widget Sync button still syncs, since you asked for it.
 - Road to max is always open on its own Plan sub-tab (no more + / − toggle).
@@ -16,6 +17,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ### Added
 
+- Clash > Events now refreshes its schedule by itself when the app opens (at most every 12 hours, switchable) from `data/events.json` in the project's repository. The file can change the usual event times and add one-off events; the last good copy is kept for offline use.
 - New **Clash** tab (4 tabs in total) with two sub-tabs. **Events** counts down to Clan Games, Raid Weekend, CWL sign-up and war days, the season end and the league reset, worked out offline from the usual schedule. **Data** shows which game data Road to max and Bedtime use and can download a newer copy from the project's GitHub (checked before use; an app update replaces it).
 - App look in Settings > Personalization: Material You (follows the phone), Material light, Material dark, Clean, Classic and Game. The status and navigation bar icons follow the chosen look.
 - Settings now has three sub-tabs: **Settings**, **Personalization** (the widget look and live countdown, with more looks planned) and **Support** (moved from its own tab). The hidden developer options now open by tapping the Settings tab 11 times quickly.

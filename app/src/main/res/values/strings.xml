@@ -20,7 +20,11 @@
     <string name="clash_ev_ends_in">Ends in %1$s</string>
     <string name="clash_ev_starts_in">Starts in %1$s</string>
     <string name="clash_ev_range">%1$s to %2$s</string>
-    <string name="clash_ev_note">Worked out from the game\'s usual schedule (UTC), shown in your local time. Supercell can change these times.</string>
+    <string name="clash_ev_updated">Schedule updated %1$s</string>
+    <string name="clash_ev_never">Using the built-in schedule. Not downloaded yet.</string>
+    <string name="clash_ev_auto">Refresh the schedule when the app opens</string>
+    <string name="clash_ev_refresh">Refresh schedule now</string>
+    <string name="clash_ev_note">Worked out from the game\'s usual schedule (UTC), shown in your local time, plus any changes and special events from the project\'s schedule file. Supercell can change these times.</string>
     <string name="clash_data_title">Game data</string>
     <string name="clash_data_desc">Levels, costs and times behind Road to max and Bedtime level up. When a new Town Hall arrives you can get the new data here without waiting for an app update.</string>
     <string name="clash_data_current_builtin">In use: built into the app. Town Hall %1$d, %2$d items.</string>
