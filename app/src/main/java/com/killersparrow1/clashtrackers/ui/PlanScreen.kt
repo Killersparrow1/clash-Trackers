@@ -71,9 +71,9 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
 
-/** The Plan tab: Road to max, then the Bedtime view (what to start in each free slot before you sleep). */
+/** One page of the Plan tab: 0 is Road to max, 1 is Bedtime (what to start in each free slot before you sleep). */
 @Composable
-internal fun PlanScreen(export: VillageExport?, model: WidgetModel, now: Long, tab: Int, onTab: (Int) -> Unit) {
+internal fun PlanPage(export: VillageExport?, model: WidgetModel, now: Long, page: Int) {
     val context = LocalContext.current
     val data = remember { MaxDataStore.get(context) }
     var window by remember { mutableStateOf(SleepStore.get(context)) }
@@ -81,19 +81,6 @@ internal fun PlanScreen(export: VillageExport?, model: WidgetModel, now: Long, t
 
     var filter by remember { mutableStateOf(PlanFilter()) }
 
-    Column(Modifier.fillMaxWidth()) {
-        if (export != null && model.hasData) {
-            PrimaryTabRow(selectedTabIndex = tab) {
-                Tab(selected = tab == 0, onClick = { onTab(0) }, text = { Text(stringResource(R.string.plan_tab_road)) })
-                Tab(selected = tab == 1, onClick = { onTab(1) }, text = { Text(stringResource(R.string.plan_tab_bedtime)) })
-            }
-        }
-        AnimatedContent(
-            targetState = tab,
-            modifier = Modifier.fillMaxWidth().weight(1f),
-            transitionSpec = { slideTransition(forward = targetState > initialState) },
-            label = "planTab",
-        ) { page ->
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(16.dp),
@@ -137,8 +124,6 @@ internal fun PlanScreen(export: VillageExport?, model: WidgetModel, now: Long, t
                 )
             }
         }
-        }
-    }
 }
 
 @Composable

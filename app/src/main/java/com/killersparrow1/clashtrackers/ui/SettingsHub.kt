@@ -21,11 +21,10 @@ import com.killersparrow1.clashtrackers.core.WidgetModel
 import com.killersparrow1.clashtrackers.core.AppState
 import com.killersparrow1.clashtrackers.core.SyncLog
 
-/** The Settings tab: Settings, Personalization and Support as sub-tabs (0, 1, 2). */
+/** One page of the Settings tab: 0 Settings, 1 Personalization, 2 Support. */
 @Composable
-internal fun SettingsHub(
-    tab: Int,
-    onTab: (Int) -> Unit,
+internal fun SettingsPage(
+    page: Int,
     settings: AppSettings,
     export: VillageExport?,
     now: Long,
@@ -36,19 +35,7 @@ internal fun SettingsHub(
     log: SyncLog,
     timesCount: Int,
 ) {
-    Column(Modifier.fillMaxSize()) {
-        PrimaryTabRow(selectedTabIndex = tab) {
-            Tab(selected = tab == 0, onClick = { onTab(0) }, text = { Text(stringResource(R.string.nav_settings)) })
-            Tab(selected = tab == 1, onClick = { onTab(1) }, text = { Text(stringResource(R.string.settings_tab_personalization)) })
-            Tab(selected = tab == 2, onClick = { onTab(2) }, text = { Text(stringResource(R.string.nav_support)) })
-        }
-        AnimatedContent(
-            targetState = tab,
-            modifier = Modifier.fillMaxWidth().weight(1f),
-            transitionSpec = { slideTransition(forward = targetState > initialState) },
-            label = "settingsTab",
-        ) { page ->
-            when (page) {
+    when (page) {
                 0 -> LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(16.dp),
@@ -60,7 +47,5 @@ internal fun SettingsHub(
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) { item { PersonalizationSection(settings, onSettingsChange) } }
                 else -> SupportScreen(state, model, log, timesCount, now)
-            }
-        }
     }
 }

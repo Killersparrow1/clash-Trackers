@@ -27,10 +27,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.runtime.Composable
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -55,6 +52,18 @@ private enum class Destination(@StringRes val labelRes: Int, val icon: Int) {
     SETTINGS(R.string.nav_settings, R.drawable.ic_settings),
 }
 
+/** Every swipeable page, in order. The first page of a tab is what its bottom-bar item opens. */
+private enum class Page(val dest: Destination, @StringRes val labelRes: Int?) {
+    TIMERS(Destination.TIMERS, null),
+    PLAN_ROAD(Destination.PLAN, R.string.plan_tab_road),
+    PLAN_BEDTIME(Destination.PLAN, R.string.plan_tab_bedtime),
+    SETTINGS(Destination.SETTINGS, R.string.nav_settings),
+    PERSONALIZATION(Destination.SETTINGS, R.string.settings_tab_personalization),
+    SUPPORT(Destination.SETTINGS, R.string.nav_support),
+}
+
+private fun Destination.firstPage(): Int = Page.entries.indexOfFirst { it.dest == this }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ClashTrackersContent(
@@ -76,13 +85,15 @@ fun ClashTrackersContent(
     snackbarHost: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     UpdatePrompt()
-    var destination by rememberSaveable { mutableStateOf(Destination.TIMERS) }
     var developerOpen by rememberSaveable { mutableStateOf(false) }
     val tapScope = androidx.compose.runtime.rememberCoroutineScope()
+    // One pager holds every page, so swiping follows the finger and tabs and sub-tabs share the same motion.
+    val pager = androidx.compose.foundation.pager.rememberPagerState { Page.entries.size }
+    val destination = Page.entries[pager.currentPage].dest
     val supportTaps = remember { mutableListOf<Long>() }
     // Tap the Settings tab 11 times within 4 seconds to open the hidden developer options.
     fun navigate(entry: Destination) {
-        destination = entry
+        if (entry != destination) tapScope.launch { pager.animateScrollToPage(entry.firstPage()) }
         if (entry != Destination.SETTINGS || developerOpen) return
         val t = System.currentTimeMillis()
         supportTaps.add(t)
@@ -100,24 +111,7 @@ fun ClashTrackersContent(
             }
         }
     }
-    var planTab by rememberSaveable { mutableStateOf(0) }
-    var settingsTab by rememberSaveable { mutableStateOf(0) }
-    // Swiping sideways walks through every page in order: Timers, Plan (2), Settings (Settings, Personalization, Support).
-    fun swipe(forward: Boolean) {
-        val page = when (destination) {
-            Destination.TIMERS -> 0
-            Destination.PLAN -> 1 + planTab
-            Destination.SETTINGS -> 3 + settingsTab
-        }
-        val next = page + if (forward) 1 else -1
-        when (next) {
-            0 -> destination = Destination.TIMERS
-            1, 2 -> { planTab = next - 1; destination = Destination.PLAN }
-            3, 4, 5 -> { settingsTab = next - 3; destination = Destination.SETTINGS }
-        }
-    }
-    val screenState = rememberSaveableStateHolder()
-    BackHandler(enabled = destination != Destination.TIMERS) { destination = Destination.TIMERS }
+    BackHandler(enabled = pager.currentPage != 0) { tapScope.launch { pager.animateScrollToPage(0) } }
 
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val wide = maxWidth >= 600.dp
@@ -171,26 +165,27 @@ fun ClashTrackersContent(
                     }
                 }
                 Box(Modifier.weight(1f).fillMaxSize(), contentAlignment = Alignment.TopCenter) {
-                    Box(
-                        Modifier.widthIn(max = 840.dp).fillMaxSize().pointerInput(destination, planTab, settingsTab) {
-                            var total = 0f
-                            val threshold = 72.dp.toPx()
-                            detectHorizontalDragGestures(
-                                onDragStart = { total = 0f },
-                                onDragCancel = { total = 0f },
-                                onDragEnd = { if (kotlin.math.abs(total) > threshold) swipe(forward = total < 0) },
-                            ) { _, dx -> total += dx }
-                        },
-                    ) {
-                        AnimatedContent(
-                            targetState = destination,
-                            modifier = Modifier.fillMaxSize(),
-                            transitionSpec = { slideTransition(forward = targetState.ordinal > initialState.ordinal) },
-                            label = "destination",
-                        ) { dest ->
-                        screenState.SaveableStateProvider(dest) {
-                            when (dest) {
-                                Destination.TIMERS -> TimerDashboard(
+                    Column(Modifier.widthIn(max = 840.dp).fillMaxSize()) {
+                        val siblings = Page.entries.filter { it.dest == destination }
+                        if (siblings.size > 1) {
+                            val first = destination.firstPage()
+                            androidx.compose.material3.PrimaryTabRow(selectedTabIndex = pager.currentPage - first) {
+                                siblings.forEachIndexed { i, p ->
+                                    androidx.compose.material3.Tab(
+                                        selected = pager.currentPage == first + i,
+                                        onClick = { tapScope.launch { pager.animateScrollToPage(first + i) } },
+                                        text = { Text(stringResource(p.labelRes!!)) },
+                                    )
+                                }
+                            }
+                        }
+                        androidx.compose.foundation.pager.HorizontalPager(
+                            state = pager,
+                            modifier = Modifier.weight(1f).fillMaxWidth(),
+                            beyondViewportPageCount = 1,
+                        ) { index ->
+                            when (Page.entries[index]) {
+                                Page.TIMERS -> TimerDashboard(
                                     model = model,
                                     lastSync = log.lastResult,
                                     activeBoostState = state.activeBoosts,
@@ -212,22 +207,12 @@ fun ClashTrackersContent(
                                     onDeleteAccount = onDeleteAccount,
                                     wide = wide,
                                 )
-                                Destination.PLAN -> PlanScreen(state.export, model, now, planTab) { planTab = it }
-                                Destination.SETTINGS -> SettingsHub(
-                                    tab = settingsTab,
-                                    onTab = { settingsTab = it },
-                                    settings = settings,
-                                    export = state.export,
-                                    now = now,
-                                    onSettingsChange = onSettingsChange,
-                                    selectedTag = selectedTag,
-                                    state = state,
-                                    model = model,
-                                    log = log,
-                                    timesCount = timesCount,
-                                )
+                                Page.PLAN_ROAD -> PlanPage(state.export, model, now, 0)
+                                Page.PLAN_BEDTIME -> PlanPage(state.export, model, now, 1)
+                                Page.SETTINGS -> SettingsPage(0, settings, state.export, now, onSettingsChange, selectedTag, state, model, log, timesCount)
+                                Page.PERSONALIZATION -> SettingsPage(1, settings, state.export, now, onSettingsChange, selectedTag, state, model, log, timesCount)
+                                Page.SUPPORT -> SettingsPage(2, settings, state.export, now, onSettingsChange, selectedTag, state, model, log, timesCount)
                             }
-                        }
                         }
                     }
                 }
