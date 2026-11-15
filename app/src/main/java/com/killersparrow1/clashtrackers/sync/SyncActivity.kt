@@ -32,9 +32,9 @@ class SyncActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Only the widget's Sync button sets this. Any other launch (something on the phone starting this screen
-        // by itself) is logged and dropped, so it never toasts over another app or takes its focus.
-        if (!intent.getBooleanExtra(EXTRA_WIDGET_TAP, false)) {
+        // Only a deliberate launch (the widget's button or the Sync shortcut) runs. Anything else is logged and dropped.
+        // The widget button marks its launch; the app-icon "Sync" shortcut (also what Back Tap or Quick Tap can start) uses MAIN.
+        if (!intent.getBooleanExtra(EXTRA_WIDGET_TAP, false) && intent.action != android.content.Intent.ACTION_MAIN) {
             log(false, "Ignored a launch that did not come from the widget's Sync button. " + launchDetails())
             started = true
             finishQuietly()
