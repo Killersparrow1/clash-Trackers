@@ -9,7 +9,6 @@
     <string name="nav_plan">Plan</string>
     <string name="nav_clash">Clash</string>
     <string name="clash_tab_events">Events</string>
-    <string name="clash_tab_data">Data</string>
     <string name="clash_ev_clan_games">Clan Games</string>
     <string name="clash_ev_raid">Raid Weekend</string>
     <string name="clash_ev_cwl_signup">CWL sign-up and preparation</string>
@@ -26,12 +25,13 @@
     <string name="clash_ev_refresh">Refresh schedule now</string>
     <string name="clash_ev_note">Worked out from the game\'s usual schedule (UTC), shown in your local time, plus any changes and special events from the project\'s schedule file. Supercell can change these times.</string>
     <string name="clash_data_title">Game data</string>
-    <string name="clash_data_desc">Levels, costs and times behind Road to max and Bedtime level up. When a new Town Hall arrives you can get the new data here without waiting for an app update.</string>
+    <string name="clash_data_desc">Levels, costs and times behind Road to max and Bedtime level up. When a new Town Hall arrives the app gets the new data by itself, without waiting for an app update.</string>
     <string name="clash_data_current_builtin">In use: built into the app. Town Hall %1$d, %2$d items.</string>
     <string name="clash_data_current_downloaded">In use: downloaded. Town Hall %1$d, %2$d items.</string>
     <string name="clash_data_newer">Newer data is available: Town Hall %1$d, %2$d items.</string>
     <string name="clash_data_install">Use the new data</string>
     <string name="clash_data_same">You already have the latest data.</string>
+    <string name="clash_data_auto">Update the game data by itself when the app opens</string>
     <string name="clash_data_check">Check for new data</string>
     <string name="clash_data_use_builtin">Use the built-in data</string>
     <string name="clash_data_note">Only the project\'s own data file on GitHub is used, and only after it is checked. An app update replaces downloaded data with its own.</string>

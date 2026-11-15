@@ -150,9 +150,9 @@ private sealed interface DataCheck {
     data class Failed(val message: String) : DataCheck
 }
 
-/** Clash > Data: which game data the app uses, and a check for a newer copy from the project's repository. */
+/** Settings: which game data the app uses, whether it updates by itself, and a manual check. */
 @Composable
-internal fun DataPage() {
+internal fun GameDataCard() {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val version = MaxDataStore.version // read so this page redraws after an update
@@ -160,12 +160,9 @@ internal fun DataPage() {
     val downloaded = remember(version) { MaxDataStore.isDownloaded(context) }
     var check by remember { mutableStateOf<DataCheck>(DataCheck.Idle) }
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        item {
+    var auto by remember { mutableStateOf(DataUpdater.auto(context)) }
+    run {
+        run {
             SectionCard(stringResource(R.string.clash_data_title)) {
                 Text(stringResource(R.string.clash_data_desc), style = MaterialTheme.typography.bodyMedium)
                 Text(
@@ -201,10 +198,8 @@ internal fun DataPage() {
                         scope.launch {
                             check = try {
                                 val r = DataUpdater.fetch()
-                                val sameData = r.data.maxTownHall == data.maxTownHall && r.data.items.size == data.items.size &&
-                                    r.text == currentText(context, downloaded)
                                 // Never go back to fewer Town Halls than the app already knows.
-                                if (sameData || r.data.maxTownHall < data.maxTownHall) DataCheck.Same
+                                if (r.text == DataUpdater.currentText(context) || r.data.maxTownHall < data.maxTownHall) DataCheck.Same
                                 else DataCheck.Newer(r.text, r.data.maxTownHall, r.data.items.size)
                             } catch (e: Exception) {
                                 DataCheck.Failed(e.message ?: e.javaClass.simpleName)
@@ -219,6 +214,16 @@ internal fun DataPage() {
                         modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
                     ) { Text(stringResource(R.string.clash_data_use_builtin)) }
                 }
+                androidx.compose.foundation.layout.Row(
+                    Modifier.fillMaxWidth(),
+                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                ) {
+                    Text(stringResource(R.string.clash_data_auto), modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+                    androidx.compose.material3.Switch(checked = auto, onCheckedChange = {
+                        auto = it
+                        DataUpdater.setAuto(context, it)
+                    })
+                }
                 Text(
                     stringResource(R.string.clash_data_note),
                     style = MaterialTheme.typography.bodySmall,
@@ -229,8 +234,9 @@ internal fun DataPage() {
     }
 }
 
-/** The text of the game data in use, to tell whether a download is actually different. */
-private fun currentText(context: android.content.Context, downloaded: Boolean): String? = runCatching {
-    if (downloaded) MaxDataStore.downloadedFile(context).readText()
-    else context.assets.open("max_data.json").bufferedReader().use { it.readText() }
-}.getOrNull()
+/** Keeps the game data fresh: fetched quietly when the app opens (at most hourly, if switched on in Settings). */
+@Composable
+internal fun GameDataAutoRefresh() {
+    val context = LocalContext.current
+    androidx.compose.runtime.LaunchedEffect(Unit) { DataUpdater.refreshIfDue(context) }
+}

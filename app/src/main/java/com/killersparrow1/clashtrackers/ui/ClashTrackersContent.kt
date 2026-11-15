@@ -61,7 +61,6 @@ private enum class Page(val dest: Destination, @StringRes val labelRes: Int?) {
     PLAN_ROAD(Destination.PLAN, R.string.plan_tab_road),
     PLAN_BEDTIME(Destination.PLAN, R.string.plan_tab_bedtime),
     CLASH_EVENTS(Destination.CLASH, R.string.clash_tab_events),
-    CLASH_DATA(Destination.CLASH, R.string.clash_tab_data),
     SETTINGS(Destination.SETTINGS, R.string.nav_settings),
     PERSONALIZATION(Destination.SETTINGS, R.string.settings_tab_personalization),
     SUPPORT(Destination.SETTINGS, R.string.nav_support),
@@ -91,6 +90,7 @@ fun ClashTrackersContent(
 ) {
     UpdatePrompt()
     EventsAutoRefresh()
+    GameDataAutoRefresh()
     var developerOpen by rememberSaveable { mutableStateOf(false) }
     val tapScope = androidx.compose.runtime.rememberCoroutineScope()
     // One pager holds every page, so swiping follows the finger and tabs and sub-tabs share the same motion.
@@ -216,7 +216,6 @@ fun ClashTrackersContent(
                                 Page.PLAN_ROAD -> PlanPage(state.export, model, now, 0)
                                 Page.PLAN_BEDTIME -> PlanPage(state.export, model, now, 1)
                                 Page.CLASH_EVENTS -> EventsPage(now)
-                                Page.CLASH_DATA -> DataPage()
                                 Page.SETTINGS -> SettingsPage(0, settings, state.export, now, onSettingsChange, selectedTag, state, model, log, timesCount)
                                 Page.PERSONALIZATION -> SettingsPage(1, settings, state.export, now, onSettingsChange, selectedTag, state, model, log, timesCount)
                                 Page.SUPPORT -> SettingsPage(2, settings, state.export, now, onSettingsChange, selectedTag, state, model, log, timesCount)

@@ -66,7 +66,7 @@ Five colour themes, chosen per widget: **Material You** (follows your phone's wa
 - **Road to Max Widget**: a second home-screen widget with the same numbers (builder, lab and pet time, plus the three resources when it is wide), in any of the five widget themes.
 - **Stat Tiles and Totals**: Builders busy, next free builder and next lab at a glance, plus the total builder and lab time left.
 - **Quick Actions**: An **Open game** button in the header (Clash of Clans' More Settings, where Export Data is) and long-press shortcuts on the app icon for Sync and Open game.
-- **Short Navigation Bar**: Fluid navigation between **Timers**, **Plan**, **Clash** and **Settings**, with sub-tabs (Plan: Road to max, Bedtime level up; Clash: Events, Data; Settings: Settings, Personalization, Support) and swipe-to-switch.
+- **Short Navigation Bar**: Fluid navigation between **Timers**, **Plan**, **Clash** and **Settings**, with sub-tabs (Plan: Road to max, Bedtime level up; Clash: Events; Settings: Settings, Personalization, Support) and swipe-to-switch.
 - **Dynamic Theming**: Full support for Material You dynamic color extraction (Android 12+) with expressive light and dark palettes.
 
 ### 🏛️ Complete Village Coverage

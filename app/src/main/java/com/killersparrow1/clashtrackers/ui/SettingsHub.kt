@@ -40,7 +40,10 @@ internal fun SettingsPage(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
-                ) { item { SettingsSection(settings, export, now, onSettingsChange, selectedTag) } }
+                ) {
+                    item { SettingsSection(settings, export, now, onSettingsChange, selectedTag) }
+                    item { GameDataCard() }
+                }
                 1 -> LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(16.dp),
