@@ -4,7 +4,9 @@ package com.killersparrow1.clashtrackers.ui
 
 import android.text.format.DateFormat
 import androidx.annotation.DrawableRes
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -86,8 +88,14 @@ internal fun PlanScreen(export: VillageExport?, model: WidgetModel, now: Long, t
                 Tab(selected = tab == 1, onClick = { onTab(1) }, text = { Text(stringResource(R.string.plan_tab_bedtime)) })
             }
         }
-        LazyColumn(
+        AnimatedContent(
+            targetState = tab,
             modifier = Modifier.fillMaxWidth().weight(1f),
+            transitionSpec = { slideTransition(forward = targetState > initialState) },
+            label = "planTab",
+        ) { page ->
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
@@ -95,7 +103,7 @@ internal fun PlanScreen(export: VillageExport?, model: WidgetModel, now: Long, t
                 item { Text(stringResource(R.string.welcome_sub), style = MaterialTheme.typography.bodyLarge) }
                 return@LazyColumn
             }
-            if (tab == 0) {
+            if (page == 0) {
                 item { RoadToMaxCard(export, model.buildersTotal) }
                 return@LazyColumn
             }
@@ -128,6 +136,7 @@ internal fun PlanScreen(export: VillageExport?, model: WidgetModel, now: Long, t
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+        }
         }
     }
 }

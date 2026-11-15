@@ -27,6 +27,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.runtime.Composable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.ui.input.pointer.pointerInput
@@ -179,8 +180,14 @@ fun ClashTrackersContent(
                             ) { _, dx -> total += dx }
                         },
                     ) {
-                        screenState.SaveableStateProvider(destination) {
-                            when (destination) {
+                        AnimatedContent(
+                            targetState = destination,
+                            modifier = Modifier.fillMaxSize(),
+                            transitionSpec = { slideTransition(forward = targetState.ordinal > initialState.ordinal) },
+                            label = "destination",
+                        ) { dest ->
+                        screenState.SaveableStateProvider(dest) {
+                            when (dest) {
                                 Destination.TIMERS -> TimerDashboard(
                                     model = model,
                                     lastSync = log.lastResult,
@@ -213,6 +220,7 @@ fun ClashTrackersContent(
                                 }
                                 Destination.SUPPORT -> SupportScreen(state, model, log, timesCount, now)
                             }
+                        }
                         }
                     }
                 }

@@ -3,6 +3,7 @@
 package com.killersparrow1.clashtrackers.ui
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -78,4 +79,17 @@ internal fun SubSection(title: String, content: @Composable ColumnScope.() -> Un
         Text(title, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
         content()
     }
+}
+
+/** A smooth sideways slide with a fade: the new page comes in from the side you swiped towards. */
+internal fun slideTransition(forward: Boolean): androidx.compose.animation.ContentTransform {
+    val spring = androidx.compose.animation.core.spring<androidx.compose.ui.unit.IntOffset>(
+        dampingRatio = androidx.compose.animation.core.Spring.DampingRatioNoBouncy,
+        stiffness = androidx.compose.animation.core.Spring.StiffnessMediumLow,
+    )
+    val sign = if (forward) 1 else -1
+    return (androidx.compose.animation.slideInHorizontally(spring) { sign * it / 3 } +
+        androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(260, delayMillis = 40))) togetherWith
+        (androidx.compose.animation.slideOutHorizontally(spring) { -sign * it / 3 } +
+            androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(160)))
 }
