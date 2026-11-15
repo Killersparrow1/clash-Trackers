@@ -22,6 +22,11 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.border
+import androidx.compose.foundation.background
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -70,6 +75,7 @@ private const val H = 3600L
 @Composable
 fun PersonalizationSection(settings: AppSettings, onChange: ((AppSettings) -> AppSettings) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        SectionCard(stringResource(R.string.look_title)) { AppLookPicker() }
         SectionCard(stringResource(R.string.settings_section_widget)) {
             WidgetThemeSetting(settings, onChange)
             SwitchRow(stringResource(R.string.settings_live_countdown), settings.liveCountdown) { on -> onChange { it.copy(liveCountdown = on) } }
@@ -448,5 +454,44 @@ private fun WidgetThemeSetting(settings: AppSettings, onChange: ((AppSettings) -
             },
             confirmButton = { TextButton(onClick = { open = false }) { Text(stringResource(R.string.action_cancel)) } },
         )
+    }
+}
+
+/** The app's own look: a list of looks, each with three colour dots; the change shows at once. */
+@Composable
+private fun AppLookPicker() {
+    val context = LocalContext.current
+    val current = com.killersparrow1.clashtrackers.ui.theme.AppLookStore.get(context)
+    Text(stringResource(R.string.look_desc), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Column(Modifier.selectableGroup()) {
+        for (look in com.killersparrow1.clashtrackers.ui.theme.AppLook.entries) {
+            val label = when (look) {
+                com.killersparrow1.clashtrackers.ui.theme.AppLook.MATERIAL_YOU -> R.string.look_material_you
+                com.killersparrow1.clashtrackers.ui.theme.AppLook.MATERIAL_LIGHT -> R.string.look_material_light
+                com.killersparrow1.clashtrackers.ui.theme.AppLook.MATERIAL_DARK -> R.string.look_material_dark
+                com.killersparrow1.clashtrackers.ui.theme.AppLook.CLEAN -> R.string.look_clean
+                com.killersparrow1.clashtrackers.ui.theme.AppLook.CLASSIC -> R.string.look_classic
+                com.killersparrow1.clashtrackers.ui.theme.AppLook.GAME -> R.string.look_game
+            }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)
+                    .selectable(selected = look == current, role = Role.RadioButton) {
+                        com.killersparrow1.clashtrackers.ui.theme.AppLookStore.set(context, look)
+                    },
+            ) {
+                RadioButton(selected = look == current, onClick = null)
+                Text(stringResource(label), modifier = Modifier.padding(start = 12.dp).weight(1f), style = MaterialTheme.typography.bodyLarge)
+                Row(horizontalArrangement = Arrangement.spacedBy((-6).dp)) {
+                    for (c in look.swatch) {
+                        androidx.compose.foundation.layout.Box(
+                            Modifier.size(22.dp)
+                                .background(androidx.compose.ui.graphics.Color(c), androidx.compose.foundation.shape.CircleShape)
+                                .border(1.dp, MaterialTheme.colorScheme.outline, androidx.compose.foundation.shape.CircleShape),
+                        )
+                    }
+                }
+            }
+        }
     }
 }

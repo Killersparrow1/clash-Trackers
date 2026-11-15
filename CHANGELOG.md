@@ -16,6 +16,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ### Added
 
+- App look in Settings > Personalization: Material You (follows the phone), Material light, Material dark, Clean, Classic and Game. The status and navigation bar icons follow the chosen look.
 - Settings now has three sub-tabs: **Settings**, **Personalization** (the widget look and live countdown, with more looks planned) and **Support** (moved from its own tab). The hidden developer options now open by tapping the Settings tab 11 times quickly.
 - Swipe sideways to move between tabs (Timers, Plan with its two sub-tabs, Settings, Support), with a smooth slide and fade.
 - Plan tab has two sub-tabs: **Road to max** and **Bedtime level up**. Bedtime can be filtered by Defence, Permanent (traps, guardians), Army (army buildings, troops, spells, siege, heroes, pets), Resource and New (new buildings), by Gold, Elixir or Dark Elixir, and sorted by soonest done, highest or lowest cost.
