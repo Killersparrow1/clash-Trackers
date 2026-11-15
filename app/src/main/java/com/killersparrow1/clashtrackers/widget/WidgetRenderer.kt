@@ -190,7 +190,6 @@ class WidgetRenderer(private val context: Context) {
         val t = palette(model.widgetTheme)
         rv.setInt(R.id.panel, "setBackgroundResource", t.panel)
         rv.setInt(R.id.sync_button, "setBackgroundResource", t.syncButton)
-        rv.setOnClickPendingIntent(R.id.header, sync)
         rv.setOnClickPendingIntent(R.id.sync_button, sync)
         rv.setTextViewText(R.id.who, title(model, t))
         rv.setTextColor(R.id.who, t.text)
@@ -224,7 +223,6 @@ class WidgetRenderer(private val context: Context) {
     private fun renderMinimal(model: WidgetModel, appWidgetId: Int, liveCountdown: Boolean): RemoteViews {
         val rv = RemoteViews(pkg, R.layout.widget_root_minimal)
         val sync = syncIntent()
-        rv.setOnClickPendingIntent(R.id.header, sync)
         rv.setOnClickPendingIntent(R.id.sync_button, sync)
         rv.setTextViewText(R.id.who, title(model, palette(model.widgetTheme)).toString().uppercase())
         rv.setTextViewText(R.id.lbl_sync, lctx.getString(R.string.widget_sync).uppercase())
@@ -327,7 +325,6 @@ class WidgetRenderer(private val context: Context) {
         val t = palette(model.widgetTheme)
         rv.setInt(R.id.panel, "setBackgroundResource", t.panel)
         rv.setInt(R.id.sync_button, "setBackgroundResource", t.syncButton)
-        rv.setOnClickPendingIntent(R.id.header, sync)
         rv.setOnClickPendingIntent(R.id.sync_button, sync)
         rv.setTextViewText(R.id.who, title(model, t))
         rv.setTextColor(R.id.who, t.text)

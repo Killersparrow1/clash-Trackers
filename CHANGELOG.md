@@ -6,6 +6,10 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ## [Unreleased]
 
+### Fixed
+
+- Widget: only the Sync button starts a sync now (the title row no longer does), and a repeated Sync screen launch within 4 seconds is ignored, so stray launches stop covering other apps with "Sync failed".
+
 ### Added
 
 - In-app update: a dialog offers new releases when the app opens (every 12 hours at most, can be switched off in About); Support > About checks the latest GitHub release, downloads the APK and installs it through Android's installer. Adds the INTERNET and REQUEST_INSTALL_PACKAGES permissions, used only for this.

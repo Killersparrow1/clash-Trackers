@@ -32,6 +32,18 @@ class SyncActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // A real tap never repeats within a few seconds; an automatic or stray launch is dropped silently instead of
+        // covering whatever app is open and toasting over it.
+        val prefs = getSharedPreferences("sync_activity", MODE_PRIVATE)
+        val now = System.currentTimeMillis()
+        val last = prefs.getLong("last_open", 0L)
+        prefs.edit().putLong("last_open", now).apply()
+        if (now - last in 0 until REPEAT_GUARD_MS) {
+            log(false, "Ignored a repeated Sync screen launch (${now - last} ms after the last)")
+            started = true
+            finishQuietly()
+            return
+        }
         log(null, "Sync screen opened from widget")
         handler.postDelayed(hardTimeout, HARD_TIMEOUT_MS)
     }
@@ -89,5 +101,6 @@ class SyncActivity : ComponentActivity() {
         const val SOURCE = "widget"
         const val FOCUS_FALLBACK_MS = 1500L
         const val HARD_TIMEOUT_MS = 8000L
+        const val REPEAT_GUARD_MS = 4000L
     }
 }
