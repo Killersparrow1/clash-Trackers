@@ -44,9 +44,12 @@ internal fun CollapsibleCard(
     title: String,
     stateKey: String,
     modifier: Modifier = Modifier,
+    /** True for a card that has a page of its own: no "+" / "−", always open. */
+    alwaysOpen: Boolean = false,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    var open by rememberSaveable(stateKey) { mutableStateOf(false) }
+    var openState by rememberSaveable(stateKey) { mutableStateOf(false) }
+    val open = alwaysOpen || openState
     Card(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
@@ -54,12 +57,12 @@ internal fun CollapsibleCard(
     ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(
-                Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable { open = !open },
+                Modifier.fillMaxWidth().heightIn(min = 48.dp).then(if (alwaysOpen) Modifier else Modifier.clickable { openState = !openState }),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(title, style = MaterialTheme.typography.titleMediumEmphasized)
-                Text(if (open) "−" else "+", style = MaterialTheme.typography.headlineMedium)
+                if (!alwaysOpen) Text(if (open) "−" else "+", style = MaterialTheme.typography.headlineMedium)
             }
             AnimatedVisibility(visible = open) {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp), content = content)

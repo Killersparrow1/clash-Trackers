@@ -52,7 +52,7 @@ internal fun RoadToMaxCard(export: VillageExport?, builders: Int, modifier: Modi
 
     val builderWork = road.builderWork
     val all = builderWork + road.lab + road.pets
-    CollapsibleCard(stringResource(R.string.road_title, road.townHall), "road_to_max", modifier) {
+    CollapsibleCard(stringResource(R.string.road_title, road.townHall), "road_to_max", modifier, alwaysOpen = true) {
         RoadRow(
             label = stringResource(R.string.road_builders),
             value = formatDuration(builderWork.seconds / builders.coerceAtLeast(1), dayUnit),
