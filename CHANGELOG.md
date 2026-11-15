@@ -8,6 +8,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ### Fixed
 
+- With "Sync from clipboard when the app opens" switched off, the app no longer reads the clipboard at all (it used to read it and only skip the import, which still triggered Android's "pasted from clipboard" notice). The widget Sync button still syncs, since you asked for it.
 - Road to max is always open on its own Plan sub-tab (no more + / − toggle).
 - Widget: the Sync button now opens the app, which reads the copied village data when it opens. The invisible Sync screen is no longer started from the widget, because some ROMs sent it stray taps.
 - Widget: only the Sync button starts a sync now (the title row no longer does), and a repeated Sync screen launch within 4 seconds is ignored, so stray launches stop covering other apps with "Sync failed".

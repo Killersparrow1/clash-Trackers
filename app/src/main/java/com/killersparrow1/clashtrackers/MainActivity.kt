@@ -70,6 +70,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        syncRequestHandled = savedInstanceState != null // a recreated activity must not repeat the widget's sync
         // The start-up animation plays on a fresh launch only (not after a rotation or a process restore).
         val playSplash = savedInstanceState == null
         setContent {
@@ -83,13 +84,44 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    /** Set when the widget's Sync button opened the app: the user asked for a sync, whatever the auto-sync switch says. */
+    private var syncRequested = false
+
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        syncRequested = intent.getBooleanExtra(EXTRA_SYNC_NOW, false)
+    }
+
     /** Android 10+ only lets the focused app read the clipboard, so the check waits for window focus. */
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
         if (!hasFocus) return
+        if (intent?.getBooleanExtra(EXTRA_SYNC_NOW, false) == true && !syncRequestHandled) {
+            syncRequested = true
+            syncRequestHandled = true
+        }
+        if (syncRequested) {
+            syncRequested = false
+            val text = SyncRunner.readClipboard(this)
+            ClipboardAutoSync.markUsed(this, text)
+            lifecycleScope.launch {
+                val r = runCatching { SyncRunner.sync(this@MainActivity, text, "widget") }.getOrNull()
+                if (r != null && !r.ok) android.widget.Toast.makeText(this@MainActivity, r.message, android.widget.Toast.LENGTH_LONG).show()
+            }
+            return
+        }
+        // Switched off: do not even read the clipboard (reading it makes Android show "pasted from clipboard").
+        if (!ClipboardAutoSync.enabled(this)) return
         val clip = ClipboardAutoSync.pending(this, SyncRunner.readClipboard(this)) ?: return
         ClipboardAutoSync.markUsed(this, clip)
         lifecycleScope.launch { runCatching { SyncRunner.sync(this@MainActivity, clip, "auto") } }
+    }
+
+    private var syncRequestHandled = false
+
+    companion object {
+        const val EXTRA_SYNC_NOW = "sync_now"
     }
 }
 
