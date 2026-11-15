@@ -66,7 +66,7 @@ Five colour themes, chosen per widget: **Material You** (follows your phone's wa
 - **Road to Max Widget**: a second home-screen widget with the same numbers (builder, lab and pet time, plus the three resources when it is wide), in any of the five widget themes.
 - **Stat Tiles and Totals**: Builders busy, next free builder and next lab at a glance, plus the total builder and lab time left.
 - **Quick Actions**: An **Open game** button in the header (Clash of Clans' More Settings, where Export Data is) and long-press shortcuts on the app icon for Sync and Open game.
-- **Short Navigation Bar**: Fluid navigation between **Timers**, **Settings**, and **Support**.
+- **Short Navigation Bar**: Fluid navigation between **Timers**, **Plan** and **Settings**, with sub-tabs (Plan: Road to max, Bedtime level up; Settings: Settings, Personalization, Support) and swipe-to-switch.
 - **Dynamic Theming**: Full support for Material You dynamic color extraction (Android 12+) with expressive light and dark palettes.
 
 ### 🏛️ Complete Village Coverage
@@ -99,7 +99,7 @@ Five colour themes, chosen per widget: **Material You** (follows your phone's wa
 - **Two-Column Timers**: Wide screens show the Timers dashboard in two columns, centered at a comfortable reading width.
 
 ### ❓ Built-in Help
-- **Step-by-Step Guide**: Open **Support → How to sync** or the link on the empty Timers screen for screenshots and instructions covering export, sync and widget setup.
+- **Step-by-Step Guide**: Open **Settings → Support → How to sync** or the link on the empty Timers screen for screenshots and instructions covering export, sync and widget setup.
 
 ### 👥 Multiple Accounts
 - **Saved by Player Tag**: Every Clash of Clans export contains a player tag. Sync an export from another account and the app saves it as its own account; syncing the same account again updates only that account.
@@ -122,12 +122,12 @@ Five colour themes, chosen per widget: **Material You** (follows your phone's wa
 - **Follow Do Not Disturb**: A switch in **Settings → Notifications** (on by default) keeps alerts quiet during Do Not Disturb and uses your notification volume. Turn it off for an alarm-style alert that rings through Do Not Disturb.
 
 ### ⬆️ Updates, Feedback & Releases
-- **Update from inside the app**: **Support → About → Check for updates** looks up the latest GitHub release, shows what is new, downloads the APK and hands it to Android's installer. Android asks once to allow installs from this app and always asks you to confirm. Builds use a fixed signing key, so updates install over the old version.
-- **Issues and feature requests**: **Support → About** also has *Report an issue*, *Request a feature* and *See open issues* buttons that open [GitHub Issues](https://github.com/Killersparrow1/clash-Trackers/issues/). *Report an issue* also copies a diagnostic report to your clipboard so you can paste it into the issue.
-- **Diagnostics and report**: **Support → Diagnostics** starts with a health checklist (saved village, notifications, exact alarms, battery restriction, icons) and has **Copy report** / **Share report** buttons. The report lists app, Android and phone info, widget sizes, what the last import detected, which icon each widget row uses, recent activity and the last crash. It never includes your player tag or name.
+- **Update from inside the app**: **Settings → Support → About → Check for updates** looks up the latest GitHub release, shows what is new, downloads the APK and hands it to Android's installer. Android asks once to allow installs from this app and always asks you to confirm. Builds use a fixed signing key, so updates install over the old version.
+- **Issues and feature requests**: **Settings → Support → About** also has *Report an issue*, *Request a feature* and *See open issues* buttons that open [GitHub Issues](https://github.com/Killersparrow1/clash-Trackers/issues/). *Report an issue* also copies a diagnostic report to your clipboard so you can paste it into the issue.
+- **Diagnostics and report**: **Settings → Support → Diagnostics** starts with a health checklist (saved village, notifications, exact alarms, battery restriction, icons) and has **Copy report** / **Share report** buttons. The report lists app, Android and phone info, widget sizes, what the last import detected, which icon each widget row uses, recent activity and the last crash. It never includes your player tag or name.
 - **Obtainium (automatic updates)**: Add the app to [Obtainium](https://github.com/ImranR98/Obtainium) and it tells you about every new release, then downloads and installs the APK for you. In Obtainium tap **Add App**, paste `https://github.com/Killersparrow1/clash-Trackers`, and tap **Add**. Each release has a single APK named `ClashTrackers-CT<version>.apk`, so the defaults work. Your updates install over the old version because the builds are signed with a fixed key. 
 - **Install over the old version**: Builds are signed with a fixed key, so a new APK installs on top of the previous one without uninstalling (the version number must be higher).
-- **Release names**: Releases are named `CT2.1`, `CT2.2` ... `CT3.0`, and the app shows the same name in **Support → About** (see **Releasing** below).
+- **Release names**: Releases are named `CT2.1`, `CT2.2` ... `CT3.0`, and the app shows the same name in **Settings → Support → About** (see **Releasing** below).
 
 ### 🔒 Privacy
 - **Internet only for updates**: The app requests `android.permission.INTERNET` solely for the in-app update (a GitHub release lookup when the app opens, at most every 12 hours and switchable off in About, plus the APK download you start). Your village data never leaves the phone; there is no account, no ads and no tracking.
@@ -216,7 +216,7 @@ cd clash-trackers
 | `INTERNET` | Only for the in-app update check and download from GitHub. |
 | `REQUEST_INSTALL_PACKAGES` | Lets the app hand the downloaded update to Android's installer. |
 
-**Updates and feedback:** the Support tab's **Check for updates** button talks to GitHub directly; the issue / feature-request buttons open GitHub in your browser.
+**Updates and feedback:** **Settings → Support → About → Check for updates** button talks to GitHub directly; the issue / feature-request buttons open GitHub in your browser.
 
 ---
 

@@ -66,6 +66,22 @@ import com.killersparrow1.clashtrackers.notify.Notifier
 
 private const val H = 3600L
 
+/** Personalization: how the widgets look (more looks for the app itself are planned here). */
+@Composable
+fun PersonalizationSection(settings: AppSettings, onChange: ((AppSettings) -> AppSettings) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        SectionCard(stringResource(R.string.settings_section_widget)) {
+            WidgetThemeSetting(settings, onChange)
+            SwitchRow(stringResource(R.string.settings_live_countdown), settings.liveCountdown) { on -> onChange { it.copy(liveCountdown = on) } }
+            Text(
+                stringResource(R.string.settings_live_desc),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
 /** Settings retain their existing storage and ranges; only the editing surface changes. */
 @Composable
 fun SettingsSection(
@@ -233,15 +249,6 @@ fun SettingsSection(
                 unit = stringResource(R.string.unit_hours),
                 description = stringResource(R.string.settings_interval_desc),
             ) { value -> value?.let { hours -> boosts { it.copy(helperPeriodSec = hours * H) } } }
-        }
-        SectionCard(stringResource(R.string.settings_section_widget)) {
-            WidgetThemeSetting(settings, onChange)
-            SwitchRow(stringResource(R.string.settings_live_countdown), settings.liveCountdown) { on -> onChange { it.copy(liveCountdown = on) } }
-            Text(
-                stringResource(R.string.settings_live_desc),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
         }
         OutlinedButton(onClick = { confirmReset = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
             Text(stringResource(R.string.settings_reset))

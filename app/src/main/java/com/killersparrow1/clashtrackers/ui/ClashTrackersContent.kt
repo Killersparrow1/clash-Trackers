@@ -53,7 +53,6 @@ private enum class Destination(@StringRes val labelRes: Int, val icon: Int) {
     TIMERS(R.string.nav_timers, R.drawable.ic_timers),
     PLAN(R.string.nav_plan, R.drawable.ic_plan),
     SETTINGS(R.string.nav_settings, R.drawable.ic_settings),
-    SUPPORT(R.string.nav_support, R.drawable.ic_support),
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -81,10 +80,10 @@ fun ClashTrackersContent(
     var developerOpen by rememberSaveable { mutableStateOf(false) }
     val tapScope = androidx.compose.runtime.rememberCoroutineScope()
     val supportTaps = remember { mutableListOf<Long>() }
-    // Tap the Support tab 11 times within 4 seconds to open the hidden developer options.
+    // Tap the Settings tab 11 times within 4 seconds to open the hidden developer options.
     fun navigate(entry: Destination) {
         destination = entry
-        if (entry != Destination.SUPPORT || developerOpen) return
+        if (entry != Destination.SETTINGS || developerOpen) return
         val t = System.currentTimeMillis()
         supportTaps.add(t)
         supportTaps.removeAll { t - it > 4_000L }
@@ -102,17 +101,20 @@ fun ClashTrackersContent(
         }
     }
     var planTab by rememberSaveable { mutableStateOf(0) }
-    // Swiping sideways walks through Timers, Plan (Road to max, Bedtime level up), Settings and Support in order.
+    var settingsTab by rememberSaveable { mutableStateOf(0) }
+    // Swiping sideways walks through every page in order: Timers, Plan (2), Settings (Settings, Personalization, Support).
     fun swipe(forward: Boolean) {
-        val all = Destination.entries
-        val i = all.indexOf(destination)
-        if (destination == Destination.PLAN) {
-            if (forward && planTab == 0) { planTab = 1; return }
-            if (!forward && planTab == 1) { planTab = 0; return }
+        val page = when (destination) {
+            Destination.TIMERS -> 0
+            Destination.PLAN -> 1 + planTab
+            Destination.SETTINGS -> 3 + settingsTab
         }
-        val next = all.getOrNull(if (forward) i + 1 else i - 1) ?: return
-        if (next == Destination.PLAN) planTab = if (forward) 0 else 1
-        destination = next
+        val next = page + if (forward) 1 else -1
+        when (next) {
+            0 -> destination = Destination.TIMERS
+            1, 2 -> { planTab = next - 1; destination = Destination.PLAN }
+            3, 4, 5 -> { settingsTab = next - 3; destination = Destination.SETTINGS }
+        }
     }
     val screenState = rememberSaveableStateHolder()
     BackHandler(enabled = destination != Destination.TIMERS) { destination = Destination.TIMERS }
@@ -170,7 +172,7 @@ fun ClashTrackersContent(
                 }
                 Box(Modifier.weight(1f).fillMaxSize(), contentAlignment = Alignment.TopCenter) {
                     Box(
-                        Modifier.widthIn(max = 840.dp).fillMaxSize().pointerInput(destination, planTab) {
+                        Modifier.widthIn(max = 840.dp).fillMaxSize().pointerInput(destination, planTab, settingsTab) {
                             var total = 0f
                             val threshold = 72.dp.toPx()
                             detectHorizontalDragGestures(
@@ -211,14 +213,19 @@ fun ClashTrackersContent(
                                     wide = wide,
                                 )
                                 Destination.PLAN -> PlanScreen(state.export, model, now, planTab) { planTab = it }
-                                Destination.SETTINGS -> LazyColumn(
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentPadding = PaddingValues(16.dp),
-                                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                                ) {
-                                    item { SettingsSection(settings, state.export, now, onSettingsChange, selectedTag) }
-                                }
-                                Destination.SUPPORT -> SupportScreen(state, model, log, timesCount, now)
+                                Destination.SETTINGS -> SettingsHub(
+                                    tab = settingsTab,
+                                    onTab = { settingsTab = it },
+                                    settings = settings,
+                                    export = state.export,
+                                    now = now,
+                                    onSettingsChange = onSettingsChange,
+                                    selectedTag = selectedTag,
+                                    state = state,
+                                    model = model,
+                                    log = log,
+                                    timesCount = timesCount,
+                                )
                             }
                         }
                         }

@@ -83,6 +83,7 @@
     <string name="hide_details">Hide details</string>
     <string name="nav_settings">Settings</string>
     <string name="nav_support">Support</string>
+    <string name="settings_tab_personalization">Personalization</string>
     <string name="nav_timers">Timers</string>
     <string name="next_finish">Next finish: %1$s (%2$s)</string>
     <string name="no_timers_in">No active timers in %1$s.</string>
