@@ -32,6 +32,14 @@ class SyncActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Only the widget's Sync button sets this. Any other launch (something on the phone starting this screen
+        // by itself) is logged and dropped, so it never toasts over another app or takes its focus.
+        if (!intent.getBooleanExtra(EXTRA_WIDGET_TAP, false)) {
+            log(false, "Ignored a launch that did not come from the widget's Sync button. " + launchDetails())
+            started = true
+            finishQuietly()
+            return
+        }
         // A real tap never repeats within a few seconds; an automatic or stray launch is dropped silently instead of
         // covering whatever app is open and toasting over it.
         val prefs = getSharedPreferences("sync_activity", MODE_PRIVATE)
@@ -109,10 +117,11 @@ class SyncActivity : ComponentActivity() {
         super.onDestroy()
     }
 
-    private companion object {
-        const val SOURCE = "widget"
-        const val FOCUS_FALLBACK_MS = 1500L
-        const val HARD_TIMEOUT_MS = 8000L
-        const val REPEAT_GUARD_MS = 4000L
+    companion object {
+        const val EXTRA_WIDGET_TAP = "widget_tap"
+        private const val SOURCE = "widget"
+        private const val FOCUS_FALLBACK_MS = 1500L
+        private const val HARD_TIMEOUT_MS = 8000L
+        private const val REPEAT_GUARD_MS = 4000L
     }
 }

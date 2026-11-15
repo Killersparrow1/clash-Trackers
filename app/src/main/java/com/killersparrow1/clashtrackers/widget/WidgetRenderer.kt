@@ -712,7 +712,7 @@ class WidgetRenderer(private val context: Context) {
     private fun syncIntent(): PendingIntent {
         val intent = Intent(context, SyncActivity::class.java).addFlags(
             Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_ANIMATION or Intent.FLAG_ACTIVITY_CLEAR_TASK,
-        )
+        ).putExtra(SyncActivity.EXTRA_WIDGET_TAP, true)
         return PendingIntent.getActivity(
             context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
