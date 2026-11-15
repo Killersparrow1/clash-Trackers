@@ -8,7 +8,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ### Changed
 
-- Cards give a small giggle and a light haptic tick when you tap them (timers, village, sync, events, section cards). Scrolling and taps on buttons inside a card do not trigger it, and it follows the system touch feedback setting.
+- Cards give a very subtle giggle and a crisp haptic tick when you tap them (timers, village, sync, events, section cards). Scrolling and taps on buttons inside a card do not trigger it, and it follows the system touch feedback setting.
 - A weekly GitHub Action checks for newer game data and opens a pull request to main only when the numbers changed.
 - Settings > Support: removed the "Works offline" card (the app now uses the internet for updates, events and game data). Credits are hidden behind a + / − header.
 

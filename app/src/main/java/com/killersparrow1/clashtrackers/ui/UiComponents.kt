@@ -15,9 +15,9 @@ import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalHapticFeedback
+import android.view.HapticFeedbackConstants
+import androidx.compose.ui.platform.LocalView
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -109,12 +109,12 @@ internal fun slideTransition(forward: Boolean): androidx.compose.animation.Conte
 }
 
 /**
- * A small giggle plus a light tick when a card is tapped. It only reacts to a plain tap on the card itself: a scroll,
+ * A very small giggle plus a crisp tick when a card is tapped. It only reacts to a plain tap on the card itself: a scroll,
  * or a tap that a button inside the card handles, does nothing. Follows the system "touch feedback" setting.
  */
 @Composable
 internal fun Modifier.wiggleOnTap(): Modifier {
-    val haptics = LocalHapticFeedback.current
+    val view = LocalView.current
     val scope = rememberCoroutineScope()
     val tilt = remember { Animatable(0f) }
     val squash = remember { Animatable(1f) }
@@ -128,14 +128,14 @@ internal fun Modifier.wiggleOnTap(): Modifier {
             awaitEachGesture {
                 awaitFirstDown(requireUnconsumed = false)
                 if (waitForUpOrCancellation() != null) {
-                    haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
                     scope.launch {
-                        squash.snapTo(0.97f)
-                        squash.animateTo(1f, spring(dampingRatio = Spring.DampingRatioHighBouncy, stiffness = Spring.StiffnessMedium))
+                        squash.snapTo(0.992f)
+                        squash.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium))
                     }
                     scope.launch {
-                        tilt.snapTo(1f)
-                        tilt.animateTo(0f, spring(dampingRatio = Spring.DampingRatioHighBouncy, stiffness = Spring.StiffnessLow))
+                        tilt.snapTo(0.35f)
+                        tilt.animateTo(0f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMediumLow))
                     }
                 }
             }
