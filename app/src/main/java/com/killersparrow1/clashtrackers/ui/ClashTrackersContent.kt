@@ -28,6 +28,8 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -98,6 +100,19 @@ fun ClashTrackersContent(
             }
         }
     }
+    var planTab by rememberSaveable { mutableStateOf(0) }
+    // Swiping sideways walks through Timers, Plan (Road to max, Bedtime level up), Settings and Support in order.
+    fun swipe(forward: Boolean) {
+        val all = Destination.entries
+        val i = all.indexOf(destination)
+        if (destination == Destination.PLAN) {
+            if (forward && planTab == 0) { planTab = 1; return }
+            if (!forward && planTab == 1) { planTab = 0; return }
+        }
+        val next = all.getOrNull(if (forward) i + 1 else i - 1) ?: return
+        if (next == Destination.PLAN) planTab = if (forward) 0 else 1
+        destination = next
+    }
     val screenState = rememberSaveableStateHolder()
     BackHandler(enabled = destination != Destination.TIMERS) { destination = Destination.TIMERS }
 
@@ -153,7 +168,17 @@ fun ClashTrackersContent(
                     }
                 }
                 Box(Modifier.weight(1f).fillMaxSize(), contentAlignment = Alignment.TopCenter) {
-                    Box(Modifier.widthIn(max = 840.dp).fillMaxSize()) {
+                    Box(
+                        Modifier.widthIn(max = 840.dp).fillMaxSize().pointerInput(destination, planTab) {
+                            var total = 0f
+                            val threshold = 72.dp.toPx()
+                            detectHorizontalDragGestures(
+                                onDragStart = { total = 0f },
+                                onDragCancel = { total = 0f },
+                                onDragEnd = { if (kotlin.math.abs(total) > threshold) swipe(forward = total < 0) },
+                            ) { _, dx -> total += dx }
+                        },
+                    ) {
                         screenState.SaveableStateProvider(destination) {
                             when (destination) {
                                 Destination.TIMERS -> TimerDashboard(
@@ -178,7 +203,7 @@ fun ClashTrackersContent(
                                     onDeleteAccount = onDeleteAccount,
                                     wide = wide,
                                 )
-                                Destination.PLAN -> PlanScreen(state.export, model, now)
+                                Destination.PLAN -> PlanScreen(state.export, model, now, planTab) { planTab = it }
                                 Destination.SETTINGS -> LazyColumn(
                                     modifier = Modifier.fillMaxSize(),
                                     contentPadding = PaddingValues(16.dp),

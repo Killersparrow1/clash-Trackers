@@ -71,20 +71,19 @@ import java.util.Locale
 
 /** The Plan tab: Road to max, then the Bedtime view (what to start in each free slot before you sleep). */
 @Composable
-internal fun PlanScreen(export: VillageExport?, model: WidgetModel, now: Long) {
+internal fun PlanScreen(export: VillageExport?, model: WidgetModel, now: Long, tab: Int, onTab: (Int) -> Unit) {
     val context = LocalContext.current
     val data = remember { MaxDataStore.get(context) }
     var window by remember { mutableStateOf(SleepStore.get(context)) }
     val zone = remember { ZoneId.systemDefault() }
 
-    var tab by rememberSaveable { mutableStateOf(0) }
     var filter by remember { mutableStateOf(PlanFilter()) }
 
     Column(Modifier.fillMaxWidth()) {
         if (export != null && model.hasData) {
             PrimaryTabRow(selectedTabIndex = tab) {
-                Tab(selected = tab == 0, onClick = { tab = 0 }, text = { Text(stringResource(R.string.plan_tab_road)) })
-                Tab(selected = tab == 1, onClick = { tab = 1 }, text = { Text(stringResource(R.string.plan_tab_bedtime)) })
+                Tab(selected = tab == 0, onClick = { onTab(0) }, text = { Text(stringResource(R.string.plan_tab_road)) })
+                Tab(selected = tab == 1, onClick = { onTab(1) }, text = { Text(stringResource(R.string.plan_tab_bedtime)) })
             }
         }
         LazyColumn(
