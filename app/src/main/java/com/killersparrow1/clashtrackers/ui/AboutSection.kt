@@ -15,6 +15,7 @@ import com.killersparrow1.clashtrackers.core.UpdateCheck
 import com.killersparrow1.clashtrackers.update.AppUpdater
 import kotlinx.coroutines.launch
 import com.killersparrow1.clashtrackers.R
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -163,15 +164,16 @@ fun AboutSection(reportProvider: () -> String = { "" }) {
                 modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
             ) { Text(stringResource(R.string.about_view_issues)) }
         }
-        AboutGroup("Works offline") {
-            Text(
-                "Your village data is read from the clipboard you copy in Clash of Clans and stays on this phone. " +
-                    "The internet permission is used only for the update check and download above. " +
-                    "No account, no ads, no tracking.",
-                style = MaterialTheme.typography.bodyMedium,
-            )
-        }
-        AboutGroup("Credits") {
+        var creditsOpen by remember { mutableStateOf(false) }
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(
+                Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable { creditsOpen = !creditsOpen },
+                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+            ) {
+                Text("Credits", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary, modifier = Modifier.weight(1f))
+                Text(if (creditsOpen) "\u2212" else "+", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+            }
+            if (creditsOpen) {
             Text(FAN_CONTENT_DISCLAIMER, style = MaterialTheme.typography.bodyMedium)
             Text(
                 "Clash of Clans names and images are the property of Supercell. Names, upgrade times and images " +
@@ -187,6 +189,7 @@ fun AboutSection(reportProvider: () -> String = { "" }) {
             if (showLicence) {
                 val licence = remember { readAsset(context, "licenses/LilitaOne-OFL.txt") }
                 Text(licence, style = MaterialTheme.typography.bodySmall)
+            }
             }
         }
     }

@@ -6,6 +6,10 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ## [Unreleased]
 
+### Changed
+
+- Settings > Support: removed the "Works offline" card (the app now uses the internet for updates, events and game data). Credits are hidden behind a + / − header.
+
 ### Fixed
 
 - Widget: the Sync button is back to starting the quiet Sync screen (no app window). The stray launches were Back Tap set to the app's Sync shortcut, which is also allowed through the launch guard now.
