@@ -44,7 +44,7 @@ class SyncActivity : ComponentActivity() {
             finishQuietly()
             return
         }
-        log(null, "Sync screen opened from widget")
+        log(null, "Sync screen opened from widget. " + launchDetails())
         handler.postDelayed(hardTimeout, HARD_TIMEOUT_MS)
     }
 
@@ -82,6 +82,18 @@ class SyncActivity : ComponentActivity() {
         // NonCancellable: breadcrumbs must survive the activity finishing right after.
         lifecycleScope.launch(NonCancellable) { StateRepository(app).log(SOURCE, ok, message) }
     }
+
+    /** Why this screen opened: who started it, the screen state and the app that was in front (for the activity log). */
+    private fun launchDetails(): String = runCatching {
+        val pm = getSystemService(POWER_SERVICE) as android.os.PowerManager
+        val km = getSystemService(KEYGUARD_SERVICE) as android.app.KeyguardManager
+        val am = getSystemService(ACTIVITY_SERVICE) as android.app.ActivityManager
+        val front = am.runningAppProcesses.orEmpty()
+            .filter { it.importance <= android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_VISIBLE && it.processName != packageName }
+            .joinToString(",") { it.processName }.ifEmpty { "none" }
+        "referrer=${referrer?.host ?: "none"}, flags=0x${Integer.toHexString(intent.flags)}, " +
+            "screenOn=${pm.isInteractive}, locked=${km.isKeyguardLocked}, visibleApps=$front, android=${android.os.Build.VERSION.SDK_INT}"
+    }.getOrDefault("details unavailable")
 
     private fun finishQuietly() {
         handler.removeCallbacksAndMessages(null)
