@@ -13,13 +13,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * The downloaded event schedule. It refreshes by itself when the app opens (at most every 12 hours, switchable in
+ * The downloaded event schedule. It refreshes quietly in the background every time the app opens (switchable in
  * Clash > Events) and on demand; the last good copy is kept, so it also works offline.
  */
 object EventsStore {
     private const val URL_TEXT = "https://raw.githubusercontent.com/Killersparrow1/clash-Trackers/main/data/events.json"
     private const val PREFS = "events_remote"
-    private const val EVERY_MS = 12L * 60 * 60 * 1000
+    private const val MIN_GAP_MS = 60_000L // not again within a minute (screen rotation, quick re-opens)
     private const val MAX_BYTES = 256 * 1024
 
     var config by mutableStateOf(EventsConfig.EMPTY)
@@ -70,13 +70,13 @@ object EventsStore {
         updatedAt = now
     }
 
-    /** Called when the app opens: refreshes when switched on and the last attempt is over 12 hours old. Failures are silent. */
+    /** Called each time the app opens: refreshes when switched on, unless it just did. Failures are silent. */
     suspend fun refreshIfDue(c: Context) {
         load(c)
         if (!auto(c)) return
         val now = System.currentTimeMillis()
         val last = prefs(c).getLong("checked", 0L)
-        if (now - last in 0 until EVERY_MS) return
+        if (now - last in 0 until MIN_GAP_MS) return
         prefs(c).edit().putLong("checked", now).apply()
         runCatching { refresh(c) }
     }

@@ -17,7 +17,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ### Added
 
-- Clash > Events now refreshes its schedule by itself when the app opens (at most every 12 hours, switchable) from `data/events.json` in the project's repository. The file can change the usual event times and add one-off events; the last good copy is kept for offline use.
+- Clash > Events now refreshes its schedule quietly in the background every time the app opens (switchable) from `data/events.json` in the project's repository. The file can change the usual event times and add one-off events; the last good copy is kept for offline use.
 - New **Clash** tab (4 tabs in total) with two sub-tabs. **Events** counts down to Clan Games, Raid Weekend, CWL sign-up and war days, the season end and the league reset, worked out offline from the usual schedule. **Data** shows which game data Road to max and Bedtime use and can download a newer copy from the project's GitHub (checked before use; an app update replaces it).
 - App look in Settings > Personalization: Material You (follows the phone), Material light, Material dark, Clean, Classic and Game. The status and navigation bar icons follow the chosen look.
 - Settings now has three sub-tabs: **Settings**, **Personalization** (the widget look and live countdown, with more looks planned) and **Support** (moved from its own tab). The hidden developer options now open by tapping the Settings tab 11 times quickly.
