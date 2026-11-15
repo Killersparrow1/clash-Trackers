@@ -2,7 +2,7 @@
 // Usage (same unpacked repo/tarball as gen_upgrade_times.cjs, no npm install needed):
 //   node tools/gen_max_data.cjs <path-to-unpacked>/package app/src/main/assets/max_data.json
 //
-// Output: { "source": "...", "maxTh": 18, "items": { "<dataId>": { "k": kind, "n": [count per Town Hall] | null,
+// Output: { "source": "...", "maxTh": 18, "items": { "<dataId>": { "k": kind, "c": category, "n": [count per Town Hall] | null,
 //           "l": [[seconds, cost, resource, townHallRequired], ...] } } }
 //   kind:     b = building/defense/trap/guardian, w = wall, l = lab (troop/spell/siege), h = hero, p = pet
 //   resource: 0 Gold, 1 Elixir, 2 Dark Elixir, 3 Gold or Elixir
@@ -17,6 +17,11 @@ const home = path.join(pkgDir, 'data', 'home');
 const KIND = {
   'army-buildings': 'b', defenses: 'b', 'resource-buildings': 'b', traps: 'b', guardians: 'b', other: 'b',
   walls: 'w', troops: 'l', spells: 'l', 'siege-machines': 'l', heroes: 'h', pets: 'p',
+};
+// Filter group for the Plan tab: d defense, a army (army buildings, troops, spells, siege, heroes, pets), r resource, p permanent (traps, guardians, other).
+const CAT = {
+  defenses: 'd', 'army-buildings': 'a', troops: 'a', spells: 'a', 'siege-machines': 'a', heroes: 'a', pets: 'a',
+  'resource-buildings': 'r', traps: 'p', guardians: 'p', other: 'p', walls: 'p',
 };
 const SKIP_IDS = new Set([1000001 /* Town Hall */, 1000015 /* Builder's Hut */, 1000064 /* B.O.B's Hut */]);
 const RES = { Gold: 0, Elixir: 1, 'Dark Elixir': 2, 'Gold or Elixir': 3 };
@@ -65,7 +70,7 @@ for (const dir of Object.keys(KIND)) {
         n.push(last);
       }
     }
-    items[o.dataId] = { k: kind, n, l: steps };
+    items[o.dataId] = { k: kind, c: CAT[dir], n, l: steps };
   });
   walk(d);
 }

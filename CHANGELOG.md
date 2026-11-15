@@ -12,6 +12,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ### Added
 
+- Plan tab has two sub-tabs: **Road to max** and **Bedtime level up**. Bedtime can be filtered by Defence, Permanent (traps, guardians), Army (army buildings, troops, spells, siege, heroes, pets), Resource and New (new buildings), by Gold, Elixir or Dark Elixir, and sorted by soonest done, highest or lowest cost.
 - In-app update: a dialog offers new releases when the app opens (every 12 hours at most, can be switched off in About); Support > About checks the latest GitHub release, downloads the APK and installs it through Android's installer. Adds the INTERNET and REQUEST_INSTALL_PACKAGES permissions, used only for this.
 - Road to max: the Builders time is now per builder count (work divided by your builders, in the card and the widget); the total work is shown under it.
 - New **Plan** tab (second tab). It holds Road to max (moved out of Timers) and **Bedtime**: pick when you sleep and see what to start in each free builder, lab or pet slot so it runs through the night and ends while you are awake. Estimates from base times.

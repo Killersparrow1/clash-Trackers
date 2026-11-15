@@ -21,6 +21,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.PrimaryTabRow
+import androidx.compose.material3.Tab
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
+import com.killersparrow1.clashtrackers.core.PlanFilter
+import com.killersparrow1.clashtrackers.core.PlanSort
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -69,45 +77,103 @@ internal fun PlanScreen(export: VillageExport?, model: WidgetModel, now: Long) {
     var window by remember { mutableStateOf(SleepStore.get(context)) }
     val zone = remember { ZoneId.systemDefault() }
 
-    LazyColumn(
-        modifier = Modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        if (export == null || !model.hasData) {
-            item { Text(stringResource(R.string.welcome_sub), style = MaterialTheme.typography.bodyLarge) }
-            return@LazyColumn
-        }
-        item { RoadToMaxCard(export, model.buildersTotal) }
-        item {
-            SleepCard(window) {
-                window = it
-                SleepStore.set(context, it)
+    var tab by rememberSaveable { mutableStateOf(0) }
+    var filter by remember { mutableStateOf(PlanFilter()) }
+
+    Column(Modifier.fillMaxWidth()) {
+        if (export != null && model.hasData) {
+            PrimaryTabRow(selectedTabIndex = tab) {
+                Tab(selected = tab == 0, onClick = { tab = 0 }, text = { Text(stringResource(R.string.plan_tab_road)) })
+                Tab(selected = tab == 1, onClick = { tab = 1 }, text = { Text(stringResource(R.string.plan_tab_bedtime)) })
             }
         }
-        for (slot in PlanSlot.entries) {
-            item(key = "plan_$slot") {
-                val busyRows = model.builderRows.filter { it.kind == RowKind.RUNNING && it.finishAt != null }
-                val freeAt: Long = when (slot) {
-                    PlanSlot.BUILDER ->
-                        if (model.buildersBusy < model.buildersTotal) now else busyRows.minOfOrNull { it.finishAt!! } ?: now
-                    PlanSlot.LAB -> model.labRow.takeIf { it.kind == RowKind.RUNNING }?.finishAt ?: now
-                    PlanSlot.PET -> model.petRow.takeIf { it.kind == RowKind.RUNNING }?.finishAt ?: now
+        LazyColumn(
+            modifier = Modifier.fillMaxWidth().weight(1f),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            if (export == null || !model.hasData) {
+                item { Text(stringResource(R.string.welcome_sub), style = MaterialTheme.typography.bodyLarge) }
+                return@LazyColumn
+            }
+            if (tab == 0) {
+                item { RoadToMaxCard(export, model.buildersTotal) }
+                return@LazyColumn
+            }
+            item {
+                SleepCard(window) {
+                    window = it
+                    SleepStore.set(context, it)
                 }
-                // A slot that is free now keeps moving with the clock: recompute once a minute, not every second.
-                val key = if (freeAt <= now) now / 60 * 60 else freeAt
-                val plan = remember(export, slot, key, window) { Bedtime.plan(data, export, slot, key, window, zone) }
-                SlotCard(slot, freeAt - now > 60, freeAt, plan?.items.orEmpty(), zone)
             }
-        }
-        item {
-            Text(
-                stringResource(R.string.plan_estimate_note),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            item { FilterCard(filter) { filter = it } }
+            for (slot in PlanSlot.entries) {
+                item(key = "plan_$slot") {
+                    val busyRows = model.builderRows.filter { it.kind == RowKind.RUNNING && it.finishAt != null }
+                    val freeAt: Long = when (slot) {
+                        PlanSlot.BUILDER ->
+                            if (model.buildersBusy < model.buildersTotal) now else busyRows.minOfOrNull { it.finishAt!! } ?: now
+                        PlanSlot.LAB -> model.labRow.takeIf { it.kind == RowKind.RUNNING }?.finishAt ?: now
+                        PlanSlot.PET -> model.petRow.takeIf { it.kind == RowKind.RUNNING }?.finishAt ?: now
+                    }
+                    // A slot that is free now keeps moving with the clock: recompute once a minute, not every second.
+                    val key = if (freeAt <= now) now / 60 * 60 else freeAt
+                    val plan = remember(export, slot, key, window, filter) { Bedtime.plan(data, export, slot, key, window, zone, filter = filter) }
+                    SlotCard(slot, freeAt - now > 60, freeAt, plan?.items.orEmpty(), zone)
+                }
+            }
+            item {
+                Text(
+                    stringResource(R.string.plan_estimate_note),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
+}
+
+@Composable
+private fun FilterCard(filter: PlanFilter, onChange: (PlanFilter) -> Unit) {
+    fun <T> Set<T>.toggle(x: T) = if (x in this) this - x else this + x
+    Card(
+        Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+        shape = MaterialTheme.shapes.extraLarge,
+    ) {
+        Column(Modifier.padding(vertical = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            ChipRow {
+                for ((c, label) in listOf('d' to R.string.plan_filter_defence, 'p' to R.string.plan_filter_permanent, 'a' to R.string.plan_filter_army, 'r' to R.string.plan_filter_resource)) {
+                    FilterChip(c in filter.categories, { onChange(filter.copy(categories = filter.categories.toggle(c))) }, { Text(stringResource(label)) })
+                }
+                FilterChip(filter.onlyNew, { onChange(filter.copy(onlyNew = !filter.onlyNew)) }, { Text(stringResource(R.string.plan_filter_new)) })
+            }
+            ChipRow {
+                for ((r, label) in listOf(0 to R.string.plan_filter_gold, 1 to R.string.plan_filter_elixir, 2 to R.string.plan_filter_dark)) {
+                    FilterChip(r in filter.resources, { onChange(filter.copy(resources = filter.resources.toggle(r))) }, { Text(stringResource(label)) })
+                }
+            }
+            ChipRow {
+                for ((sort, label) in listOf(PlanSort.FINISH to R.string.plan_sort_time, PlanSort.COST_HIGH to R.string.plan_sort_cost_high, PlanSort.COST_LOW to R.string.plan_sort_cost_low)) {
+                    FilterChip(filter.sort == sort, { onChange(filter.copy(sort = sort)) }, { Text(stringResource(label)) })
+                }
+            }
+            if (filter != PlanFilter()) {
+                TextButton(onClick = { onChange(PlanFilter()) }, modifier = Modifier.padding(horizontal = 12.dp)) {
+                    Text(stringResource(R.string.plan_filter_clear))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ChipRow(content: @Composable () -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 20.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) { content() }
 }
 
 private fun timeText(minutes: Int): String =

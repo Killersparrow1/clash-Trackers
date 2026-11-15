@@ -82,4 +82,32 @@ class BedtimeTest {
         assertEquals("2d 4h", Bedtime.durationLabel(52 * hour))
         assertEquals("2d", Bedtime.durationLabel(48 * hour))
     }
+
+    // Two defenses (level 2 steps take 12 h) and an army building, paid in Gold, Elixir and Dark Elixir.
+    private val mixed = MaxData.fromJson(
+        """{"maxTh":2,"items":{
+          "10":{"k":"b","c":"d","n":null,"l":[[43200,100,0,1],[43200,900,0,1]]},
+          "11":{"k":"b","c":"a","n":null,"l":[[43200,500,1,1],[43200,300,1,1]]},
+          "12":{"k":"b","c":"r","n":null,"l":[[43200,50,2,1],[43200,70,2,1]]},
+          "13":{"k":"b","c":"p","n":null,"l":[[43200,40,3,1],[43200,60,3,1]]}
+        }}""",
+    )
+
+    private fun ids(filter: PlanFilter) =
+        Bedtime.plan(mixed, export(mapOf(10 to listOf(1), 11 to listOf(1), 12 to listOf(1))), PlanSlot.BUILDER, at(22), sleep, utc, filter = filter)!!.items.map { it.id }
+
+    @Test fun filtersByGroupResourceAndNew() {
+        assertEquals(setOf(10, 11, 12, 13), ids(PlanFilter()).toSet())
+        assertEquals(listOf(10), ids(PlanFilter(categories = setOf('d'))))
+        assertEquals(setOf(10, 13), ids(PlanFilter(categories = setOf('d', 'p'))).toSet())
+        assertEquals(setOf(12), ids(PlanFilter(resources = setOf(2))).toSet())
+        // Gold or Elixir (resource 3) matches both Gold and Elixir
+        assertEquals(setOf(10, 13), ids(PlanFilter(resources = setOf(0))).toSet())
+        assertEquals(listOf(13), ids(PlanFilter(onlyNew = true)))
+    }
+
+    @Test fun sortsByCost() {
+        assertEquals(listOf(10, 11, 12, 13), ids(PlanFilter(sort = PlanSort.COST_HIGH)))
+        assertEquals(listOf(13, 12, 11, 10), ids(PlanFilter(sort = PlanSort.COST_LOW)))
+    }
 }

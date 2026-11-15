@@ -16,9 +16,10 @@ data class MaxStep(val seconds: Long, val cost: Long, val resource: Int, val tow
 /**
  * One upgradeable item from the bundled `max_data.json`.
  * [kind]: b building/defense/trap/guardian, w wall, l lab (troop/spell/siege), h hero, p pet.
+ * [category]: d defense, a army (army buildings, troops, spells, siege, heroes, pets), r resource, p permanent (traps, guardians, other).
  * [counts] is how many may be owned at each Town Hall level (null = exactly one). `steps[i]` is the step TO level `i + 1`.
  */
-class MaxItem(val kind: Char, val counts: List<Int>?, val steps: List<MaxStep>)
+class MaxItem(val kind: Char, val counts: List<Int>?, val steps: List<MaxStep>, val category: Char = 'p')
 
 class MaxData(val maxTownHall: Int, val items: Map<Int, MaxItem>) {
     companion object {
@@ -33,7 +34,7 @@ class MaxData(val maxTownHall: Int, val items: Map<Int, MaxItem>) {
                     val a = it.jsonArray
                     MaxStep(a[0].jsonPrimitive.long, a[1].jsonPrimitive.long, a[2].jsonPrimitive.int, a[3].jsonPrimitive.int)
                 }
-                id.toInt() to MaxItem(o["k"]!!.jsonPrimitive.content.single(), counts, steps)
+                id.toInt() to MaxItem(o["k"]!!.jsonPrimitive.content.single(), counts, steps, o["c"]?.jsonPrimitive?.content?.singleOrNull() ?: 'p')
             }
             return MaxData(root["maxTh"]?.jsonPrimitive?.int ?: 0, items)
         }

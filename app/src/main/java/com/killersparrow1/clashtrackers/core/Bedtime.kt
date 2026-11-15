@@ -48,7 +48,33 @@ data class PlanCandidate(
     /** 0 Gold, 1 Elixir, 2 Dark Elixir, 3 Gold or Elixir. */
     val resource: Int,
     val finishAt: Long,
+    /** d defense, a army, r resource, p permanent (see [MaxItem.category]). */
+    val category: Char = 'p',
 )
+
+enum class PlanSort { FINISH, COST_HIGH, COST_LOW }
+
+/**
+ * What the Bedtime list shows. An empty set means "all". [resources] holds 0 Gold, 1 Elixir, 2 Dark Elixir
+ * (an item payable in Gold or Elixir matches both); [onlyNew] keeps only new buildings (level 1).
+ */
+data class PlanFilter(
+    val categories: Set<Char> = emptySet(),
+    val resources: Set<Int> = emptySet(),
+    val onlyNew: Boolean = false,
+    val sort: PlanSort = PlanSort.FINISH,
+) {
+    fun accepts(c: PlanCandidate): Boolean =
+        (categories.isEmpty() || c.category in categories) &&
+            (!onlyNew || c.level == 1) &&
+            (resources.isEmpty() || c.resource in resources || (c.resource == 3 && (0 in resources || 1 in resources)))
+
+    fun sorted(list: List<PlanCandidate>): List<PlanCandidate> = when (sort) {
+        PlanSort.FINISH -> list.sortedWith(compareBy({ it.finishAt }, { it.id }))
+        PlanSort.COST_HIGH -> list.sortedWith(compareByDescending<PlanCandidate> { it.cost }.thenBy { it.finishAt }.thenBy { it.id })
+        PlanSort.COST_LOW -> list.sortedWith(compareBy({ it.cost }, { it.finishAt }, { it.id }))
+    }
+}
 
 /** What to start in a slot that frees at [freeAt] so it runs through the night and ends while the player is awake. */
 data class BedtimePlan(val startAt: Long, val wakeAt: Long, val items: List<PlanCandidate>)
@@ -73,6 +99,7 @@ object Bedtime {
         window: SleepWindow,
         zone: ZoneId,
         limit: Int = 12,
+        filter: PlanFilter = PlanFilter(),
     ): BedtimePlan? {
         val townHall = export.townHallLevel?.coerceIn(1, data.maxTownHall.coerceAtLeast(1)) ?: return null
         if (data.items.isEmpty() || export.ownedLevels.isEmpty()) return null
@@ -97,11 +124,10 @@ object Bedtime {
                 if (step.seconds <= 0) continue
                 val finishAt = startAt + step.seconds
                 if (finishAt < wakeAt || window.asleep(finishAt, zone)) continue
-                out += PlanCandidate(id, level + 1, copies, step.seconds, step.cost, step.resource, finishAt)
+                out += PlanCandidate(id, level + 1, copies, step.seconds, step.cost, step.resource, finishAt, item.category)
             }
         }
-        out.sortWith(compareBy({ it.finishAt }, { it.id }))
-        return BedtimePlan(startAt, wakeAt, out.take(limit))
+        return BedtimePlan(startAt, wakeAt, filter.sorted(out.filter(filter::accepts)).take(limit))
     }
 
     /** "12h", "14h 30m", "2d 4h". */
