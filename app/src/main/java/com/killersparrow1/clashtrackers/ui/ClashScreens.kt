@@ -61,7 +61,7 @@ internal fun EventsPage(now: Long) {
             val name = e.name ?: stringResource(eventName(e.id))
             val left = Bedtime.durationLabel((e.target - now).coerceAtLeast(0))
             Card(
-                Modifier.fillMaxWidth(),
+                Modifier.fillMaxWidth().wiggleOnTap(),
                 colors = CardDefaults.cardColors(
                     containerColor = if (e.active) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
                 ),

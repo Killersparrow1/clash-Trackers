@@ -4,7 +4,21 @@ package com.killersparrow1.clashtrackers.ui
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalHapticFeedback
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.heightIn
@@ -28,7 +42,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 internal fun SectionCard(title: String, modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth().wiggleOnTap(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
         shape = MaterialTheme.shapes.large,
     ) {
@@ -52,7 +66,7 @@ internal fun CollapsibleCard(
     var openState by rememberSaveable(stateKey) { mutableStateOf(false) }
     val open = alwaysOpen || openState
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth().wiggleOnTap(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
         shape = MaterialTheme.shapes.large,
     ) {
@@ -92,4 +106,38 @@ internal fun slideTransition(forward: Boolean): androidx.compose.animation.Conte
         androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(260, delayMillis = 40))) togetherWith
         (androidx.compose.animation.slideOutHorizontally(spring) { -sign * it / 3 } +
             androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(160)))
+}
+
+/**
+ * A small giggle plus a light tick when a card is tapped. It only reacts to a plain tap on the card itself: a scroll,
+ * or a tap that a button inside the card handles, does nothing. Follows the system "touch feedback" setting.
+ */
+@Composable
+internal fun Modifier.wiggleOnTap(): Modifier {
+    val haptics = LocalHapticFeedback.current
+    val scope = rememberCoroutineScope()
+    val tilt = remember { Animatable(0f) }
+    val squash = remember { Animatable(1f) }
+    return this
+        .graphicsLayer {
+            rotationZ = tilt.value
+            scaleX = squash.value
+            scaleY = squash.value
+        }
+        .pointerInput(Unit) {
+            awaitEachGesture {
+                awaitFirstDown(requireUnconsumed = false)
+                if (waitForUpOrCancellation() != null) {
+                    haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    scope.launch {
+                        squash.snapTo(0.97f)
+                        squash.animateTo(1f, spring(dampingRatio = Spring.DampingRatioHighBouncy, stiffness = Spring.StiffnessMedium))
+                    }
+                    scope.launch {
+                        tilt.snapTo(1f)
+                        tilt.animateTo(0f, spring(dampingRatio = Spring.DampingRatioHighBouncy, stiffness = Spring.StiffnessLow))
+                    }
+                }
+            }
+        }
 }

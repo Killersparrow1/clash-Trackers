@@ -374,7 +374,7 @@ private fun VillageOverviewCard(model: WidgetModel, last: SyncLogEntry?, busy: B
         WidgetIcons.get(context).townHall(model.townHall, with(density) { 96.dp.roundToPx() })?.asImageBitmap()
     }
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().wiggleOnTap(),
         colors = CardDefaults.cardColors(
             containerColor = if (failed) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
         ),
@@ -462,7 +462,7 @@ private fun SyncCard(last: SyncLogEntry?, busy: Boolean, onSync: () -> Unit) {
     var showDetails by rememberSaveable { mutableStateOf(false) }
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().wiggleOnTap(),
         colors = CardDefaults.cardColors(
             containerColor = if (failed) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.surfaceContainerLow,
         ),
@@ -524,7 +524,7 @@ private fun SyncCard(last: SyncLogEntry?, busy: Boolean, onSync: () -> Unit) {
 private fun TimerCard(timer: DashboardTimer) {
     val row = timer.row
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().wiggleOnTap(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
         shape = MaterialTheme.shapes.extraLarge,
     ) {
