@@ -1,0 +1,190 @@
+package com.killersparrow1.clashtrackers.ui
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import com.killersparrow1.clashtrackers.R
+import com.killersparrow1.clashtrackers.core.Bedtime
+import com.killersparrow1.clashtrackers.core.GameEvent
+import com.killersparrow1.clashtrackers.core.GameEvents
+import com.killersparrow1.clashtrackers.data.MaxDataStore
+import com.killersparrow1.clashtrackers.update.DataUpdater
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
+import kotlinx.coroutines.launch
+
+/** Clash > Events: countdowns to the game's regular events, computed from their usual schedule (no internet). */
+@Composable
+internal fun EventsPage(now: Long) {
+    val events = remember(now / 30) { GameEvents.upcoming(now) }
+    val zone = remember { ZoneId.systemDefault() }
+    val format = remember { DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT) }
+    fun local(epoch: Long) = format.format(Instant.ofEpochSecond(epoch).atZone(zone))
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        items(events, key = { it.id }) { e ->
+            val name = stringResource(eventName(e.id))
+            val left = Bedtime.durationLabel((e.target - now).coerceAtLeast(0))
+            Card(
+                Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = if (e.active) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
+                ),
+                shape = MaterialTheme.shapes.extraLarge,
+            ) {
+                Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(name, style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        when {
+                            e.point -> stringResource(R.string.clash_ev_in, left)
+                            e.active -> stringResource(R.string.clash_ev_ends_in, left)
+                            else -> stringResource(R.string.clash_ev_starts_in, left)
+                        },
+                        style = MaterialTheme.typography.headlineSmall,
+                    )
+                    Text(
+                        if (e.point) local(e.endsAt) else stringResource(R.string.clash_ev_range, local(e.startsAt), local(e.endsAt)),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+        item {
+            Text(
+                stringResource(R.string.clash_ev_note),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+private fun eventName(id: String): Int = when (id) {
+    GameEvents.CLAN_GAMES -> R.string.clash_ev_clan_games
+    GameEvents.RAID_WEEKEND -> R.string.clash_ev_raid
+    GameEvents.CWL_SIGNUP -> R.string.clash_ev_cwl_signup
+    GameEvents.CWL_WARS -> R.string.clash_ev_cwl_wars
+    GameEvents.SEASON_END -> R.string.clash_ev_season_end
+    else -> R.string.clash_ev_league_reset
+}
+
+private sealed interface DataCheck {
+    data object Idle : DataCheck
+    data object Checking : DataCheck
+    data object Same : DataCheck
+    data class Newer(val text: String, val townHall: Int, val items: Int) : DataCheck
+    data class Failed(val message: String) : DataCheck
+}
+
+/** Clash > Data: which game data the app uses, and a check for a newer copy from the project's repository. */
+@Composable
+internal fun DataPage() {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val version = MaxDataStore.version // read so this page redraws after an update
+    val data = remember(version) { MaxDataStore.get(context) }
+    val downloaded = remember(version) { MaxDataStore.isDownloaded(context) }
+    var check by remember { mutableStateOf<DataCheck>(DataCheck.Idle) }
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        item {
+            SectionCard(stringResource(R.string.clash_data_title)) {
+                Text(stringResource(R.string.clash_data_desc), style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    stringResource(
+                        if (downloaded) R.string.clash_data_current_downloaded else R.string.clash_data_current_builtin,
+                        data.maxTownHall, data.items.size,
+                    ),
+                    style = MaterialTheme.typography.titleSmall,
+                )
+                when (val c = check) {
+                    is DataCheck.Newer -> {
+                        Text(stringResource(R.string.clash_data_newer, c.townHall, c.items), style = MaterialTheme.typography.bodyMedium)
+                        Button(
+                            onClick = {
+                                MaxDataStore.install(context, c.text)
+                                check = DataCheck.Idle
+                            },
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                        ) { Text(stringResource(R.string.clash_data_install)) }
+                    }
+                    DataCheck.Same -> Text(stringResource(R.string.clash_data_same), style = MaterialTheme.typography.bodyMedium)
+                    DataCheck.Checking -> Text(stringResource(R.string.update_checking), style = MaterialTheme.typography.bodyMedium)
+                    is DataCheck.Failed -> Text(
+                        stringResource(R.string.update_failed, c.message),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                    DataCheck.Idle -> Unit
+                }
+                OutlinedButton(
+                    onClick = {
+                        check = DataCheck.Checking
+                        scope.launch {
+                            check = try {
+                                val r = DataUpdater.fetch()
+                                val sameData = r.data.maxTownHall == data.maxTownHall && r.data.items.size == data.items.size &&
+                                    r.text == currentText(context, downloaded)
+                                // Never go back to fewer Town Halls than the app already knows.
+                                if (sameData || r.data.maxTownHall < data.maxTownHall) DataCheck.Same
+                                else DataCheck.Newer(r.text, r.data.maxTownHall, r.data.items.size)
+                            } catch (e: Exception) {
+                                DataCheck.Failed(e.message ?: e.javaClass.simpleName)
+                            }
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                ) { Text(stringResource(R.string.clash_data_check)) }
+                if (downloaded) {
+                    OutlinedButton(
+                        onClick = { MaxDataStore.useBundled(context) },
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                    ) { Text(stringResource(R.string.clash_data_use_builtin)) }
+                }
+                Text(
+                    stringResource(R.string.clash_data_note),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+}
+
+/** The text of the game data in use, to tell whether a download is actually different. */
+private fun currentText(context: android.content.Context, downloaded: Boolean): String? = runCatching {
+    if (downloaded) MaxDataStore.downloadedFile(context).readText()
+    else context.assets.open("max_data.json").bufferedReader().use { it.readText() }
+}.getOrNull()

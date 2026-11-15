@@ -49,6 +49,7 @@ import com.killersparrow1.clashtrackers.core.WidgetModel
 private enum class Destination(@StringRes val labelRes: Int, val icon: Int) {
     TIMERS(R.string.nav_timers, R.drawable.ic_timers),
     PLAN(R.string.nav_plan, R.drawable.ic_plan),
+    CLASH(R.string.nav_clash, R.drawable.ic_clash),
     SETTINGS(R.string.nav_settings, R.drawable.ic_settings),
 }
 
@@ -57,6 +58,8 @@ private enum class Page(val dest: Destination, @StringRes val labelRes: Int?) {
     TIMERS(Destination.TIMERS, null),
     PLAN_ROAD(Destination.PLAN, R.string.plan_tab_road),
     PLAN_BEDTIME(Destination.PLAN, R.string.plan_tab_bedtime),
+    CLASH_EVENTS(Destination.CLASH, R.string.clash_tab_events),
+    CLASH_DATA(Destination.CLASH, R.string.clash_tab_data),
     SETTINGS(Destination.SETTINGS, R.string.nav_settings),
     PERSONALIZATION(Destination.SETTINGS, R.string.settings_tab_personalization),
     SUPPORT(Destination.SETTINGS, R.string.nav_support),
@@ -209,6 +212,8 @@ fun ClashTrackersContent(
                                 )
                                 Page.PLAN_ROAD -> PlanPage(state.export, model, now, 0)
                                 Page.PLAN_BEDTIME -> PlanPage(state.export, model, now, 1)
+                                Page.CLASH_EVENTS -> EventsPage(now)
+                                Page.CLASH_DATA -> DataPage()
                                 Page.SETTINGS -> SettingsPage(0, settings, state.export, now, onSettingsChange, selectedTag, state, model, log, timesCount)
                                 Page.PERSONALIZATION -> SettingsPage(1, settings, state.export, now, onSettingsChange, selectedTag, state, model, log, timesCount)
                                 Page.SUPPORT -> SettingsPage(2, settings, state.export, now, onSettingsChange, selectedTag, state, model, log, timesCount)

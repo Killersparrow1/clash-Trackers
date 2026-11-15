@@ -16,6 +16,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ### Added
 
+- New **Clash** tab (4 tabs in total) with two sub-tabs. **Events** counts down to Clan Games, Raid Weekend, CWL sign-up and war days, the season end and the league reset, worked out offline from the usual schedule. **Data** shows which game data Road to max and Bedtime use and can download a newer copy from the project's GitHub (checked before use; an app update replaces it).
 - App look in Settings > Personalization: Material You (follows the phone), Material light, Material dark, Clean, Classic and Game. The status and navigation bar icons follow the chosen look.
 - Settings now has three sub-tabs: **Settings**, **Personalization** (the widget look and live countdown, with more looks planned) and **Support** (moved from its own tab). The hidden developer options now open by tapping the Settings tab 11 times quickly.
 - Swipe sideways to move between tabs (Timers, Plan with its two sub-tabs, Settings, Support), and the page follows your finger as you swipe.

@@ -45,7 +45,7 @@ import java.util.Locale
 @Composable
 internal fun RoadToMaxCard(export: VillageExport?, builders: Int, modifier: Modifier = Modifier) {
     val context = LocalContext.current
-    val data = remember { MaxDataStore.get(context) }
+    val data = remember(MaxDataStore.version) { MaxDataStore.get(context) }
     val road = remember(export, data) { export?.let { RoadToMaxCalc.compute(data, it) } } ?: return
     var includeWalls by rememberSaveable { mutableStateOf(false) }
     val dayUnit = stringResource(R.string.time_day_short)

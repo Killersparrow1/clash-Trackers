@@ -75,7 +75,7 @@ import java.util.Locale
 @Composable
 internal fun PlanPage(export: VillageExport?, model: WidgetModel, now: Long, page: Int) {
     val context = LocalContext.current
-    val data = remember { MaxDataStore.get(context) }
+    val data = remember(MaxDataStore.version) { MaxDataStore.get(context) }
     var window by remember { mutableStateOf(SleepStore.get(context)) }
     val zone = remember { ZoneId.systemDefault() }
 
