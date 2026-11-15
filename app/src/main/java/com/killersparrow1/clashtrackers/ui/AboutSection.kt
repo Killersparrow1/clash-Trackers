@@ -65,6 +65,8 @@ fun AboutSection(reportProvider: () -> String = { "" }) {
             update = try {
                 val info = AppUpdater.fetchLatest()
                 if (info != null && UpdateCheck.isNewer(installedVersion, info.version)) UpdateState.Available(info) else UpdateState.UpToDate
+            } catch (e: java.io.IOException) {
+                UpdateState.Failed((e.message ?: e.javaClass.simpleName) + "\n\n" + AppUpdater.diagnose(context))
             } catch (e: Exception) {
                 UpdateState.Failed(e.message ?: e.javaClass.simpleName)
             }

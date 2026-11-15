@@ -78,6 +78,35 @@ object AppUpdater {
         }
     }
 
+    /** A few lines on why the connection fails: permission, active network, DNS answer and whether HTTPS works. */
+    suspend fun diagnose(context: Context): String = withContext(Dispatchers.IO) {
+        val lines = mutableListOf<String>()
+        val granted = context.checkSelfPermission(android.Manifest.permission.INTERNET) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        lines += "Internet permission: ${if (granted) "granted" else "MISSING"}"
+        runCatching {
+            val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager
+            val net = cm.activeNetwork
+            val caps = net?.let { cm.getNetworkCapabilities(it) }
+            lines += "Active network: " + when {
+                caps == null -> "none"
+                caps.hasTransport(android.net.NetworkCapabilities.TRANSPORT_VPN) -> "VPN"
+                caps.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI) -> "Wi-Fi"
+                caps.hasTransport(android.net.NetworkCapabilities.TRANSPORT_CELLULAR) -> "mobile data"
+                else -> "other"
+            } + if (caps != null) ", validated=${caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_VALIDATED)}" else ""
+            lines += "Data saver: " + when (cm.restrictBackgroundStatus) {
+                android.net.ConnectivityManager.RESTRICT_BACKGROUND_STATUS_ENABLED -> "on, this app is restricted"
+                android.net.ConnectivityManager.RESTRICT_BACKGROUND_STATUS_WHITELISTED -> "on, this app is allowed"
+                else -> "off"
+            }
+        }
+        for (host in listOf("api.github.com", "github.com", "example.com")) {
+            lines += runCatching { "DNS $host: " + java.net.InetAddress.getAllByName(host).joinToString { it.hostAddress ?: "?" } }
+                .getOrElse { "DNS $host: failed (${it.message})" }
+        }
+        lines.joinToString("\n")
+    }
+
     fun canInstall(context: Context): Boolean = context.packageManager.canRequestPackageInstalls()
 
     /** Opens the "Install unknown apps" screen for this app. */
