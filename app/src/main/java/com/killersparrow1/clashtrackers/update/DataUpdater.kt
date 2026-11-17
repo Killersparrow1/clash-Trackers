@@ -1,6 +1,7 @@
 package com.killersparrow1.clashtrackers.update
 
 import android.content.Context
+import com.killersparrow1.clashtrackers.core.ClashKingData
 import com.killersparrow1.clashtrackers.core.MaxData
 import com.killersparrow1.clashtrackers.data.MaxDataStore
 import java.io.IOException
@@ -10,18 +11,27 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * The newest game data file from the project's repository, checked before the app uses it. It is fetched quietly
- * when the app opens (at most once an hour, switchable in Settings) and installed when it is valid, different and
- * not for fewer Town Halls than the app already knows.
+ * Game data straight from ClashKing: `static_data.json` from ClashKingAssets (1.7 MB, served from assets.clashk.ing,
+ * with the GitHub copy as a second source) is downloaded, converted into the app's format by [ClashKingData], checked,
+ * and only then installed. It is fetched quietly when the app opens (at most once an hour, switchable in Settings) and
+ * installed when it is valid, different and not for fewer Town Halls than the app already knows. Whatever goes wrong,
+ * the data already in use stays untouched.
+ *
+ * Telling whether there is something new: the asset site sends a `Last-Modified` header, which is remembered and sent
+ * back as `If-Modified-Since`, so an unchanged file costs a tiny "304 Not Modified" answer instead of a download.
  */
 object DataUpdater {
-    private const val URL_TEXT = "https://raw.githubusercontent.com/Killersparrow1/clash-Trackers/main/app/src/main/assets/max_data.json"
-    private const val MAX_BYTES = 5 * 1024 * 1024
+    internal val SOURCES = listOf(
+        "https://assets.clashk.ing/static_data.json",
+        "https://raw.githubusercontent.com/ClashKingInc/ClashKingAssets/main/assets/static_data.json",
+    )
+    private const val MAX_BYTES = 12 * 1024 * 1024
 
     private const val PREFS = "game_data"
     private const val MIN_GAP_MS = 60L * 60 * 1000
 
-    class Remote(val text: String, val data: MaxData)
+    /** [text] is the converted data in the app's format; [lastModified] is the source's `Last-Modified` header, if any. */
+    class Remote(val text: String, val data: MaxData, val lastModified: String? = null)
 
     private fun prefs(c: Context) = c.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
@@ -37,11 +47,14 @@ object DataUpdater {
         else c.applicationContext.assets.open("max_data.json").bufferedReader().use { it.readText() }
     }.getOrNull()
 
-    /** Installs [r] when it is different and not older (fewer Town Halls) than the data in use. True if it was installed. */
+    /** True when [r] is different from, and not older (fewer Town Halls) than, the data in use. */
+    internal fun isBetter(r: Remote, current: MaxData, currentText: String?): Boolean =
+        ClashKingData.isBetter(r.text, r.data, current, currentText)
+
+    /** Installs [r] when it is different and not older than the data in use. True if it was installed. */
     fun installIfBetter(c: Context, r: Remote): Boolean {
-        val current = MaxDataStore.get(c)
-        if (r.data.maxTownHall < current.maxTownHall || r.text == currentText(c)) return false
-        MaxDataStore.install(c, r.text)
+        if (!isBetter(r, MaxDataStore.get(c), currentText(c))) return false
+        if (!MaxDataStore.install(c, r.text)) return false
         prefs(c).edit().putLong("installed", System.currentTimeMillis()).apply()
         return true
     }
@@ -52,24 +65,55 @@ object DataUpdater {
         val now = System.currentTimeMillis()
         if (now - prefs(c).getLong("checked", 0L) in 0 until MIN_GAP_MS) return
         prefs(c).edit().putLong("checked", now).apply()
-        runCatching { installIfBetter(c, fetch()) }
+        runCatching {
+            val remote = fetch(c, ifModifiedSince = prefs(c).getString("last_modified", null)) ?: return@runCatching
+            installIfBetter(c, remote)
+            // Remembered even when nothing needed installing, so the same file is not downloaded again next time.
+            remote.lastModified?.let { prefs(c).edit().putString("last_modified", it).apply() }
+        }
     }
 
-    /** Downloads and parses the file. Throws [IOException] when it cannot be reached or is not usable game data. */
-    suspend fun fetch(): Remote = withContext(Dispatchers.IO) {
-        val c = URL(URL_TEXT).openConnection() as HttpURLConnection
+    /**
+     * Downloads, converts and checks the data. Returns null only when [ifModifiedSince] was given and the source says
+     * nothing changed. Throws [IOException] when no source can be reached or the answer is not usable game data.
+     */
+    suspend fun fetch(c: Context, ifModifiedSince: String? = null): Remote? = withContext(Dispatchers.IO) {
+        var failure: IOException? = null
+        for (url in SOURCES) {
+            try {
+                val (text, modified) = download(url, ifModifiedSince) ?: return@withContext null
+                val converted = try {
+                    ClashKingData.convert(text, MaxDataStore.get(c))
+                } catch (e: Exception) {
+                    throw IOException("The data file is not valid game data")
+                }
+                val data = runCatching { MaxData.fromJson(converted) }.getOrNull()
+                if (data == null || data.items.isEmpty() || data.maxTownHall < 1) throw IOException("The data file is not valid game data")
+                return@withContext Remote(converted, data, modified)
+            } catch (e: IOException) {
+                failure = failure ?: e
+            }
+        }
+        throw failure ?: IOException("No data source could be reached")
+    }
+
+    /** The text and `Last-Modified` of [url], or null on "304 Not Modified". */
+    private fun download(url: String, ifModifiedSince: String?): Pair<String, String?>? {
+        val c = URL(url).openConnection() as HttpURLConnection
         try {
             c.connectTimeout = 10_000
-            c.readTimeout = 20_000
+            c.readTimeout = 30_000
             c.setRequestProperty("User-Agent", "ClashTrackers-data-check")
-            if (c.responseCode != 200) throw IOException("The data file answered ${c.responseCode}")
+            if (ifModifiedSince != null) c.setRequestProperty("If-Modified-Since", ifModifiedSince)
+            when (val code = c.responseCode) {
+                200 -> Unit
+                304 -> return null
+                else -> throw IOException("The data file answered $code")
+            }
             if (c.contentLengthLong > MAX_BYTES) throw IOException("The data file is too large")
             val bytes = c.inputStream.use { it.readBytes() }
             if (bytes.size > MAX_BYTES) throw IOException("The data file is too large")
-            val text = bytes.toString(Charsets.UTF_8)
-            val data = runCatching { MaxData.fromJson(text) }.getOrNull()
-            if (data == null || data.items.isEmpty() || data.maxTownHall < 1) throw IOException("The data file is not valid game data")
-            Remote(text, data)
+            return bytes.toString(Charsets.UTF_8) to c.getHeaderField("Last-Modified")
         } finally {
             c.disconnect()
         }

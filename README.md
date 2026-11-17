@@ -226,7 +226,7 @@ cd clash-trackers
 - **Material 3 UI Inspiration**: Adapted from [Hy4ri/clash-timers](https://github.com/Hy4ri/clash-timers/tree/feat/material-app-ui).
 - **Font**: [Lilita One](app/src/main/res/font/lilita_one.ttf) by Juan Montoreano (SIL Open Font License 1.1).
 - **Minimal widget font**: [Doto](https://github.com/oliverlalan/Doto) by The Doto Project Authors (SIL Open Font License 1.1), bundled as [doto.ttf](app/src/main/res/font/doto.ttf); license in `app/src/main/assets/licenses/Doto-OFL.txt`.
-- **Game Data & Art**: From [ClashKing](https://clashk.ing)'s [ClashKingAssets](https://github.com/ClashKingInc/ClashKingAssets) (costs, times, names in English and Russian, pictures downloaded from assets.clashk.ing). The icons built into the app, including the Study Soup and Clock Tower level images, were first taken from [clash-of-clans-data](https://github.com/chiefpansancolt/clash-of-clans-data).
+- **Game Data, Art & Event Dates**: From [ClashKing](https://clashk.ing): [ClashKingAssets](https://github.com/ClashKingInc/ClashKingAssets) (costs, times, names in English and Russian, pictures downloaded from assets.clashk.ing) and the [ClashKing API](https://api.clashk.ing/swagger/index.html) (raid weekend and season dates in the Clash tab). The icons built into the app, including the Study Soup and Clock Tower level images, were first taken from [clash-of-clans-data](https://github.com/chiefpansancolt/clash-of-clans-data).
 - **Finished Upgrade Sound**: Game audio from Clash of Clans, © Supercell. Used in this unofficial, non-commercial fan project under Supercell's Fan Content Policy. Source: [Zedge mirror](https://www.zedge.net/notification-sounds/2e5dc20a-223a-460a-8ab7-14ac75b6c127). Not covered by the MIT License.
 
 ### 🙏 Thanks to the community

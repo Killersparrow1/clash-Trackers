@@ -176,10 +176,26 @@ fun AboutSection(reportProvider: () -> String = { "" }) {
             if (creditsOpen) {
             Text(FAN_CONTENT_DISCLAIMER, style = MaterialTheme.typography.bodyMedium)
             Text(
-                "Clash of Clans names and images are the property of Supercell. Names, costs, upgrade times and images " +
-                    "come from ClashKing's game data and asset site (clashk.ing, github.com/ClashKingInc/ClashKingAssets); " +
-                    "the icons built into the app come from the clash-of-clans-data package. Font: Lilita One by Juan Montoreano, " +
-                    "SIL Open Font License 1.1.",
+                "Clash of Clans names and images are the property of Supercell.",
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            Text(
+                "Game data (costs, times, levels), names in English and Russian, upgrade times, pictures and the raid weekend and " +
+                    "season dates come from ClashKing: the ClashKingAssets data and asset site (assets.clashk.ing, GPL-3.0, " +
+                    "no code copied) and the ClashKing API (api.clashk.ing). Thank you to the ClashKing team.",
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            CREDIT_LINKS.forEach { (label, url) ->
+                TextButton(
+                    onClick = { openUrl(context, url) },
+                    modifier = Modifier.heightIn(min = 48.dp),
+                    contentPadding = PaddingValues(0.dp),
+                ) { Text(label) }
+            }
+            Text(
+                "The icons built into the app, shown until the current pictures have downloaded, and the Study Soup and Clock " +
+                    "Tower level images first came from the clash-of-clans-data package by Christopher Pezza (MIT License). " +
+                    "Fonts: Lilita One by Juan Montoreano and Doto by The Doto Project Authors, both SIL Open Font License 1.1.",
                 style = MaterialTheme.typography.bodyMedium,
             )
             TextButton(
@@ -253,6 +269,13 @@ private const val RELEASES_URL = "https://github.com/Killersparrow1/clash-tracke
 private const val ISSUES_LIST_URL = "https://github.com/Killersparrow1/clash-Trackers/issues/"
 private const val ISSUES_URL = "https://github.com/Killersparrow1/clash-Trackers/issues/new"
 private const val FEATURE_URL = "https://github.com/Killersparrow1/clash-Trackers/issues/new?title=Feature+request%3A+&labels=enhancement"
+
+private val CREDIT_LINKS = listOf(
+    "ClashKing" to "https://clashk.ing",
+    "ClashKingAssets (game data and pictures) on GitHub" to "https://github.com/ClashKingInc/ClashKingAssets",
+    "ClashKing API documentation" to "https://api.clashk.ing/swagger/index.html",
+    "clash-of-clans-data (built-in icons) on GitHub" to "https://github.com/chiefpansancolt/clash-of-clans-data",
+)
 
 /** `CT2.2 (4)` from the installed package (releases are named CT + versionName). */
 internal fun appVersion(context: Context): String = runCatching {

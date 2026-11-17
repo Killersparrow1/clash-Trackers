@@ -58,10 +58,22 @@ object MaxDataStore {
         return fromDownload
     }
 
-    /** Saves [text] as the downloaded copy and starts using it. The caller has already checked that it parses. */
-    fun install(context: Context, text: String) {
-        downloadedFile(context).writeText(text)
-        reset()
+    /**
+     * Saves [text] as the downloaded copy and starts using it. The text is parsed first and written to a temporary file
+     * that is then moved into place, so a bad download or an interrupted write never damages the copy in use.
+     * Returns false (and changes nothing) when [text] is not usable game data.
+     */
+    fun install(context: Context, text: String): Boolean {
+        val ok = runCatching { MaxData.fromJson(text) }.getOrNull()?.let { it.items.isNotEmpty() && it.maxTownHall >= 1 } == true
+        if (!ok) return false
+        val target = downloadedFile(context)
+        val tmp = File(target.parentFile, target.name + ".tmp")
+        return runCatching {
+            tmp.writeText(text)
+            if (!tmp.renameTo(target)) { target.delete(); check(tmp.renameTo(target)) }
+            reset()
+            true
+        }.getOrElse { tmp.delete(); false }
     }
 
     /** Goes back to the data built into the app. */

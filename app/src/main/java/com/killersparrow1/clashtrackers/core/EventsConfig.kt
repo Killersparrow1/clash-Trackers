@@ -19,6 +19,9 @@ data class ExtraEvent(val id: String, val name: String, val start: Long, val end
  */
 class EventsConfig(private val overrides: Map<String, JsonObject>, val extra: List<ExtraEvent>) {
 
+    /** True when the downloaded schedule file sets the times of [id] itself; that then wins over any other source. */
+    fun hasOverride(id: String): Boolean = id in overrides
+
     /** [default] with whatever the downloaded file sets for [id]. */
     fun rule(id: String, default: GameEvents.Rule): GameEvents.Rule {
         val o = overrides[id] ?: return default

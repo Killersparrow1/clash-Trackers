@@ -30,6 +30,7 @@ CLASHKING
 
 Game data, names (English and Russian), upgrade times and pictures come from ClashKing's ClashKingAssets:
 https://github.com/ClashKingInc/ClashKingAssets (GPL-3.0; data only, no code is copied). Credit: ClashKing, https://clashk.ing
+Raid weekend and season dates come from the ClashKing API (public, no key): https://api.clashk.ing/swagger/index.html
 
 
 CLASH-OF-CLANS-DATA

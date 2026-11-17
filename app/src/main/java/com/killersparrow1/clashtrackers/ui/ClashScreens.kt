@@ -31,6 +31,7 @@ import com.killersparrow1.clashtrackers.core.GameEvent
 import com.killersparrow1.clashtrackers.core.GameEvents
 import com.killersparrow1.clashtrackers.data.MaxDataStore
 import com.killersparrow1.clashtrackers.update.DataUpdater
+import com.killersparrow1.clashtrackers.update.ClashKingDatesStore
 import com.killersparrow1.clashtrackers.update.EventsStore
 import java.time.Instant
 import java.time.ZoneId
@@ -44,8 +45,12 @@ internal fun EventsPage(now: Long) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     EventsStore.load(context)
+    ClashKingDatesStore.load(context)
     val config = EventsStore.config
-    val events = remember(now / 30, config) { GameEvents.upcoming(now, config) }
+    val dates = ClashKingDatesStore.dates
+    val events = remember(now / 30, config, dates) { GameEvents.upcoming(now, config, dates) }
+    // The latest successful sync of either source (the schedule file or ClashKing's dates).
+    val syncedAt = maxOf(EventsStore.updatedAt, ClashKingDatesStore.updatedAt)
     var refreshing by remember { mutableStateOf(false) }
     var refreshError by remember { mutableStateOf<String?>(null) }
     var auto by remember { mutableStateOf(EventsStore.auto(context)) }
@@ -78,7 +83,8 @@ internal fun EventsPage(now: Long) {
                         style = MaterialTheme.typography.headlineSmall,
                     )
                     Text(
-                        if (e.point) local(e.endsAt) else stringResource(R.string.clash_ev_range, local(e.startsAt), local(e.endsAt)),
+                        (if (e.point) local(e.endsAt) else stringResource(R.string.clash_ev_range, local(e.startsAt), local(e.endsAt)))
+                            .let { if (e.fromApi) stringResource(R.string.clash_ev_via_api, it) else it },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -93,7 +99,7 @@ internal fun EventsPage(now: Long) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Text(
-                    if (EventsStore.updatedAt > 0) stringResource(R.string.clash_ev_updated, local(EventsStore.updatedAt / 1000))
+                    if (syncedAt > 0) stringResource(R.string.clash_ev_updated, local(syncedAt / 1000))
                     else stringResource(R.string.clash_ev_never),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -115,7 +121,13 @@ internal fun EventsPage(now: Long) {
                         refreshing = true
                         refreshError = null
                         scope.launch {
-                            try { EventsStore.refresh(context) } catch (e: Exception) { refreshError = e.message ?: e.javaClass.simpleName }
+                            // Both sources are asked; it is only an error when neither could be refreshed.
+                            val schedule = runCatching { EventsStore.refresh(context) }
+                            val clashKing = runCatching { ClashKingDatesStore.refresh(context) }
+                            if (schedule.isFailure && clashKing.isFailure) {
+                                val e = clashKing.exceptionOrNull() ?: schedule.exceptionOrNull()
+                                refreshError = e?.message ?: e?.javaClass?.simpleName
+                            }
                             refreshing = false
                         }
                     },
@@ -130,7 +142,10 @@ internal fun EventsPage(now: Long) {
 @Composable
 internal fun EventsAutoRefresh() {
     val context = LocalContext.current
-    androidx.compose.runtime.LaunchedEffect(Unit) { EventsStore.refreshIfDue(context) }
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        EventsStore.refreshIfDue(context)
+        ClashKingDatesStore.refreshIfDue(context)
+    }
 }
 
 private fun eventName(id: String): Int = when (id) {
@@ -177,8 +192,8 @@ internal fun GameDataCard() {
                         Text(stringResource(R.string.clash_data_newer, c.townHall, c.items), style = MaterialTheme.typography.bodyMedium)
                         Button(
                             onClick = {
-                                MaxDataStore.install(context, c.text)
-                                check = DataCheck.Idle
+                                check = if (MaxDataStore.install(context, c.text)) DataCheck.Idle
+                                else DataCheck.Failed(context.getString(R.string.clash_data_install_failed))
                             },
                             modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
                         ) { Text(stringResource(R.string.clash_data_install)) }
@@ -197,9 +212,9 @@ internal fun GameDataCard() {
                         check = DataCheck.Checking
                         scope.launch {
                             check = try {
-                                val r = DataUpdater.fetch()
+                                val r = DataUpdater.fetch(context)!!
                                 // Never go back to fewer Town Halls than the app already knows.
-                                if (r.text == DataUpdater.currentText(context) || r.data.maxTownHall < data.maxTownHall) DataCheck.Same
+                                if (!DataUpdater.isBetter(r, data, DataUpdater.currentText(context))) DataCheck.Same
                                 else DataCheck.Newer(r.text, r.data.maxTownHall, r.data.items.size)
                             } catch (e: Exception) {
                                 DataCheck.Failed(e.message ?: e.javaClass.simpleName)
