@@ -53,6 +53,10 @@ function iconPath(group, o, levels) {
 
 function add(o, kind, cat, steps, group) {
   if (!steps.length) return;
+  // A step without a Town Hall requirement would break the app's parser: assume the newest Town Hall (and say so).
+  for (const st of steps) {
+    if (typeof st[3] !== 'number') { warnings.push(`${o.name}: no Town Hall requirement in ClashKing data, assumed Town Hall ${MAX_TH}`); st[3] = MAX_TH; }
+  }
   items[o._id] = { k: kind, c: cat, n: counts(o._id), l: steps, nm: o.name, i: iconPath(group, o, steps.length) };
 }
 const res = (o, name) => {
