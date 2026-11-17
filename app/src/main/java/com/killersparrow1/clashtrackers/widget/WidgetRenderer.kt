@@ -750,7 +750,7 @@ class WidgetRenderer(private val context: Context) {
 }
 
 /**
- * Icons from `assets/icons/` (64×64 WebP made by tools/gen_icons.cjs; see tools/icon_checklist.txt),
+ * Icons from `assets/icons/` (64×64 WebP placeholders; the current pictures are downloaded from ClashKing, see RemoteIcons),
  * scaled to their on-screen size and cached. A hand-added `<name>.png` works too.
  */
 class WidgetIcons private constructor(private val context: Context) {
@@ -787,7 +787,7 @@ class WidgetIcons private constructor(private val context: Context) {
         val decoded = runCatching {
             if (file != null) context.assets.open("icons/$file").use { BitmapFactory.decodeStream(it) }
             else java.io.File(remoteDir, remoteFile!!).inputStream().use { BitmapFactory.decodeStream(it) }
-        }.getOrNull() ?: return null
+        }.getOrNull()?.let { if (remoteFile != null) squared(it) else it } ?: return null
         val scaled = if (decoded.width == sizePx && decoded.height == sizePx) decoded else {
             val scale = sizePx.toFloat() / maxOf(decoded.width, decoded.height)
             Bitmap.createScaledBitmap(
@@ -799,6 +799,15 @@ class WidgetIcons private constructor(private val context: Context) {
         }
         cache.put(key, scaled)
         return scaled
+    }
+
+    /** Downloaded pictures come in all shapes; centre them on a square so they line up like the bundled icons. */
+    private fun squared(b: Bitmap): Bitmap {
+        if (b.width == b.height) return b
+        val side = maxOf(b.width, b.height)
+        val out = Bitmap.createBitmap(side, side, Bitmap.Config.ARGB_8888)
+        android.graphics.Canvas(out).drawBitmap(b, (side - b.width) / 2f, (side - b.height) / 2f, null)
+        return out
     }
 
     /**

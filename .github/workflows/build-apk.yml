@@ -8,8 +8,9 @@ name: Build APK
 # Version numbers: the next one after the newest CT tag (CT2.3 -> 2.4 ... 2.9 -> 3.0), worked out here
 # from the git tags and passed to Gradle, so dev and release builds always count upward together.
 # Applies builder-base-support.patch and builder-base-icons.patch (if they are in the repo root),
-# generates every Builder Base + per-level icon from the clash-of-clans-data package, runs the
-# tests, and builds the debug APK.
+# runs the tests and builds the debug APK. Game data, names, times and pictures come from ClashKing
+# (see tools/gen_*_ck.cjs and the weekly "Update game data" workflow); the icons in assets/icons are
+# only the placeholders shown until the app has downloaded the current pictures.
 on:
   workflow_dispatch:
     inputs:
@@ -67,19 +68,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-
-      - name: Generate icons (Builder Base and every building level)
-        run: |
-          set -e
-          mkdir -p /tmp/pkg && cd /tmp/pkg
-          npm pack clash-of-clans-data@0.19.1
-          tar xzf clash-of-clans-data-0.19.1.tgz
-          mkdir -p /tmp/sharp && cd /tmp/sharp
-          npm init -y >/dev/null
-          npm i sharp
-          cd "$GITHUB_WORKSPACE"
-          NODE_PATH=/tmp/sharp/node_modules node tools/gen_icons.cjs /tmp/pkg/package
-          ls app/src/main/assets/icons | wc -l
 
       - uses: actions/setup-java@v5
         with:

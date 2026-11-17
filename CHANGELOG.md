@@ -8,6 +8,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ### Changed
 
+- Everything now comes from ClashKing instead of the clash-of-clans-data package: names (English and Russian, the game's official wording; the Russian names are the game's own text now), upgrade times for the progress bars, costs and levels, and the list of where each picture is (`icon_paths.json`). The build no longer fetches the old package; the icons built into the app stay as placeholders. New tools: `gen_names_ck.cjs`, `gen_upgrade_times_ck.cjs`, `gen_icon_paths_ck.cjs`; the old generators are removed.
 - The game data built into the app is now ClashKing's (Town Hall 19, 144 items), so new items such as the Squad Barracks have a name and get their picture instead of showing as "Unknown".
 - Pictures now come from ClashKing's asset site (assets.clashk.ing): when the app opens it downloads each item's picture (all of them the first time, then again about once a week) and uses it ahead of the icon built into the app, which stays only as a placeholder until the download finishes. New buildings, troops and spells in newer game data get their name and picture by themselves.
 - Cards give a very subtle giggle and a crisp haptic tick when you tap them (timers, village, sync, events, section cards). Scrolling and taps on buttons inside a card do not trigger it, and it follows the system touch feedback setting.

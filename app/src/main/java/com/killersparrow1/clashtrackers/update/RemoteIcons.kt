@@ -13,6 +13,8 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
 /**
  * Pictures from ClashKing's asset site (assets.clashk.ing). The game data says where each item's picture is; the app
@@ -32,24 +34,23 @@ object RemoteIcons {
         val prefs = app.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val dir = File(app.filesDir, "remote_icons").also { it.mkdirs() }
         val now = System.currentTimeMillis()
-        val all = MaxDataStore.get(app).items.entries.filter { it.value.icon != null }
+        val all = paths(app).entries.toList()
         val refreshAll = now - prefs.getLong("last_full", 0L) !in 0 until REFRESH_AFTER_MS
-        val todo = all.filter { (id, _) -> refreshAll || !File(dir, "$id.webp").exists() }
+        val todo = all.filter { (name, _) -> refreshAll || !File(dir, "$name.webp").exists() }
         if (todo.isEmpty()) return@withContext 0
         if (!refreshAll && now - prefs.getLong("last_try", 0L) < RETRY_AFTER_MS) return@withContext 0
         prefs.edit().putLong("last_try", now).apply()
 
         val gate = Semaphore(4)
         val saved = coroutineScope {
-            todo.map { (id, item) ->
+            todo.map { (name, path) ->
                 async {
                     gate.withPermit {
-                        val path = item.icon ?: return@withPermit false
                         if (!safePath(path)) return@withPermit false
                         val bytes = runCatching { download(HOST + path) }.getOrNull() ?: return@withPermit false
-                        val tmp = File(dir, "$id.tmp")
+                        val tmp = File(dir, "$name.tmp")
                         tmp.writeBytes(bytes)
-                        tmp.renameTo(File(dir, "$id.webp"))
+                        tmp.renameTo(File(dir, "$name.webp"))
                     }
                 }
             }.awaitAll().count { it }
@@ -63,6 +64,22 @@ object RemoteIcons {
             runCatching { com.killersparrow1.clashtrackers.widget.WidgetUpdater.updateAll(app, "icons") }
         }
         saved
+    }
+
+    /**
+     * Icon name (a game data id such as `1000008`, or widget artwork such as `builder_potion`) -> path on the asset site.
+     * The list built into the app (`assets/icon_paths.json`), plus the paths the game data names for newer items.
+     */
+    internal fun paths(context: Context): Map<String, String> {
+        val out = linkedMapOf<String, String>()
+        runCatching {
+            context.assets.open("icon_paths.json").bufferedReader().use { text ->
+                kotlinx.serialization.json.Json.parseToJsonElement(text.readText()).jsonObject["paths"]!!.jsonObject
+                    .forEach { (k, v) -> out[k] = v.jsonPrimitive.content }
+            }
+        }
+        MaxDataStore.get(context).items.forEach { (id, item) -> item.icon?.let { out[id.toString()] = it } }
+        return out
     }
 
     /** Only plain relative paths made of letters, digits and `_ - . /` are allowed. */
