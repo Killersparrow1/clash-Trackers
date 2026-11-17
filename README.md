@@ -33,9 +33,11 @@ Redesigned with **Material 3 Expressive**, authentic Clash typography, an advanc
 ---
 ## Looks
 <p align="center">
-  <img src="docs/screenshots/applooks.png" alt="App Look - Screenshots" width="900">
+  <img src="docs/screenshots/applooks.png" alt="App Looks - Screenshots" width="900">
 </p>
+
 ---
+
 ## Widget Themes
 Five colour themes, chosen per widget: **Material You** (follows your phone's wallpaper colours), **Classic** (the original wood panel and green bars), **Dark** (neutral dark with a blue bar), **Material dark** (Material You colours on a true black panel) and **Light** (clean white with a pale blue bar). Each theme has its own progress-bar colour, so text stays readable on every one.
 
