@@ -58,15 +58,15 @@ class WidgetModelTest {
     }
 
     @Test fun progressFromGameData() {
-        // Dragon 12 → 13 takes 15 days (1296000 s); 121885 s were left at T0.
+        // Dragon 12 → 13 takes 11d 12h (993600 s); 121885 s were left at T0.
         val atT0 = build(t0)
-        assertEquals(1 - 121885 / 1296000f, atT0.labRow.progress, 1e-4f)
+        assertEquals(1 - 121885 / 993600f, atT0.labRow.progress, 1e-4f)
         // An hour later at 1× (helper hour not started yet) it has moved by 3600 s of work.
-        assertEquals(1 - (121885 - 3600) / 1296000f, build(t0 + 3600).labRow.progress, 1e-4f)
+        assertEquals(1 - (121885 - 3600) / 993600f, build(t0 + 3600).labRow.progress, 1e-4f)
         // During the Lab Assistant's hour the bar moves 13× as fast (work left drops 13 s per second).
         val helperStart = t0 + 72189
         val workAtStart = 121885 - 72189
-        assertEquals(1 - (workAtStart - 13 * 600) / 1296000f, build(helperStart + 600).labRow.progress, 1e-4f)
+        assertEquals(1 - (workAtStart - 13 * 600) / 993600f, build(helperStart + 600).labRow.progress, 1e-4f)
     }
 
     @Test fun progressFallsBackToRemainingAtFirstSync() {

@@ -59,8 +59,8 @@ class ExportParserTest {
         assertEquals(4, export1.helpers.size)
         assertEquals(8, export1.helper(GameIds.HELPER_BUILDERS_APPRENTICE)!!.level)
         assertEquals(12, export1.helper(GameIds.HELPER_LAB_ASSISTANT)!!.level)
-        assertEquals(5, export1.helper(GameIds.HELPER_PROSPECTOR)!!.level)
-        assertEquals(1, export1.helper(GameIds.HELPER_ALCHEMIST_GUESS)!!.level)
+        assertEquals(5, export1.helper(GameIds.HELPER_ALCHEMIST)!!.level)
+        assertEquals(1, export1.helper(GameIds.HELPER_PROSPECTOR)!!.level)
         assertTrue(export1.helpers.all { it.cooldown == 45285L })
         assertEquals(1791934606L + 45285L, export1.nextHelperActivation)
     }

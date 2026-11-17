@@ -22,6 +22,7 @@ class NameMapTest {
         assertEquals("B.O.B's Hut", names.name(GameIds.BOBS_HUT))
         assertEquals("Builder's Apprentice", names.name(GameIds.HELPER_BUILDERS_APPRENTICE))
         assertEquals("Lab Assistant", names.name(GameIds.HELPER_LAB_ASSISTANT))
+        assertEquals("Alchemist", names.name(GameIds.HELPER_ALCHEMIST))
         assertEquals("Prospector", names.name(GameIds.HELPER_PROSPECTOR))
     }
 
@@ -100,6 +101,6 @@ class NameMapTest {
         }
         assertEquals("Ратуша", ruMap.name(1000001))
         val module = Job(JobCategory.BUILDER, JobSource.MODULE, 102000040, 8, 100, false, 1000051, 103000013)
-        assertEquals("Урон · Торт-катапульта", ruMap.title(module))
+        assertEquals("Урон · Тортопульта", ruMap.title(module))
     }
 }

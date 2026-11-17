@@ -8,11 +8,9 @@ object GameIds {
     /** Builder Base Clock Tower (`buildings2`). */
     const val CLOCK_TOWER = 1000039
 
-    // Helper IDs, confirmed against clash-of-clans-data@0.19.1 (`data/home/other/helpers`).
+    // Helper IDs, as listed in ClashKing's game data (assets.clashk.ing static_data.json).
     const val HELPER_BUILDERS_APPRENTICE = 93000000
     const val HELPER_LAB_ASSISTANT = 93000001
-    const val HELPER_PROSPECTOR = 93000002
-
-    // Not in the data package; Alchemist by elimination (only four helpers exist). Unused by the app.
-    const val HELPER_ALCHEMIST_GUESS = 93000003
+    const val HELPER_ALCHEMIST = 93000002
+    const val HELPER_PROSPECTOR = 93000003
 }

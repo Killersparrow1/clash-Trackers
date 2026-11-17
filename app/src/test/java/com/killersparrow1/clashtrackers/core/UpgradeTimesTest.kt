@@ -13,10 +13,10 @@ class UpgradeTimesTest {
 
     @Test fun assetLoads() {
         assertTrue("got ${times.size}", times.size > 140)
-        assertEquals(1166400L, times.timeTo(1000027, 12)) // Inferno Tower → 12: 13d 12h
+        assertEquals(907200L, times.timeTo(1000027, 12)) // Inferno Tower → 12: 10d 12h (ClashKing)
         assertEquals(1123200L, times.timeTo(107000008, 5)) // Logger → 5: 13d (guardian)
         assertEquals(288000L, times.timeTo(102000040, 8)) // Cake-A-Pult Damage module → 8
-        assertEquals(1296000L, times.timeTo(4000008, 13)) // Dragon → 13: 15d
+        assertEquals(993600L, times.timeTo(4000008, 13)) // Dragon → 13: 11d 12h (ClashKing)
         // Supercharge levels restart at 1 in the data; only the normal track is kept.
         assertEquals(43200L, times.timeTo(1000027, 1))
         assertNull(times.timeTo(1000027, 99))
