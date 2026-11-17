@@ -234,9 +234,13 @@ internal fun GameDataCard() {
     }
 }
 
-/** Keeps the game data fresh: fetched quietly when the app opens (at most hourly, if switched on in Settings). */
+/** Keeps the game data fresh: fetched quietly when the app opens (at most hourly, if switched on in Settings), then icons for any new items. */
 @Composable
 internal fun GameDataAutoRefresh() {
     val context = LocalContext.current
-    androidx.compose.runtime.LaunchedEffect(Unit) { DataUpdater.refreshIfDue(context) }
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        DataUpdater.refreshIfDue(context)
+        // New items in the data may come without a picture in this app; fetch those from assets.clashk.ing.
+        runCatching { com.killersparrow1.clashtrackers.update.RemoteIcons.fillMissing(context) }
+    }
 }

@@ -458,6 +458,7 @@ object Names {
     private val cached = mutableMapOf<String, NameMap>()
 
     fun get(context: Context): NameMap {
+        runCatching { MaxDataStore.get(context) } // also hands names of newer items to NameMap.extra
         val lang = LanguageManager.language(context)
         return synchronized(this) { cached.getOrPut(lang) { load(context, lang) } }
     }

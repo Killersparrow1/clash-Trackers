@@ -13,10 +13,10 @@ class NameMap(private val names: Map<Int, String>, private val text: WidgetText 
 
     val size: Int get() = names.size
 
-    fun has(id: Int): Boolean = id in names
+    fun has(id: Int): Boolean = id in names || id in extra
 
     /** Real name, or `Unknown (id)` for IDs added in future game updates. */
-    fun name(id: Int): String = names[id] ?: text.formatUnknown(id)
+    fun name(id: Int): String = names[id] ?: extra[id] ?: text.formatUnknown(id)
 
     /** Widget label: `Wizard Tower → 17`, `Super Wizard Tower (new)`, `Cake-A-Pult Damage → 8`. */
     fun label(job: Job): String =
@@ -32,6 +32,12 @@ class NameMap(private val names: Map<Int, String>, private val text: WidgetText 
     }
 
     companion object {
+        /**
+         * English names of items that came with newer game data than this app's name files (set from the game data in
+         * use). Only a fallback: the bundled names, in the chosen language, win.
+         */
+        @Volatile var extra: Map<Int, String> = emptyMap()
+
         fun fromJson(text: String, widgetText: WidgetText = WidgetText.EN): NameMap {
             val root = Json.parseToJsonElement(text).jsonObject
             val obj = root["names"] as? JsonObject ?: root

@@ -756,19 +756,36 @@ class WidgetRenderer(private val context: Context) {
 class WidgetIcons private constructor(private val context: Context) {
 
     /** File names present in `assets/icons/`. */
-    val available: Set<String> by lazy {
+    private val bundled: Set<String> by lazy {
         runCatching { context.assets.list("icons")?.toSet() }.getOrNull() ?: emptySet()
+    }
+
+    /** Icons downloaded later (new items in newer game data), kept in the app's own storage. */
+    private val remoteDir = java.io.File(context.filesDir, "remote_icons")
+    @Volatile private var remote: Set<String>? = null
+    private fun remoteNames(): Set<String> = remote ?: (remoteDir.list()?.toSet() ?: emptySet()).also { remote = it }
+
+    /** File names of every icon available: bundled first, then downloaded. */
+    val available: Set<String> get() = bundled + remoteNames()
+
+    /** Call after icons were downloaded, so they are picked up. */
+    fun refreshRemote() {
+        remote = null
+        cache.evictAll()
     }
 
     private val cache = LruCache<String, Bitmap>(64)
 
     /** `assets/icons/<name>.webp` (or `.png`) scaled to [sizePx], or null if there is no such file. */
     fun bitmap(name: String, sizePx: Int): Bitmap? {
-        val file = EXTENSIONS.map { "$name.$it" }.firstOrNull { it in available } ?: return null
-        val key = "$file@$sizePx"
+        val file = EXTENSIONS.map { "$name.$it" }.firstOrNull { it in bundled }
+        val remoteFile = if (file == null) EXTENSIONS.map { "$name.$it" }.firstOrNull { it in remoteNames() } else null
+        if (file == null && remoteFile == null) return null
+        val key = "${file ?: remoteFile}@$sizePx"
         cache.get(key)?.let { return it }
         val decoded = runCatching {
-            context.assets.open("icons/$file").use { BitmapFactory.decodeStream(it) }
+            if (file != null) context.assets.open("icons/$file").use { BitmapFactory.decodeStream(it) }
+            else java.io.File(remoteDir, remoteFile!!).inputStream().use { BitmapFactory.decodeStream(it) }
         }.getOrNull() ?: return null
         val scaled = if (decoded.width == sizePx && decoded.height == sizePx) decoded else {
             val scale = sizePx.toFloat() / maxOf(decoded.width, decoded.height)

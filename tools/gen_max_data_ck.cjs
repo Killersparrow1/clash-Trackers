@@ -38,9 +38,22 @@ function counts(id) {
   return n;
 }
 
-function add(o, kind, cat, steps) {
+// ClashKing's file names: lower case, spaces to "_", and . ? ' removed (see their README, "Programmatic Paths").
+const clean = s => s.toLowerCase().replace(/ /g, '_').replace(/\./g, '').replace(/\?/g, '').replace(/\\q/g, '').replace(/\u2019/g, '');
+// Where the picture of an item lives on https://assets.clashk.ing, relative to the site root (null = not known).
+function iconPath(group, o, levels) {
+  const c = clean(o.name);
+  switch (group) {
+    case 'buildings': return `buildings/home-village/${c}/level_${levels}.webp`;
+    case 'traps': return `traps/home-village/${c}/level_${levels}.webp`;
+    case 'spells': return `spells/${c}.webp`;
+    default: return `${group}/${c}/icon.webp`; // troops, heroes, pets, guardians
+  }
+}
+
+function add(o, kind, cat, steps, group) {
   if (!steps.length) return;
-  items[o._id] = { k: kind, c: cat, n: counts(o._id), l: steps };
+  items[o._id] = { k: kind, c: cat, n: counts(o._id), l: steps, nm: o.name, i: iconPath(group, o, steps.length) };
 }
 const res = (o, name) => {
   const r = RES[o.upgrade_resource];
@@ -53,16 +66,16 @@ for (const o of data.buildings) {
   if (o.village !== 'home' || SKIP_IDS.has(o._id) || !Array.isArray(o.levels)) continue;
   const cat = BUILDING_CAT[o.type];
   if (o.type === 'Wall') {
-    add(o, 'w', 'p', o.levels.map(l => [l.build_time || 0, l.build_cost || 0, l.level >= 5 ? 3 : 0, l.required_townhall]));
+    add(o, 'w', 'p', o.levels.map(l => [l.build_time || 0, l.build_cost || 0, l.level >= 5 ? 3 : 0, l.required_townhall]), 'buildings');
   } else if (cat) {
-    add(o, 'b', cat, o.levels.map(l => [l.build_time || 0, l.build_cost || 0, res(o, o.name), l.required_townhall]));
-    // Buildings ClashKing has no levels for: keep what we had.
+    add(o, 'b', cat, o.levels.map(l => [l.build_time || 0, l.build_cost || 0, res(o, o.name), l.required_townhall]), 'buildings');
+    // Buildings ClashKing has no levels for: keep what we had (no icon path, they ship with the app).
     if (!o.levels.length && previous[o._id]) { items[o._id] = previous[o._id]; warnings.push(`${o.name}: no levels in ClashKing data, kept the old steps`); }
   } // Worker and similar are not upgrades we track
 }
 for (const o of data.traps) {
   if (o.village !== 'home') continue;
-  add(o, 'b', 'p', o.levels.map(l => [l.build_time || 0, l.build_cost || 0, res(o, o.name), l.required_townhall]));
+  add(o, 'b', 'p', o.levels.map(l => [l.build_time || 0, l.build_cost || 0, res(o, o.name), l.required_townhall]), 'traps');
 }
 
 // Things researched or levelled with "cost to go to the next level" on each level.
@@ -82,7 +95,7 @@ for (const [group, kind, cat] of [['troops', 'l', 'a'], ['spells', 'l', 'a'], ['
     // Only things with an upgrade cost are researched or levelled by the player; super, seasonal and event troops and
     // spells have none.
     if (!o.levels.some(l => (l.upgrade_cost || 0) > 0)) continue;
-    add(o, kind, cat, nextLevelSteps(o));
+    add(o, kind, cat, nextLevelSteps(o), group);
   }
 }
 

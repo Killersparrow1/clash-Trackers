@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import com.killersparrow1.clashtrackers.core.MaxData
+import com.killersparrow1.clashtrackers.core.NameMap
 import java.io.File
 
 /**
@@ -44,7 +45,10 @@ object MaxDataStore {
             // A downloaded copy is used only when it knows at least as many Town Halls as the bundled one.
             val useDownload = extra != null && extra.maxTownHall >= own.maxTownHall
             fromDownload = useDownload
-            (if (useDownload) extra!! else own).also { cached = it }
+            (if (useDownload) extra!! else own).also {
+                cached = it
+                NameMap.extra = it.items.mapNotNull { (id, item) -> item.name?.let { n -> id to n } }.toMap()
+            }
         }
     }
 
@@ -64,6 +68,11 @@ object MaxDataStore {
     fun useBundled(context: Context) {
         downloadedFile(context).delete()
         reset()
+    }
+
+    /** Tells open screens to redraw (for example after icons were downloaded). */
+    fun touch() {
+        version++
     }
 
     private fun reset() {
