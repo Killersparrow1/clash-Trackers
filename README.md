@@ -28,6 +28,7 @@ Redesigned with **Material 3 Expressive**, authentic Clash typography, an advanc
 ## Screenshots
 <p align="center">
   <img src="docs/screenshots/screenshots.png" alt="Timers screen - Screenshots" width="900">
+  <img src="docs/screenshots/screenshots1.png" alt="Timers screen - Screenshots" width="900">
 </p>
 
 ---
