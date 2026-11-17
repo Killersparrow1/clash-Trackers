@@ -44,6 +44,8 @@ object RemoteIcons {
         if (saved > 0) {
             icons.refreshRemote()
             MaxDataStore.touch()
+            // Widgets drew a placeholder for these; draw them again with the new pictures.
+            runCatching { com.killersparrow1.clashtrackers.widget.WidgetUpdater.updateAll(app, "icons") }
         }
         saved
     }
