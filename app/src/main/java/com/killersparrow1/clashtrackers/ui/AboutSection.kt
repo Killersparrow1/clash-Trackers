@@ -176,13 +176,7 @@ fun AboutSection(reportProvider: () -> String = { "" }) {
             if (creditsOpen) {
             Text(FAN_CONTENT_DISCLAIMER, style = MaterialTheme.typography.bodyMedium)
             Text(
-                "Clash of Clans names and images are the property of Supercell.",
-                style = MaterialTheme.typography.bodyMedium,
-            )
-            Text(
-                "Game data (costs, times, levels), names in English and Russian, upgrade times, pictures and the raid weekend and " +
-                    "season dates come from ClashKing: the ClashKingAssets data and asset site (assets.clashk.ing, GPL-3.0, " +
-                    "no code copied) and the ClashKing API (api.clashk.ing). Thank you to the ClashKing team.",
+                "Game data, pictures and event dates are provided by ClashKing. Thank you to the ClashKing team.",
                 style = MaterialTheme.typography.bodyMedium,
             )
             CREDIT_LINKS.forEach { (label, url) ->
@@ -193,10 +187,10 @@ fun AboutSection(reportProvider: () -> String = { "" }) {
                 ) { Text(label) }
             }
             Text(
-                "The icons built into the app, shown until the current pictures have downloaded, and the Study Soup and Clock " +
-                    "Tower level images first came from the clash-of-clans-data package by Christopher Pezza (MIT License). " +
-                    "Fonts: Lilita One by Juan Montoreano and Doto by The Doto Project Authors, both SIL Open Font License 1.1.",
-                style = MaterialTheme.typography.bodyMedium,
+                "Built-in icons: clash-of-clans-data by Christopher Pezza (MIT). " +
+                    "Fonts: Lilita One and Doto (SIL Open Font License 1.1).",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             TextButton(
                 onClick = { showLicence = !showLicence },
@@ -272,9 +266,8 @@ private const val FEATURE_URL = "https://github.com/Killersparrow1/clash-Tracker
 
 private val CREDIT_LINKS = listOf(
     "ClashKing" to "https://clashk.ing",
-    "ClashKingAssets (game data and pictures) on GitHub" to "https://github.com/ClashKingInc/ClashKingAssets",
+    "ClashKingAssets on GitHub" to "https://github.com/ClashKingInc/ClashKingAssets",
     "ClashKing API documentation" to "https://api.clashk.ing/swagger/index.html",
-    "clash-of-clans-data (built-in icons) on GitHub" to "https://github.com/chiefpansancolt/clash-of-clans-data",
 )
 
 /** `CT2.2 (4)` from the installed package (releases are named CT + versionName). */

@@ -83,8 +83,7 @@ internal fun EventsPage(now: Long) {
                         style = MaterialTheme.typography.headlineSmall,
                     )
                     Text(
-                        (if (e.point) local(e.endsAt) else stringResource(R.string.clash_ev_range, local(e.startsAt), local(e.endsAt)))
-                            .let { if (e.fromApi) stringResource(R.string.clash_ev_via_api, it) else it },
+                        if (e.point) local(e.endsAt) else stringResource(R.string.clash_ev_range, local(e.startsAt), local(e.endsAt)),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
