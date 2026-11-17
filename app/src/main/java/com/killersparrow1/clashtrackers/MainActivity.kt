@@ -73,6 +73,10 @@ class MainActivity : ComponentActivity() {
         syncRequestHandled = savedInstanceState != null // a recreated activity must not repeat the widget's sync
         // The start-up animation plays on a fresh launch only (not after a rotation or a process restore).
         val playSplash = savedInstanceState == null
+        // Game data and event dates come from the internet: say so when there is no connection (fresh launch only).
+        if (savedInstanceState == null && !com.killersparrow1.clashtrackers.update.Connectivity.isOnline(this)) {
+            android.widget.Toast.makeText(this, R.string.offline_toast, android.widget.Toast.LENGTH_LONG).show()
+        }
         setContent {
             ClashTimerTheme {
                 var splash by rememberSaveable { mutableStateOf(playSplash) }

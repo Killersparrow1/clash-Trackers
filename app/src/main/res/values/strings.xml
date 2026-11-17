@@ -24,6 +24,7 @@
     <string name="clash_ev_auto">Refresh the schedule when the app opens</string>
     <string name="clash_ev_refresh">Refresh schedule now</string>
     <string name="clash_ev_note">Times are shown in your local time and can change when Supercell changes the schedule.</string>
+    <string name="offline_toast">No internet connection. Connect to the internet to get the latest game data and event dates.</string>
     <string name="clash_data_title">Game data</string>
     <string name="clash_data_desc">Levels, costs and times behind Road to max and Bedtime level up, from ClashKing\'s game data. When a new Town Hall arrives the app gets the new data by itself, without waiting for an app update.</string>
     <string name="clash_data_current_builtin">In use: built into the app. Town Hall %1$d, %2$d items.</string>
