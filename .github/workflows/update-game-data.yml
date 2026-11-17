@@ -1,7 +1,7 @@
 name: Update game data
 
-# Every Monday (or from the Actions tab): checks whether the clash-of-clans-data package has newer data than
-# app/src/main/assets/max_data.json. If the numbers changed, it opens a pull request to main with the new file.
+# Every Monday (or from the Actions tab): checks whether ClashKing's game data (ClashKingAssets, static_data.json) has newer
+# numbers than app/src/main/assets/max_data.json. If the numbers changed, it opens a pull request to main with the new file.
 # Merge it and phones pick the data up by themselves. Nothing happens when nothing changed.
 # Scheduled runs only work once this file is on the default branch. If no pull request appears, turn on
 # Settings > Actions > General > "Allow GitHub Actions to create and approve pull requests".
@@ -23,14 +23,19 @@ jobs:
         with:
           ref: main
 
-      - name: Regenerate max_data.json from the newest package
+      - name: Regenerate max_data.json from ClashKing's game data
         run: |
           set -e
-          mkdir -p /tmp/pkg && cd /tmp/pkg
-          npm pack clash-of-clans-data --silent
-          tar xzf clash-of-clans-data-*.tgz
-          cd "$GITHUB_WORKSPACE"
-          node tools/gen_max_data.cjs /tmp/pkg/package /tmp/max_data.json
+          curl -fsSL -o /tmp/static_data.json \
+            https://raw.githubusercontent.com/ClashKingInc/ClashKingAssets/main/assets/static_data.json
+          cp app/src/main/assets/max_data.json /tmp/max_data.json   # the generator keeps old steps for buildings ClashKing has no levels for
+          node tools/gen_max_data_ck.cjs /tmp/static_data.json /tmp/max_data.json
+          # Safety net: never go backwards (fewer Town Halls or a big drop in items means the source changed shape).
+          node -e '
+            const a=JSON.parse(require("fs").readFileSync("app/src/main/assets/max_data.json","utf8"));
+            const b=JSON.parse(require("fs").readFileSync("/tmp/max_data.json","utf8"));
+            const na=Object.keys(a.items).length, nb=Object.keys(b.items).length;
+            if (b.maxTh < a.maxTh || nb < na*0.9) { console.error(`Refusing: Town Hall ${a.maxTh}->${b.maxTh}, items ${na}->${nb}`); process.exit(1); }'
 
       - name: Open a pull request if the numbers changed
         env:
@@ -44,18 +49,17 @@ jobs:
             delete a.source; delete b.source;
             console.log(JSON.stringify(a)===JSON.stringify(b));')
           if [ "$same" = "true" ]; then echo "No change in game data."; exit 0; fi
-          ver=$(node -e 'console.log(JSON.parse(require("fs").readFileSync("/tmp/max_data.json","utf8")).source)')
-          th=$(node -e 'console.log(JSON.parse(require("fs").readFileSync("/tmp/max_data.json","utf8")).maxTh)')
+                    th=$(node -e 'console.log(JSON.parse(require("fs").readFileSync("/tmp/max_data.json","utf8")).maxTh)')
           branch=data-update
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -B "$branch"
           cp /tmp/max_data.json app/src/main/assets/max_data.json
           git add app/src/main/assets/max_data.json
-          git commit -m "Update game data ($ver, Town Hall $th)"
+          git commit -m "Update game data (Town Hall $th)"
           git push -f origin "$branch"
           if [ -z "$(gh pr list --head "$branch" --base main --state open --json number -q '.[0].number')" ]; then
             gh pr create --base main --head "$branch" \
               --title "Update game data (Town Hall $th)" \
-              --body "New data from $ver. Merge to main and the app downloads it by itself. New buildings may show without an icon until the next app update."
+              --body "New game data from ClashKingAssets. Look at the diff first: costs and times can change with balance updates. Merge to main and the app downloads it by itself. New buildings may show without an icon until the next app update."
           fi

@@ -177,7 +177,8 @@ fun AboutSection(reportProvider: () -> String = { "" }) {
             Text(FAN_CONTENT_DISCLAIMER, style = MaterialTheme.typography.bodyMedium)
             Text(
                 "Clash of Clans names and images are the property of Supercell. Names, upgrade times and images " +
-                    "come from the clash-of-clans-data package. Font: Lilita One by Juan Montoreano, " +
+                    "come from the clash-of-clans-data package. Costs, times and level data are kept up to date from " +
+                    "ClashKing's game data (clashk.ing, github.com/ClashKingInc/ClashKingAssets). Font: Lilita One by Juan Montoreano, " +
                     "SIL Open Font License 1.1.",
                 style = MaterialTheme.typography.bodyMedium,
             )
