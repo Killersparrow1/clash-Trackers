@@ -240,7 +240,7 @@ internal fun GameDataAutoRefresh() {
     val context = LocalContext.current
     androidx.compose.runtime.LaunchedEffect(Unit) {
         DataUpdater.refreshIfDue(context)
-        // New items in the data may come without a picture in this app; fetch those from assets.clashk.ing.
-        runCatching { com.killersparrow1.clashtrackers.update.RemoteIcons.fillMissing(context) }
+        // Pictures come from assets.clashk.ing (missing ones now, all of them again about weekly).
+        runCatching { com.killersparrow1.clashtrackers.update.RemoteIcons.sync(context) }
     }
 }

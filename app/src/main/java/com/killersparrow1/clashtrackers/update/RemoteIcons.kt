@@ -7,44 +7,59 @@ import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 
 /**
- * Pictures for items the app was built without (new buildings or troops in newer game data). The game data says where
- * each item's picture is on assets.clashk.ing (ClashKing's asset site); anything the app has no icon for is downloaded
- * once into the app's own storage and then used like a bundled icon. Never replaces a bundled icon.
+ * Pictures from ClashKing's asset site (assets.clashk.ing). The game data says where each item's picture is; the app
+ * downloads them into its own storage and uses them ahead of the icons built into the app (those stay as the
+ * placeholder until a picture has arrived). Everything is fetched the first time, then refreshed about once a week.
  */
 object RemoteIcons {
     private const val HOST = "https://assets.clashk.ing/"
     private const val MAX_BYTES = 600_000
     private const val RETRY_AFTER_MS = 6 * 3_600_000L
+    private const val REFRESH_AFTER_MS = 7 * 24 * 3_600_000L
     private const val PREFS = "remote_icons"
 
-    /** Downloads the missing icons (a few at a time). Returns how many arrived. Quiet on failure; retried later. */
-    suspend fun fillMissing(context: Context): Int = withContext(Dispatchers.IO) {
+    /** Downloads missing icons, and every icon again once a week. Returns how many were saved. Quiet on failure. */
+    suspend fun sync(context: Context): Int = withContext(Dispatchers.IO) {
         val app = context.applicationContext
         val prefs = app.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        val icons = WidgetIcons.get(app)
-        val have = icons.available
-        val missing = MaxDataStore.get(app).items.entries
-            .filter { (id, item) -> item.icon != null && "$id.webp" !in have && "$id.png" !in have }
-        if (missing.isEmpty()) return@withContext 0
-        val now = System.currentTimeMillis()
-        if (now - prefs.getLong("last_try", 0L) < RETRY_AFTER_MS && prefs.getInt("last_missing", -1) == missing.size) return@withContext 0
-        prefs.edit().putLong("last_try", now).putInt("last_missing", missing.size).apply()
         val dir = File(app.filesDir, "remote_icons").also { it.mkdirs() }
-        var saved = 0
-        for ((id, item) in missing.take(60)) {
-            val path = item.icon ?: continue
-            if (!safePath(path)) continue
-            val bytes = runCatching { download(HOST + path) }.getOrNull() ?: continue
-            File(dir, "$id.webp").writeBytes(bytes)
-            saved++
+        val now = System.currentTimeMillis()
+        val all = MaxDataStore.get(app).items.entries.filter { it.value.icon != null }
+        val refreshAll = now - prefs.getLong("last_full", 0L) !in 0 until REFRESH_AFTER_MS
+        val todo = all.filter { (id, _) -> refreshAll || !File(dir, "$id.webp").exists() }
+        if (todo.isEmpty()) return@withContext 0
+        if (!refreshAll && now - prefs.getLong("last_try", 0L) < RETRY_AFTER_MS) return@withContext 0
+        prefs.edit().putLong("last_try", now).apply()
+
+        val gate = Semaphore(4)
+        val saved = coroutineScope {
+            todo.map { (id, item) ->
+                async {
+                    gate.withPermit {
+                        val path = item.icon ?: return@withPermit false
+                        if (!safePath(path)) return@withPermit false
+                        val bytes = runCatching { download(HOST + path) }.getOrNull() ?: return@withPermit false
+                        val tmp = File(dir, "$id.tmp")
+                        tmp.writeBytes(bytes)
+                        tmp.renameTo(File(dir, "$id.webp"))
+                    }
+                }
+            }.awaitAll().count { it }
         }
+        // A full refresh only counts as done when (nearly) everything came through.
+        if (refreshAll && saved >= todo.size * 0.9) prefs.edit().putLong("last_full", now).apply()
         if (saved > 0) {
-            icons.refreshRemote()
+            WidgetIcons.get(app).refreshRemote()
             MaxDataStore.touch()
-            // Widgets drew a placeholder for these; draw them again with the new pictures.
+            // Widgets drew the old pictures; draw them again.
             runCatching { com.killersparrow1.clashtrackers.widget.WidgetUpdater.updateAll(app, "icons") }
         }
         saved

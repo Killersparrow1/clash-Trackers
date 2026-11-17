@@ -9,7 +9,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 ### Changed
 
 - The game data built into the app is now ClashKing's (Town Hall 19, 144 items), so new items such as the Squad Barracks have a name and get their picture instead of showing as "Unknown".
-- New buildings, troops and spells that come with newer game data now get their name and picture by themselves: the game data says where each picture is on assets.clashk.ing (ClashKing), and the app downloads the ones it has no bundled icon for, once, when it opens. Bundled icons are never replaced.
+- Pictures now come from ClashKing's asset site (assets.clashk.ing): when the app opens it downloads each item's picture (all of them the first time, then again about once a week) and uses it ahead of the icon built into the app, which stays only as a placeholder until the download finishes. New buildings, troops and spells in newer game data get their name and picture by themselves.
 - Cards give a very subtle giggle and a crisp haptic tick when you tap them (timers, village, sync, events, section cards). Scrolling and taps on buttons inside a card do not trigger it, and it follows the system touch feedback setting.
 - A weekly GitHub Action checks ClashKing's game data (ClashKingAssets) for newer costs, times and Town Hall levels, and opens a pull request to main only when the numbers changed. `tools/gen_max_data_ck.cjs` converts it; the first pull request will bring Town Hall 19. ClashKing is credited under Support > Credits.
 - Settings > Support: removed the "Works offline" card (the app now uses the internet for updates, events and game data). Credits are hidden behind a + / − header.

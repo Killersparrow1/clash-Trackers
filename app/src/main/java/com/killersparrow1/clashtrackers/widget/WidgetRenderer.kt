@@ -760,12 +760,12 @@ class WidgetIcons private constructor(private val context: Context) {
         runCatching { context.assets.list("icons")?.toSet() }.getOrNull() ?: emptySet()
     }
 
-    /** Icons downloaded later (new items in newer game data), kept in the app's own storage. */
+    /** Icons downloaded from ClashKing, kept in the app's own storage. They are used ahead of the bundled ones. */
     private val remoteDir = java.io.File(context.filesDir, "remote_icons")
     @Volatile private var remote: Set<String>? = null
     private fun remoteNames(): Set<String> = remote ?: (remoteDir.list()?.toSet() ?: emptySet()).also { remote = it }
 
-    /** File names of every icon available: bundled first, then downloaded. */
+    /** File names of every icon available (bundled and downloaded). */
     val available: Set<String> get() = bundled + remoteNames()
 
     /** Call after icons were downloaded, so they are picked up. */
@@ -778,8 +778,9 @@ class WidgetIcons private constructor(private val context: Context) {
 
     /** `assets/icons/<name>.webp` (or `.png`) scaled to [sizePx], or null if there is no such file. */
     fun bitmap(name: String, sizePx: Int): Bitmap? {
-        val file = EXTENSIONS.map { "$name.$it" }.firstOrNull { it in bundled }
-        val remoteFile = if (file == null) EXTENSIONS.map { "$name.$it" }.firstOrNull { it in remoteNames() } else null
+        // The downloaded picture (ClashKing's current art) wins; the bundled one is the placeholder until it arrives.
+        val remoteFile = EXTENSIONS.map { "$name.$it" }.firstOrNull { it in remoteNames() }
+        val file = if (remoteFile == null) EXTENSIONS.map { "$name.$it" }.firstOrNull { it in bundled } else null
         if (file == null && remoteFile == null) return null
         val key = "${file ?: remoteFile}@$sizePx"
         cache.get(key)?.let { return it }
