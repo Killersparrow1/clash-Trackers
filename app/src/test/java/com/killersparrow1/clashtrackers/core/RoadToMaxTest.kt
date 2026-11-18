@@ -72,25 +72,37 @@ class RoadToMaxTest {
         org.junit.Assert.assertTrue(real.items.values.all { it.steps.isNotEmpty() })
     }
 
-    @Test fun fullTotalsCountEverythingFromNothing() {
-        // TH2 cannons: two copies of a 2-level building, each 100 s then 200 s, nothing built yet.
+    @Test fun doneIsLevelsOwnedAgainstLevelsAtTheLimit() {
+        // TH2 cannons: max level 2, two copies. Both at 2 -> 4 of 4.
+        val all = RoadToMaxCalc.compute(data, export(2, mapOf(1 to listOf(2, 2))))!!
+        assertEquals(LevelShare(4, 4), all.levels.buildings)
+        assertEquals(1.0, all.levels.buildings.done!!, 1e-9)
+        // One copy at level 1, the other not built: 1 of 4.
+        val some = RoadToMaxCalc.compute(data, export(2, mapOf(1 to listOf(1))))!!
+        assertEquals(LevelShare(1, 4), some.levels.buildings)
+        assertEquals(0.25, some.levels.buildings.done!!, 1e-9)
+    }
+
+    @Test fun anUnlockedTroopYouDoNotHaveCountsAsLevelZero() {
+        // Barbarian (lab) is not in the export: 0 of 2 for the share, even though its first step is free.
         val r = RoadToMaxCalc.compute(data, export(2, mapOf(1 to listOf(2, 2))))!!
-        assertEquals(0L, r.buildings.seconds)
-        assertEquals(2 * (100L + 200L), r.full.buildings.seconds)
-        assertEquals(1.0, RoadProgress.done(r.buildings, r.full.buildings)!!, 1e-9)
+        assertEquals(LevelShare(0, 2), r.levels.lab)
+    }
+
+    @Test fun wallsAreMeasuredByLevelsToo() {
+        // 10 walls of 10 allowed at TH2 (max level 2): ten at level 1 is 10 of 20.
+        val r = RoadToMaxCalc.compute(data, export(2, mapOf(4 to List(10) { 1 }, 1 to listOf(2, 2))))!!
+        assertEquals(0.5, r.levels.walls.done!!, 1e-9)
+    }
+
+    @Test fun overallJoinsEveryGroupAndStaysInRange() {
+        val r = RoadToMaxCalc.compute(data, export(2, mapOf(1 to listOf(1))))!!
         assertTrue(r.overallDone!! in 0.0..1.0)
     }
 
-    @Test fun doneShareIsRemainingAgainstTotal() {
-        val r = RoadToMaxCalc.compute(data, export(2, mapOf(1 to listOf(1))))!!
-        val done = RoadProgress.done(r.buildings, r.full.buildings)!!
-        assertEquals(1.0 - r.buildings.seconds.toDouble() / r.full.buildings.seconds, done, 1e-9)
-        assertTrue(done in 0.0..1.0)
-    }
-
     @Test fun groupsWithNothingToDoHaveNoShare() {
-        assertEquals(null, RoadProgress.done(RoadTotals(), RoadTotals()))
-        assertEquals(0.5, RoadProgress.done(RoadTotals(gold = 50), RoadTotals(gold = 100))!!, 1e-9)
+        assertEquals(null, LevelShare().done)
+        assertEquals(0.5, LevelShare(50, 100).done!!, 1e-9)
     }
 
     @Test fun morebuildersNeverBeatTheLongestHero() {

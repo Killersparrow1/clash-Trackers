@@ -372,7 +372,7 @@
     <string name="resource_dark_elixir">Dark Elixir</string>
     <string name="road_walls_cost">Walls (Gold or Elixir)</string>
     <string name="road_include_walls">Include walls</string>
-    <string name="road_note">Estimate from the village export and the game data: base times and costs, without potions, helpers, events or the Gold Pass. The share done counts time where upgrades take time, and cost where they do not (walls). Builder time shares the work evenly between your builders, but never drops below the hero with the most work left. Equipment and helpers are not included yet.</string>
+    <string name="road_note">Estimate from the village export and the game data: base times and costs, without potions, helpers, events or the Gold Pass. The share done is the levels you have against the levels at your Town Hall maximum (what you do not have yet counts as level 0). Builder time shares the work evenly between your builders, but never drops below the hero with the most work left. Equipment and helpers are not included yet.</string>
     <string name="road_widget_name">Road to max</string>
     <string name="road_widget_description">Time and resources still needed to max your Town Hall</string>
     <string name="road_widget_title">Road to max</string>

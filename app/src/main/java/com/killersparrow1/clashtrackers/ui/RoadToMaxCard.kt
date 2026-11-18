@@ -31,7 +31,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.killersparrow1.clashtrackers.R
 import com.killersparrow1.clashtrackers.core.Countdown
-import com.killersparrow1.clashtrackers.core.RoadProgress
 import com.killersparrow1.clashtrackers.core.RoadToMaxCalc
 import com.killersparrow1.clashtrackers.core.RoadTotals
 import com.killersparrow1.clashtrackers.core.VillageExport
@@ -83,27 +82,27 @@ internal fun RoadToMaxCard(export: VillageExport?, builders: Int, modifier: Modi
 
         CategoryCard(
             title = stringResource(R.string.road_buildings), buildingId = 1000015,
-            done = RoadProgress.done(road.buildings, road.full.buildings),
+            done = road.levels.buildings.done,
             seconds = road.buildings.seconds / n, remaining = road.buildings, dayUnit = dayUnit,
         )
         CategoryCard(
             title = stringResource(R.string.road_walls), buildingId = 1000010,
-            done = RoadProgress.done(road.walls, road.full.walls),
+            done = road.levels.walls.done,
             seconds = null, remaining = road.walls, dayUnit = dayUnit,
         )
         CategoryCard(
             title = stringResource(R.string.road_heroes), buildingId = 1000071,
-            done = RoadProgress.done(road.heroes, road.full.heroes),
+            done = road.levels.heroes.done,
             seconds = road.heroSeconds(n), remaining = road.heroes, dayUnit = dayUnit,
         )
         CategoryCard(
             title = stringResource(R.string.road_lab), buildingId = 1000007,
-            done = RoadProgress.done(road.lab, road.full.lab),
+            done = road.levels.lab.done,
             seconds = road.lab.seconds, remaining = road.lab, dayUnit = dayUnit,
         )
         CategoryCard(
             title = stringResource(R.string.road_pets), buildingId = 1000068,
-            done = RoadProgress.done(road.pets, road.full.pets),
+            done = road.levels.pets.done,
             seconds = road.pets.seconds, remaining = road.pets, dayUnit = dayUnit,
         )
 
