@@ -56,7 +56,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.killersparrow1.clashtrackers.core.HideOnScroll
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 
 /** Sizes of the floating tab bar. */
@@ -82,37 +81,26 @@ internal class FloatingBarState(
     private val pager: PagerState,
     hideAfterPx: Float,
     showAfterPx: Float,
-    private val nearTopPx: Float,
+    nearTopPx: Float,
 ) {
-    private var barHiddenAt = 0L
-    private var subHiddenAt = 0L
     private val tracker = HideOnScroll(hideAfterPx, showAfterPx, nearTopPx)
-    // The sub-tabs have their own tracker: it is not reset when scrolling stops, so they come back only on a real scroll up.
-    private val subTracker = HideOnScroll(hideAfterPx, showAfterPx, nearTopPx)
     private val fromTop = HashMap<Int, Float>()
 
     var visible by mutableStateOf(true)
         private set
 
-    /** Whether the sub-tabs (Plan, Settings) are shown: they stay hidden until you scroll up, or reach the top, or change tab. */
+    /** Whether the sub-tabs (Plan, Settings) are shown: the same as the bar. */
     var subVisible by mutableStateOf(true)
         private set
 
-    /** Counts scroll events; used to notice that scrolling has stopped. */
+    /** Counts scroll events. */
     var activity by mutableIntStateOf(0)
         private set
 
     fun show() {
         tracker.show()
-        subTracker.show()
         visible = true
         subVisible = true
-    }
-
-    /** Scrolling stopped for a while: the bottom bar returns, the sub-tabs do not. */
-    fun showAfterIdle() {
-        tracker.show()
-        visible = true
     }
 
     val connection = object : NestedScrollConnection {
@@ -127,46 +115,23 @@ internal class FloatingBarState(
                 show()
                 return Offset.Zero
             }
-            // Once hidden they stay hidden for at least HOLD_MS, whatever the scroll does, unless the list is back near the top.
-            val now = System.nanoTime() / 1_000_000L
-            val awayFromTop = distance > nearTopPx
-            if (!(dy < 0f && awayFromTop && !visible && now - barHiddenAt < HOLD_MS)) {
-                val was = visible
-                visible = tracker.onScroll(dy, distance)
-                if (was && !visible) barHiddenAt = now
-            }
-            if (!(dy < 0f && awayFromTop && !subVisible && now - subHiddenAt < HOLD_MS)) {
-                val was = subVisible
-                subVisible = subTracker.onScroll(dy, distance)
-                if (was && !subVisible) subHiddenAt = now
-            }
+            visible = tracker.onScroll(dy, distance)
+            subVisible = visible
             activity++
             return Offset.Zero
         }
     }
 }
 
-/** The least time, in ms, the bars stay hidden after hiding. */
-private const val HOLD_MS = 1_500L
-
 @Composable
 internal fun rememberFloatingBarState(pager: PagerState): FloatingBarState {
     val density = LocalDensity.current
     val state = remember(pager, density) {
-        with(density) { FloatingBarState(pager, 16.dp.toPx(), 56.dp.toPx(), 24.dp.toPx()) }
+        with(density) { FloatingBarState(pager, 16.dp.toPx(), 40.dp.toPx(), 24.dp.toPx()) }
     }
     // A tab change, by swipe or by tap, shows the bar at once.
     LaunchedEffect(state, pager) {
         snapshotFlow { pager.isScrollInProgress }.collect { moving -> if (moving) state.show() }
-    }
-    // Scrolling stopped for a while: show it again (a long pause, so it does not pop back the moment you let go).
-    LaunchedEffect(state) {
-        snapshotFlow { state.activity }.collectLatest {
-            if (!state.visible) {
-                delay(2_000)
-                state.showAfterIdle()
-            }
-        }
     }
     return state
 }
