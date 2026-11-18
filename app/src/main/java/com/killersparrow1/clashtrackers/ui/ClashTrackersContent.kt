@@ -128,8 +128,8 @@ fun ClashTrackersContent(
     val barState = rememberFloatingBarState(pager)
     // The sub-tabs (Plan, Settings) hide and show together with the bottom bar.
     val subHide = remember { Animatable(0f) }
-    LaunchedEffect(barState.visible, reduced) {
-        subHide.animateTo(if (barState.visible || reduced) 0f else 1f, spring(dampingRatio = 0.9f, stiffness = Spring.StiffnessMedium))
+    LaunchedEffect(barState.subVisible, reduced) {
+        subHide.animateTo(if (barState.subVisible || reduced) 0f else 1f, spring(dampingRatio = 0.9f, stiffness = Spring.StiffnessMedium))
     }
     val barItems = remember { Destination.entries.map { TabBarItem(it.labelRes, it.icon) } }
     val supportTaps = remember { mutableListOf<Long>() }

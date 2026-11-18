@@ -85,9 +85,15 @@ internal class FloatingBarState(
     nearTopPx: Float,
 ) {
     private val tracker = HideOnScroll(hideAfterPx, showAfterPx, nearTopPx)
+    // The sub-tabs have their own tracker: it is not reset when scrolling stops, so they come back only on a real scroll up.
+    private val subTracker = HideOnScroll(hideAfterPx, showAfterPx, nearTopPx)
     private val fromTop = HashMap<Int, Float>()
 
     var visible by mutableStateOf(true)
+        private set
+
+    /** Whether the sub-tabs (Plan, Settings) are shown: they stay hidden until you scroll up, or reach the top, or change tab. */
+    var subVisible by mutableStateOf(true)
         private set
 
     /** Counts scroll events; used to notice that scrolling has stopped. */
@@ -95,6 +101,14 @@ internal class FloatingBarState(
         private set
 
     fun show() {
+        tracker.show()
+        subTracker.show()
+        visible = true
+        subVisible = true
+    }
+
+    /** Scrolling stopped for a while: the bottom bar returns, the sub-tabs do not. */
+    fun showAfterIdle() {
         tracker.show()
         visible = true
     }
@@ -112,6 +126,7 @@ internal class FloatingBarState(
                 return Offset.Zero
             }
             visible = tracker.onScroll(dy, distance)
+            subVisible = subTracker.onScroll(dy, distance)
             activity++
             return Offset.Zero
         }
@@ -133,7 +148,7 @@ internal fun rememberFloatingBarState(pager: PagerState): FloatingBarState {
         snapshotFlow { state.activity }.collectLatest {
             if (!state.visible) {
                 delay(2_000)
-                state.show()
+                state.showAfterIdle()
             }
         }
     }
