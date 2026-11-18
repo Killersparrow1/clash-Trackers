@@ -1,6 +1,9 @@
 package com.killersparrow1.clashtrackers.ui.theme
 
+import android.app.Activity
 import android.content.Context
+import android.content.ContextWrapper
+import android.content.res.Configuration
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.getValue
@@ -98,7 +101,32 @@ object AppLookStore {
     }
 
     fun set(context: Context, look: AppLook) {
+        val before = stored(context)
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString("look", look.key).apply()
         state.value = look
+        // Light, dark and "follow the phone" also decide the window's night mode (window background, splash, system
+        // bars), which an activity only reads when it starts: recreate it when that choice changed.
+        if (before.dark != look.dark) {
+            var c: Context? = context
+            while (c is ContextWrapper && c !is Activity) c = c.baseContext
+            (c as? Activity)?.recreate()
+        }
+    }
+
+    private fun stored(context: Context): AppLook =
+        AppLook.fromKey(context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString("look", null))
+
+    /**
+     * Use in `attachBaseContext` of every activity that draws with [ClashTimerTheme]. A look that is light or dark on
+     * purpose makes the activity's own night mode match it, whatever the phone is set to, so nothing outside Compose
+     * (window background, splash, system bars, platform dialogs) stays dark under a light look or the other way round.
+     * "Follow the phone" returns [base] unchanged. Widgets do not use this: they have their own theme setting.
+     */
+    fun wrap(base: Context): Context {
+        val dark = stored(base).dark ?: return base
+        val config = Configuration(base.resources.configuration)
+        val night = if (dark) Configuration.UI_MODE_NIGHT_YES else Configuration.UI_MODE_NIGHT_NO
+        config.uiMode = (config.uiMode and Configuration.UI_MODE_NIGHT_MASK.inv()) or night
+        return base.createConfigurationContext(config)
     }
 }

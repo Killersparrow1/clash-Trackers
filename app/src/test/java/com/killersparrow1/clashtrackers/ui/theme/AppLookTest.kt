@@ -18,4 +18,13 @@ class AppLookTest {
     @Test fun everyLookHasThreeSwatchColours() {
         assertTrue(AppLook.entries.all { it.swatch.size == 3 })
     }
+
+    @Test fun lightIsAlwaysLightAndDarkIsAlwaysDark() {
+        assertEquals(false, AppLook.MATERIAL_LIGHT.dark)
+        assertEquals(true, AppLook.MATERIAL_DARK.dark)
+    }
+
+    @Test fun onlyMaterialYouFollowsThePhone() {
+        assertEquals(listOf(AppLook.MATERIAL_YOU), AppLook.entries.filter { it.dark == null })
+    }
 }

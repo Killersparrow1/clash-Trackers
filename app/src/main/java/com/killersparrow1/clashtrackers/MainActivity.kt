@@ -64,7 +64,7 @@ import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun attachBaseContext(newBase: android.content.Context) {
-        super.attachBaseContext(com.killersparrow1.clashtrackers.locale.LanguageManager.wrap(newBase))
+        super.attachBaseContext(com.killersparrow1.clashtrackers.ui.theme.AppLookStore.wrap(com.killersparrow1.clashtrackers.locale.LanguageManager.wrap(newBase)))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
