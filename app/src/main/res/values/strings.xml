@@ -352,6 +352,8 @@
     <string name="gold_pass_banner_update">Update</string>
     <string name="gold_pass_banner_dismiss">Not yet</string>
     <string name="road_title">Road to max · Town Hall %1$d</string>
+    <string name="road_buildings">Buildings</string>
+    <string name="road_heroes">Heroes</string>
     <string name="road_builders">Builders (buildings and heroes)</string>
     <string name="road_builders_work">Split across %1$d builders (%2$s of work in total)</string>
     <string name="road_lab">Laboratory</string>

@@ -53,13 +53,22 @@ internal fun RoadToMaxCard(export: VillageExport?, builders: Int, modifier: Modi
     val builderWork = road.builderWork
     val all = builderWork + road.lab + road.pets
     CollapsibleCard(stringResource(R.string.road_title, road.townHall), "road_to_max", modifier, alwaysOpen = true) {
+        // Buildings and heroes are shown apart, each split across your builders, with the total work under it.
         RoadRow(
-            label = stringResource(R.string.road_builders),
-            value = formatDuration(builderWork.seconds / builders.coerceAtLeast(1), dayUnit),
-            detail = if (builders > 1 && builderWork.seconds > 0)
-                stringResource(R.string.road_builders_work, builders, formatDuration(builderWork.seconds, dayUnit))
+            label = stringResource(R.string.road_buildings),
+            value = formatDuration(road.buildings.seconds / builders.coerceAtLeast(1), dayUnit),
+            detail = if (builders > 1 && road.buildings.seconds > 0)
+                stringResource(R.string.road_builders_work, builders, formatDuration(road.buildings.seconds, dayUnit))
             else null,
             buildingId = 1000015,
+        )
+        RoadRow(
+            label = stringResource(R.string.road_heroes),
+            value = formatDuration(road.heroes.seconds / builders.coerceAtLeast(1), dayUnit),
+            detail = if (builders > 1 && road.heroes.seconds > 0)
+                stringResource(R.string.road_builders_work, builders, formatDuration(road.heroes.seconds, dayUnit))
+            else null,
+            buildingId = 1000071,
         )
         RoadRow(stringResource(R.string.road_lab), formatDuration(road.lab.seconds, dayUnit), buildingId = 1000007)
         RoadRow(stringResource(R.string.road_pets), formatDuration(road.pets.seconds, dayUnit), buildingId = 1000068)
