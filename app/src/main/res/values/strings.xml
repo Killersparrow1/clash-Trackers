@@ -378,4 +378,16 @@
     <string name="road_widget_title">Road to max</string>
     <string name="road_widget_empty">Tap to sync your village</string>
     <string name="road_widget_builders">Builders</string>
+    <string name="perm_title">Allow what the app needs</string>
+    <string name="perm_intro">Some settings are off, so timers and alerts may be late or stop. Android only lets you switch these on yourself.</string>
+    <string name="perm_fix">Open setting</string>
+    <string name="perm_later">Later</string>
+    <string name="perm_notifications">Notifications</string>
+    <string name="perm_notifications_why">Needed to tell you when an upgrade finishes.</string>
+    <string name="perm_alarms">Alarms and reminders</string>
+    <string name="perm_alarms_why">Needed so alerts arrive on time.</string>
+    <string name="perm_battery">Battery: unrestricted</string>
+    <string name="perm_battery_why">Choose Allow, so Android does not stop background updates.</string>
+    <string name="perm_unused">Pause app activity if unused</string>
+    <string name="perm_unused_why">Turn this off. Otherwise Android removes permissions and stops alerts when the app is not opened for a while.</string>
 </resources>

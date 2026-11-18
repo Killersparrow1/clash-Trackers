@@ -112,6 +112,7 @@ fun ClashTrackersContent(
     snackbarHost: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     UpdatePrompt()
+    PermissionPrompt()
     EventsAutoRefresh()
     GameDataAutoRefresh()
     var developerOpen by rememberSaveable { mutableStateOf(false) }
