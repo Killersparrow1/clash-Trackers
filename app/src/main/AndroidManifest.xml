@@ -134,6 +134,12 @@
             </intent-filter>
         </activity>
 
+        <!-- Background check for a new app release (update/UpdateCheckJob.kt). -->
+        <service
+            android:name=".update.UpdateCheckJob"
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
+
         <service
             android:name=".widget.WidgetListService"
             android:exported="false"

@@ -141,6 +141,7 @@ fun AboutSection(reportProvider: () -> String = { "" }) {
                     androidx.compose.material3.Switch(checked = auto, onCheckedChange = {
                         auto = it
                         com.killersparrow1.clashtrackers.update.UpdatePrefs.setAutoCheck(context, it)
+                        com.killersparrow1.clashtrackers.update.UpdateCheckJob.sync(context)
                     })
                 }
                 TextButton(onClick = { openUrl(context, RELEASES_URL) }, modifier = Modifier.heightIn(min = 48.dp), contentPadding = PaddingValues(0.dp)) {

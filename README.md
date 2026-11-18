@@ -112,6 +112,7 @@ Built with **Material 3 Expressive**, the Clash typeface, a deterministic boost 
 - A switch makes alerts follow Do Not Disturb (default) or ring through it like an alarm.
 
 ### Updates, support and diagnostics
+- **Update notification**: a background check (about every 12 hours, online only) posts one notification when a new release is out, even if the app is closed. Turn it off with the update switch in **Settings > Support > About**.
 - **In-app update**: **Settings > Support > About > Check for updates** looks up the latest GitHub release, shows what is new, downloads the APK and hands it to Android's installer. Builds use a fixed signing key, so updates install over the old version. [Obtainium](https://github.com/ImranR98/Obtainium) also works: add `https://github.com/Killersparrow1/clash-Trackers`.
 - **Issues and feature requests** open [GitHub Issues](https://github.com/Killersparrow1/clash-Trackers/issues/); *Report an issue* copies a diagnostic report first.
 - **Diagnostics**: a health checklist (saved village, notifications, exact alarms, battery restriction, icons) and a copyable report with app, Android and widget info, recent activity and the last crash. It never includes your player tag or name.

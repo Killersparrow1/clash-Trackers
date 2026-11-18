@@ -23,4 +23,11 @@ object UpdatePrefs {
 
     fun skipped(c: Context, version: String) = p(c).getString("skipped", null) == version
     fun skip(c: Context, version: String) = p(c).edit().putString("skipped", version).apply()
+
+    /** The version a notification was already posted for, so each release is announced once. */
+    fun notified(c: Context) = p(c).getString("notified", null)
+    fun setNotified(c: Context, version: String) = p(c).edit().putString("notified", version).apply()
+
+    /** Makes the next app start check again at once (so its update prompt shows after a notification). */
+    fun resetLastCheck(c: Context) = p(c).edit().putLong("last", 0L).apply()
 }
