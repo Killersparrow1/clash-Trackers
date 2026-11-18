@@ -352,6 +352,14 @@
     <string name="gold_pass_banner_update">Update</string>
     <string name="gold_pass_banner_dismiss">Not yet</string>
     <string name="road_title">Road to max · Town Hall %1$d</string>
+    <string name="road_time_left">Time left</string>
+    <string name="road_resources_left">Resources left</string>
+    <string name="road_builders_x">Builders ×%1$d</string>
+    <string name="road_gold_or_elixir">Gold or Elixir</string>
+    <string name="road_walls">Walls</string>
+    <string name="road_no_timer">No timer</string>
+    <string name="road_time">Time</string>
+    <string name="road_cost_label">Cost</string>
     <string name="road_buildings">Buildings</string>
     <string name="road_heroes">Heroes</string>
     <string name="road_builders">Builders (buildings and heroes)</string>
@@ -364,7 +372,7 @@
     <string name="resource_dark_elixir">Dark Elixir</string>
     <string name="road_walls_cost">Walls (Gold or Elixir)</string>
     <string name="road_include_walls">Include walls</string>
-    <string name="road_note">Estimate from the village export and bundled game data: base times and costs, without potions, helpers, events or the Gold Pass. Builder time assumes the work is shared evenly between your builders.</string>
+    <string name="road_note">Estimate from the village export and the game data: base times and costs, without potions, helpers, events or the Gold Pass. The share done counts time where upgrades take time, and cost where they do not (walls). Builder time shares the work evenly between your builders, but never drops below the hero with the most work left. Equipment and helpers are not included yet.</string>
     <string name="road_widget_name">Road to max</string>
     <string name="road_widget_description">Time and resources still needed to max your Town Hall</string>
     <string name="road_widget_title">Road to max</string>

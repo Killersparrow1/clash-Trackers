@@ -2,6 +2,7 @@ package com.killersparrow1.clashtrackers.core
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Assert.assertNull
 import org.junit.Test
 
@@ -69,5 +70,33 @@ class RoadToMaxTest {
         org.junit.Assert.assertTrue(real.items.size > 100)
         org.junit.Assert.assertTrue(real.maxTownHall >= 16)
         org.junit.Assert.assertTrue(real.items.values.all { it.steps.isNotEmpty() })
+    }
+
+    @Test fun fullTotalsCountEverythingFromNothing() {
+        // TH2 cannons: two copies of a 2-level building, each 100 s then 200 s, nothing built yet.
+        val r = RoadToMaxCalc.compute(data, export(2, mapOf(1 to listOf(2, 2))))!!
+        assertEquals(0L, r.buildings.seconds)
+        assertEquals(2 * (100L + 200L), r.full.buildings.seconds)
+        assertEquals(1.0, RoadProgress.done(r.buildings, r.full.buildings)!!, 1e-9)
+        assertTrue(r.overallDone!! in 0.0..1.0)
+    }
+
+    @Test fun doneShareIsRemainingAgainstTotal() {
+        val r = RoadToMaxCalc.compute(data, export(2, mapOf(1 to listOf(1))))!!
+        val done = RoadProgress.done(r.buildings, r.full.buildings)!!
+        assertEquals(1.0 - r.buildings.seconds.toDouble() / r.full.buildings.seconds, done, 1e-9)
+        assertTrue(done in 0.0..1.0)
+    }
+
+    @Test fun groupsWithNothingToDoHaveNoShare() {
+        assertEquals(null, RoadProgress.done(RoadTotals(), RoadTotals()))
+        assertEquals(0.5, RoadProgress.done(RoadTotals(gold = 50), RoadTotals(gold = 100))!!, 1e-9)
+    }
+
+    @Test fun morebuildersNeverBeatTheLongestHero() {
+        val r = RoadToMax(2, RoadTotals(seconds = 1000), RoadTotals(seconds = 400), RoadTotals(), RoadTotals(), RoadTotals(), longestHeroSeconds = 300)
+        assertEquals(300L, r.builderSeconds(20))   // 1400 / 20 = 70, but the hero needs 300
+        assertEquals(700L, r.builderSeconds(2))    // 1400 / 2
+        assertEquals(300L, r.heroSeconds(5))
     }
 }

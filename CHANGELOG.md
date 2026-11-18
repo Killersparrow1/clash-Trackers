@@ -8,6 +8,8 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ### Changed
 
+- Plan > Road to max is now a set of cards: an overall progress summary, Time left (builders, laboratory, pet house), Resources left (Gold, Elixir, Dark Elixir, and Gold or Elixir for walls), and a card each for Buildings, Walls, Heroes, Lab and Pets with how much is done, the time left (or "No timer") and the cost left. The share done counts time where upgrades take time and cost where they do not (walls). The "Include walls" switch is gone because walls have their own card. Equipment and helpers are not included yet.
+- Road to max builder time: work is still shared evenly between your builders, but never drops below the time the hero with the most work left needs (a hero is upgraded one level after another). The widget uses the same figure.
 - New versions: the app now also checks GitHub for a new release in the background (about every 12 hours, only when online) and shows one notification per version, even when the app is closed. It follows the same switch as the check on open in Settings > Support > About.
 - A short message when the app opens without internet, asking you to connect to get the latest game data and event dates.
 - Settings > Game data now takes the game data straight from ClashKing: it downloads `static_data.json` (assets.clashk.ing, with the GitHub copy as a backup), asks first whether it changed (`Last-Modified`), converts it on the phone, checks it, and only then replaces the saved data (written to a temporary file and moved into place). Any failure leaves the data in use untouched. The project's own `data/max_data.json` on GitHub is no longer used.
