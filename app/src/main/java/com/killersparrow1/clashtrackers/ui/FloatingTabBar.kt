@@ -122,17 +122,17 @@ internal class FloatingBarState(
 internal fun rememberFloatingBarState(pager: PagerState): FloatingBarState {
     val density = LocalDensity.current
     val state = remember(pager, density) {
-        with(density) { FloatingBarState(pager, 12.dp.toPx(), 6.dp.toPx(), 24.dp.toPx()) }
+        with(density) { FloatingBarState(pager, 16.dp.toPx(), 56.dp.toPx(), 24.dp.toPx()) }
     }
     // A tab change, by swipe or by tap, shows the bar at once.
     LaunchedEffect(state, pager) {
         snapshotFlow { pager.isScrollInProgress }.collect { moving -> if (moving) state.show() }
     }
-    // Scrolling stopped for a moment: show it again.
+    // Scrolling stopped for a while: show it again (a long pause, so it does not pop back the moment you let go).
     LaunchedEffect(state) {
         snapshotFlow { state.activity }.collectLatest {
             if (!state.visible) {
-                delay(700)
+                delay(2_000)
                 state.show()
             }
         }
