@@ -40,24 +40,16 @@ Built with **Material 3 Expressive**, the Clash typeface, a deterministic boost 
 ---
 
 ## Widget Themes
-
-<p align="center">
-  <img src="docs/screenshots/material.jpg" alt="Material You theme" width="22%">
-  <img src="docs/screenshots/clash.jpg" alt="Clash theme" width="22%">
-  <img src="docs/screenshots/dark.jpg" alt="Dark theme" width="22%">
-  <img src="docs/screenshots/light.jpg" alt="Light theme" width="22%">
-</p>
-
 ### List Widget
 <p align="center">
-  <img src="docs/screenshots/Widget List.png" alt="List Widget" width="900">
+  <img src="docs/screenshots/widgetlist.png" alt="List Widget" width="900">
 </p>
 
 ---
 
 ### Grid Widget
 <p align="center">
-  <img src="docs/screenshots/Widget Grid.png" alt="Grid Widget" width="900">
+  <img src="docs/screenshots/widgetgrid.png" alt="Grid Widget" width="900">
 </p>
 
 ## Highlights
