@@ -82,8 +82,10 @@ internal class FloatingBarState(
     private val pager: PagerState,
     hideAfterPx: Float,
     showAfterPx: Float,
-    nearTopPx: Float,
+    private val nearTopPx: Float,
 ) {
+    private var barHiddenAt = 0L
+    private var subHiddenAt = 0L
     private val tracker = HideOnScroll(hideAfterPx, showAfterPx, nearTopPx)
     // The sub-tabs have their own tracker: it is not reset when scrolling stops, so they come back only on a real scroll up.
     private val subTracker = HideOnScroll(hideAfterPx, showAfterPx, nearTopPx)
@@ -125,13 +127,27 @@ internal class FloatingBarState(
                 show()
                 return Offset.Zero
             }
-            visible = tracker.onScroll(dy, distance)
-            subVisible = subTracker.onScroll(dy, distance)
+            // Once hidden they stay hidden for at least HOLD_MS, whatever the scroll does, unless the list is back near the top.
+            val now = System.nanoTime() / 1_000_000L
+            val awayFromTop = distance > nearTopPx
+            if (!(dy < 0f && awayFromTop && !visible && now - barHiddenAt < HOLD_MS)) {
+                val was = visible
+                visible = tracker.onScroll(dy, distance)
+                if (was && !visible) barHiddenAt = now
+            }
+            if (!(dy < 0f && awayFromTop && !subVisible && now - subHiddenAt < HOLD_MS)) {
+                val was = subVisible
+                subVisible = subTracker.onScroll(dy, distance)
+                if (was && !subVisible) subHiddenAt = now
+            }
             activity++
             return Offset.Zero
         }
     }
 }
+
+/** The least time, in ms, the bars stay hidden after hiding. */
+private const val HOLD_MS = 1_500L
 
 @Composable
 internal fun rememberFloatingBarState(pager: PagerState): FloatingBarState {
