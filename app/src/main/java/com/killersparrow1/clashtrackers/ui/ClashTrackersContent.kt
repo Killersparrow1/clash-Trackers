@@ -36,6 +36,8 @@ import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.launch
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.animation.core.Spring
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.graphics.graphicsLayer
@@ -76,6 +78,16 @@ private enum class Page(val dest: Destination, @StringRes val labelRes: Int?) {
 
 /** Height of the Plan and Settings sub-tab row (text-only tabs). */
 private val SubTabsHeight = 48.dp
+
+/**
+ * Slides to [target]. A far page is reached with a single slide: the pager first jumps next to it, then slides the last
+ * page, instead of sweeping past every page in between.
+ */
+private suspend fun PagerState.goTo(target: Int, spec: AnimationSpec<Float>) {
+    val from = currentPage
+    if (kotlin.math.abs(target - from) > 1) scrollToPage(if (target > from) target - 1 else target + 1)
+    animateScrollToPage(target, animationSpec = spec)
+}
 
 private fun Destination.firstPage(): Int = Page.entries.indexOfFirst { it.dest == this }
 
@@ -123,7 +135,7 @@ fun ClashTrackersContent(
     // Tap the Settings tab 11 times within 4 seconds to open the hidden developer options.
     fun navigate(entry: Destination) {
         barState.show()
-        if (entry != destination) tapScope.launch { pager.animateScrollToPage(entry.firstPage(), animationSpec = pageSpring) }
+        if (entry != destination) tapScope.launch { pager.goTo(entry.firstPage(), pageSpring) }
         if (entry != Destination.SETTINGS || developerOpen) return
         val t = System.currentTimeMillis()
         supportTaps.add(t)
@@ -141,7 +153,7 @@ fun ClashTrackersContent(
             }
         }
     }
-    BackHandler(enabled = pager.currentPage != 0) { tapScope.launch { pager.animateScrollToPage(0, animationSpec = pageSpring) } }
+    BackHandler(enabled = pager.currentPage != 0) { tapScope.launch { pager.goTo(0, pageSpring) } }
 
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val wide = maxWidth >= 600.dp
@@ -211,7 +223,7 @@ fun ClashTrackersContent(
                                 siblings.forEachIndexed { i, p ->
                                     androidx.compose.material3.Tab(
                                         selected = pager.currentPage == first + i,
-                                        onClick = { tapScope.launch { pager.animateScrollToPage(first + i, animationSpec = pageSpring) } },
+                                        onClick = { tapScope.launch { pager.goTo(first + i, pageSpring) } },
                                         text = { Text(stringResource(p.labelRes!!)) },
                                     )
                                 }
