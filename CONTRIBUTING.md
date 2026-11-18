@@ -11,7 +11,7 @@ A few rules keep the project working:
 - **Never commit a real village export.** It contains your player tag. Test data goes in `app/src/test/resources/fixtures`, with the tag replaced by `#TEST000`.
 - **Keep R8 off.** Code shrinking caused a start-up crash on Android 10 that the build checks didn't catch.
 - **Widget layouts** can only use classes that RemoteViews allows. Anything else, even a plain `View`, stops the whole widget from loading.
-- **No network access.** The app has no internet permission, and that won't change.
+- **Network use stays small and visible.** The app uses the internet only for GitHub updates and ClashKing data (game data, pictures, event dates). Never send the player tag, village data or anything personal, and keep a cached copy so the app still works offline.
 
 ## Adding a language
 
@@ -22,7 +22,7 @@ The app is translated through normal Android string resources, so the core of a 
 3. **Register the language.** Add one line to `app/src/main/res/xml/locales_config.xml`: `<locale android:name="xx" />`. This is what makes the language appear in **Settings > Language** (shown by its own name, for example "Русский") and in Android's own *App languages* screen.
 4. **(Optional) Translate the game names.** The 250 upgrade, building, troop, pet, spell, equipment and trap names live in `app/src/main/assets/names.json` (English). Copy it to `names_xx.json` inside the same `assets/` folder and translate each `"name"` value — the numeric keys are the game's internal IDs and must stay untouched. Then add one line to the `LOCALIZED_FILES` map in `StateRepository.Names` (about 20 lines up in `app/src/main/java/com/killersparrow1/clashtrackers/data/StateRepository.kt`), for example `"es" to "names_es.json"`. If you skip this step, names fall back to English.
 
-In Russian, a crafted-defense stat reads like `Урон · Торт-катапульта` (stat first, building second) because `widget_module_label` reorders the two placeholders — reorder other phrases the same way if your language needs it.
+In Russian, a crafted-defense stat reads like `Урон · Тортопульта` (stat first, building second) because `widget_module_label` reorders the two placeholders — reorder other phrases the same way if your language needs it.
 
 Strings you leave out fall back to English, so a partial translation is fine. `./gradlew :app:testDebugUnitTest` includes `StringsConsistencyTest`, which fails if a translation uses an unknown name, changes the placeholders, or is missing from `locales_config.xml`.
 
