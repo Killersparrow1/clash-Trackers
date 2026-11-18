@@ -190,8 +190,8 @@ class Export3Test {
         assertEquals(RowButton.LINK, m.labRow.button)
         assertEquals("Angry Jelly → 10" to "1d 12:49:53", m.petRow.let { it.label to Countdown.text(it.remaining) })
         assertEquals(RowButton.NONE, m.petRow.button) // pets have no helper
-        // Progress from the bundled game data: Inferno Tower 11 → 12 takes 13d 12h (1166400 s).
-        assertEquals(1 - 41921 / 1166400f, m.builderRows[0].progress, 1e-4f)
+        // Progress from the bundled game data: Inferno Tower 11 → 12 takes 10d 12h (907200 s).
+        assertEquals(1 - 41921 / 907200f, m.builderRows[0].progress, 1e-4f)
         assertEquals(listOf(28000000), m.builderRows[2].iconIds)
         assertEquals(listOf("IT", "WT", "BK", "S", "S", "RC", "L"), m.builderRows.map { it.initials })
         assertEquals(

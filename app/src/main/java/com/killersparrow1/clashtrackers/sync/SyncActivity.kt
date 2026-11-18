@@ -32,7 +32,27 @@ class SyncActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        log(null, "Sync screen opened from widget")
+        // Only a deliberate launch (the widget's button or the Sync shortcut) runs. Anything else is logged and dropped.
+        // The widget button marks its launch; the app-icon "Sync" shortcut (also what Back Tap or Quick Tap can start) uses MAIN.
+        if (!intent.getBooleanExtra(EXTRA_WIDGET_TAP, false) && intent.action != android.content.Intent.ACTION_MAIN) {
+            log(false, "Ignored a launch that did not come from the widget's Sync button. " + launchDetails())
+            started = true
+            finishQuietly()
+            return
+        }
+        // A real tap never repeats within a few seconds; an automatic or stray launch is dropped silently instead of
+        // covering whatever app is open and toasting over it.
+        val prefs = getSharedPreferences("sync_activity", MODE_PRIVATE)
+        val now = System.currentTimeMillis()
+        val last = prefs.getLong("last_open", 0L)
+        prefs.edit().putLong("last_open", now).apply()
+        if (now - last in 0 until REPEAT_GUARD_MS) {
+            log(false, "Ignored a repeated Sync screen launch (${now - last} ms after the last)")
+            started = true
+            finishQuietly()
+            return
+        }
+        log(null, "Sync screen opened from widget. " + launchDetails())
         handler.postDelayed(hardTimeout, HARD_TIMEOUT_MS)
     }
 
@@ -71,6 +91,18 @@ class SyncActivity : ComponentActivity() {
         lifecycleScope.launch(NonCancellable) { StateRepository(app).log(SOURCE, ok, message) }
     }
 
+    /** Why this screen opened: who started it, the screen state and the app that was in front (for the activity log). */
+    private fun launchDetails(): String = runCatching {
+        val pm = getSystemService(POWER_SERVICE) as android.os.PowerManager
+        val km = getSystemService(KEYGUARD_SERVICE) as android.app.KeyguardManager
+        val am = getSystemService(ACTIVITY_SERVICE) as android.app.ActivityManager
+        val front = am.runningAppProcesses.orEmpty()
+            .filter { it.importance <= android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_VISIBLE && it.processName != packageName }
+            .joinToString(",") { it.processName }.ifEmpty { "none" }
+        "referrer=${referrer?.host ?: "none"}, flags=0x${Integer.toHexString(intent.flags)}, " +
+            "screenOn=${pm.isInteractive}, locked=${km.isKeyguardLocked}, visibleApps=$front, android=${android.os.Build.VERSION.SDK_INT}"
+    }.getOrDefault("details unavailable")
+
     private fun finishQuietly() {
         handler.removeCallbacksAndMessages(null)
         if (!isFinishing) {
@@ -85,9 +117,11 @@ class SyncActivity : ComponentActivity() {
         super.onDestroy()
     }
 
-    private companion object {
-        const val SOURCE = "widget"
-        const val FOCUS_FALLBACK_MS = 1500L
-        const val HARD_TIMEOUT_MS = 8000L
+    companion object {
+        const val EXTRA_WIDGET_TAP = "widget_tap"
+        private const val SOURCE = "widget"
+        private const val FOCUS_FALLBACK_MS = 1500L
+        private const val HARD_TIMEOUT_MS = 8000L
+        private const val REPEAT_GUARD_MS = 4000L
     }
 }

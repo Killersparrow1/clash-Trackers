@@ -6,7 +6,7 @@
 -->
 <resources>
     <string name="app_name">Clash Trackers</string>
-    <string name="widget_name">Clash Trackers</string>
+    <string name="widget_name">Таймеры улучшений</string>
     <string name="widget_description">Таймеры строителей, лаборатории и питомцев из экспорта данных деревни</string>
     <string name="action_cancel">Отмена</string>
     <string name="action_close">Закрыть</string>
@@ -105,7 +105,7 @@
     <string name="sync_copy_hint">Скопируйте свежие данные в Clash перед синхронизацией. Буфер обмена читается только при нажатии «Синхронизировать».</string>
     <string name="sync_details">Подробности синхронизации</string>
     <string name="sync_failed">Ошибка синхронизации</string>
-    <string name="sync_from_clipboard">Синхронизировать из буфера</string>
+    <string name="sync_from_clipboard">Импортировать деревню из буфера</string>
     <string name="sync_last">Последняя синхронизация</string>
     <string name="sync_retry">Повторить из буфера</string>
     <string name="sync_retry_hint">Скопируйте свежие данные деревни в Clash и попробуйте снова.</string>
@@ -143,8 +143,8 @@
     <string name="language_system">Как в системе</string>
     <string name="language_desc">Также меняет язык виджета на главном экране.</string>
     <string name="widget_theme">Тема виджета</string>
-    <string name="widget_theme_material_you">Material You (цвета обоев)</string>
-    <string name="widget_theme_clash">Clash (коричневая)</string>
+    <string name="widget_theme_material_you">Material You</string>
+    <string name="widget_theme_clash">Классическая</string>
     <string name="widget_theme_dark">Темная</string>
     <string name="widget_theme_light">Светлая</string>
     <string name="help_title">Как использовать Clash Trackers</string>
@@ -261,11 +261,10 @@
     <string name="stat_free_now">Свободно</string>
     <string name="potions_helpers_title">Зелья и помощники</string>
     <string name="potions_none">Нет активных бустов</string>
-    <string name="widget_theme_black">Material чёрная</string>
+    <string name="widget_theme_black">Material тёмная</string>
     <string name="open_game_short">Открыть игру</string>
     <string name="settings_idle_alert">Напоминать, если строитель или лаборатория свободны</string>
     <string name="settings_idle_alert_desc">Отправляет напоминание, если строитель или лаборатория свободны уже %1$d ч с последней синхронизации. Начните улучшение и синхронизируйте, чтобы сбросить. Нужны включённые уведомления о завершении.</string>
-    <string name="total_builder_time">Строители: осталось работы %1$s</string>
     <string name="total_lab_time">Лаборатория: осталось %1$s</string>
     <string name="shortcut_sync_short">Синхр.</string>
     <string name="shortcut_sync_long">Синхронизация из буфера</string>
@@ -274,4 +273,20 @@
     <string name="gold_pass_banner">День %1$d: с золотым пропуском бонус строителей может быть уже %2$d%%. Обновить?</string>
     <string name="gold_pass_banner_update">Обновить</string>
     <string name="gold_pass_banner_dismiss">Пока нет</string>
+    <string name="road_title">Путь к максимуму · Ратуша %1$d</string>
+    <string name="road_builders">Строители (здания и герои)</string>
+    <string name="road_lab">Лаборатория</string>
+    <string name="road_pets">Дом питомцев</string>
+    <string name="road_cost">Нужные ресурсы</string>
+    <string name="resource_gold">Золото</string>
+    <string name="resource_elixir">Эликсир</string>
+    <string name="resource_dark_elixir">Тёмный эликсир</string>
+    <string name="road_walls_cost">Стены (золото или эликсир)</string>
+    <string name="road_include_walls">Учитывать стены</string>
+    <string name="road_note">Оценка по экспорту деревни и встроенным данным игры: базовое время и цены, без зелий, помощников, событий и золотого пропуска. При нескольких строителях это лучший случай.</string>
+    <string name="road_widget_name">Путь к максимуму</string>
+    <string name="road_widget_description">Время и ресурсы, которые ещё нужны для максимума вашей Ратуши</string>
+    <string name="road_widget_title">Путь к максимуму</string>
+    <string name="road_widget_empty">Нажмите, чтобы синхронизировать деревню</string>
+    <string name="road_widget_builders">Строители</string>
 </resources>

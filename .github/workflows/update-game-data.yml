@@ -1,0 +1,65 @@
+name: Update game data
+
+# Every Monday (or from the Actions tab): checks whether ClashKing's game data (ClashKingAssets) has changed compared with
+# the files in app/src/main/assets (max_data.json, upgrade_times.json, names*.json, icon_paths.json). If the numbers changed, it opens a pull request to main with the new file.
+# Merge it and phones pick the data up by themselves. Nothing happens when nothing changed.
+# Scheduled runs only work once this file is on the default branch. If no pull request appears, turn on
+# Settings > Actions > General > "Allow GitHub Actions to create and approve pull requests".
+on:
+  schedule:
+    - cron: "0 5 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Regenerate the game data files from ClashKing
+        run: |
+          set -e
+          A=app/src/main/assets
+          # Shallow clone: the picture paths are checked against the files that really exist there.
+          git clone -q --depth 1 https://github.com/ClashKingInc/ClashKingAssets.git /tmp/cka
+          cp /tmp/cka/assets/static_data.json /tmp/static_data.json
+          cp $A/max_data.json /tmp/max_data_old.json
+          # Each generator keeps the old entries for things ClashKing has no data for (it reads the file it writes).
+          node tools/gen_max_data_ck.cjs /tmp/static_data.json $A/max_data.json
+          node tools/gen_upgrade_times_ck.cjs /tmp/static_data.json $A/upgrade_times.json
+          node tools/gen_names_ck.cjs /tmp/cka/assets x EN $A/names.json
+          node tools/gen_names_ck.cjs /tmp/cka/assets x RU $A/names_ru.json
+          node tools/gen_icon_paths_ck.cjs /tmp/cka/assets $A/icon_paths.json
+          # Safety net: never go backwards (fewer Town Halls or a big drop in items means the source changed shape).
+          node -e '
+            const a=JSON.parse(require("fs").readFileSync("/tmp/max_data_old.json","utf8"));
+            const b=JSON.parse(require("fs").readFileSync("app/src/main/assets/max_data.json","utf8"));
+            const na=Object.keys(a.items).length, nb=Object.keys(b.items).length;
+            if (b.maxTh < a.maxTh || nb < na*0.9) { console.error(`Refusing: Town Hall ${a.maxTh}->${b.maxTh}, items ${na}->${nb}`); process.exit(1); }'
+
+      - name: Open a pull request if anything changed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -e
+          if git diff --quiet -- app/src/main/assets; then echo "No change in game data."; exit 0; fi
+          th=$(node -e 'console.log(JSON.parse(require("fs").readFileSync("app/src/main/assets/max_data.json","utf8")).maxTh)')
+          branch=data-update
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$branch"
+          git add app/src/main/assets
+          git commit -m "Update game data (Town Hall $th)"
+          git push -f origin "$branch"
+          if [ -z "$(gh pr list --head "$branch" --base main --state open --json number -q '.[0].number')" ]; then
+            gh pr create --base main --head "$branch" \
+              --title "Update game data (Town Hall $th)" \
+              --body "New game data from ClashKingAssets: costs and times, names (English and Russian), upgrade times and picture paths. Look at the diff first: numbers can change with balance updates. Merge to main and the app downloads the data and pictures by itself."
+          fi

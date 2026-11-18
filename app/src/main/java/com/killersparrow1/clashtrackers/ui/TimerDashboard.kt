@@ -1,4 +1,4 @@
-@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class, androidx.compose.material3.ExperimentalMaterial3Api::class)
 
 package com.killersparrow1.clashtrackers.ui
 
@@ -10,6 +10,8 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.ui.geometry.Offset
@@ -41,8 +43,7 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -76,6 +77,7 @@ import com.killersparrow1.clashtrackers.core.Countdown
 import com.killersparrow1.clashtrackers.core.EventSettings
 import com.killersparrow1.clashtrackers.core.RowButton
 import com.killersparrow1.clashtrackers.core.RowKind
+import com.killersparrow1.clashtrackers.core.VillageExport
 import com.killersparrow1.clashtrackers.core.SyncLogEntry
 import com.killersparrow1.clashtrackers.core.WidgetModel
 import com.killersparrow1.clashtrackers.sync.SyncRunner
@@ -91,6 +93,7 @@ fun TimerDashboard(
     selectedTag: String?,
     now: Long,
     busy: Boolean,
+    export: VillageExport? = null,
     onSync: () -> Unit,
     onUpdateBoosts: ((ActiveBoostState) -> ActiveBoostState) -> Unit,
     onUpdateEvents: ((EventSettings) -> EventSettings) -> Unit,
@@ -160,7 +163,7 @@ fun TimerDashboard(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             if (model.hasData) {
-                item(key = "village", span = { GridItemSpan(maxLineSpan) }) { VillageSummary(model) }
+                item(key = "village", span = { GridItemSpan(maxLineSpan) }) { VillageOverviewCard(model, lastSync, busy, onSync) }
             } else {
                 item(key = "welcome", span = { GridItemSpan(maxLineSpan) }) {
                     SectionCard(stringResource(R.string.welcome_title)) {
@@ -181,7 +184,9 @@ fun TimerDashboard(
                 }
             }
 
-            item(key = "sync", span = { GridItemSpan(maxLineSpan) }) { SyncCard(lastSync, busy, onSync) }
+            if (!model.hasData) {
+                item(key = "sync", span = { GridItemSpan(maxLineSpan) }) { SyncCard(lastSync, busy, onSync) }
+            }
 
             item(key = "gold_pass_banner", span = { GridItemSpan(maxLineSpan) }) { GoldPassBanner(selectedTag, now) }
 
@@ -224,23 +229,23 @@ fun TimerDashboard(
 
 /**
  * Round picture of an account's Town Hall at its level, like a profile photo.
- * Uses `1000001_<level>.webp`, which the CI icon step (tools/gen_icons.cjs) already makes for every level;
+ * Uses `assets/townhall/th_<level>.webp` (384 px, kept apart from `assets/icons` because the CI icon step rewrites that folder at 64 px);
  * until the level is known it shows the plain Town Hall icon. (Extra files placed in assets/icons by hand
  * are deleted by that step, so no new files are needed.)
  */
 @Composable
-private fun AccountPicture(townHall: Int?) {
+private fun AccountPicture(townHall: Int?, size: androidx.compose.ui.unit.Dp = 28.dp) {
     val context = LocalContext.current
     val density = LocalDensity.current
-    val bitmap = remember(townHall) {
-        val px = with(density) { 28.dp.roundToPx() }
-        WidgetIcons.get(context).bitmapForLevel(1000001, townHall, px)?.asImageBitmap()
+    val bitmap = remember(townHall, size) {
+        val px = with(density) { size.roundToPx() }
+        WidgetIcons.get(context).townHall(townHall, px)?.asImageBitmap()
     }
     if (bitmap != null) {
         Image(
             bitmap = bitmap,
             contentDescription = null,
-            modifier = Modifier.size(28.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceContainerHighest).padding(2.dp),
+            modifier = Modifier.size(size).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceContainerHighest).padding(2.dp),
         )
     }
 }
@@ -257,47 +262,71 @@ private fun AccountSwitcherBar(
     var showDeleteConfirm by remember { mutableStateOf(false) }
     val selectedAccount = accounts.firstOrNull { it.tag == selectedTag } ?: accounts.firstOrNull()
 
-    var menuOpen by remember { mutableStateOf(false) }
-    // One compact button: tap it for every account, plus Rename / Delete for the current one.
+    var sheetOpen by remember { mutableStateOf(false) }
+    // One compact button; tapping it opens the Accounts sheet (every account, Rename / Delete for the current one, how to add another).
     Box(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
         AssistChip(
-            onClick = { menuOpen = true },
+            onClick = { sheetOpen = true },
             label = { Text("${selectedAccount?.displayName ?: ""}${selectedAccount?.townHall?.let { " \u00B7 TH$it" } ?: ""} \u25BE") },
             leadingIcon = { AccountPicture(selectedAccount?.townHall) },
         )
-        DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
-            accounts.forEach { acct ->
-                DropdownMenuItem(
-                    leadingIcon = { AccountPicture(acct.townHall) },
-                    text = {
-                        Column {
-                            Text((if (acct.tag == selectedAccount?.tag) "\u2713  " else "") + acct.displayName + (acct.townHall?.let { " \u00B7 TH$it" } ?: ""))
-                            Text(acct.tag, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                    },
-                    onClick = {
-                        menuOpen = false
-                        onSelect(acct.tag)
-                    },
-                )
-            }
-            if (selectedAccount != null) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.action_rename)) },
-                    onClick = {
-                        menuOpen = false
-                        showRenameDialog = true
-                    },
-                )
-                if (accounts.size > 1) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) },
-                        onClick = {
-                            menuOpen = false
-                            showDeleteConfirm = true
-                        },
+    }
+
+    if (sheetOpen) {
+        ModalBottomSheet(onDismissRequest = { sheetOpen = false }) {
+            Column(Modifier.padding(horizontal = 24.dp).padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Text(stringResource(R.string.accounts_title), style = MaterialTheme.typography.headlineSmall)
+                    Text(
+                        stringResource(R.string.accounts_count, accounts.size),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
+                Spacer(Modifier.size(8.dp))
+                accounts.forEach { acct ->
+                    val selected = acct.tag == selectedAccount?.tag
+                    Row(
+                        Modifier.fillMaxWidth().clip(MaterialTheme.shapes.large)
+                            .clickable { sheetOpen = false; onSelect(acct.tag) }
+                            .padding(vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(14.dp),
+                    ) {
+                        Box(
+                            Modifier.size(52.dp).clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+                                .then(if (selected) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, CircleShape) else Modifier),
+                            contentAlignment = Alignment.Center,
+                        ) { AccountPicture(acct.townHall, 44.dp) }
+                        Column(Modifier.weight(1f)) {
+                            Text(acct.displayName, style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                listOfNotNull(acct.townHall?.let { stringResource(R.string.town_hall, it) }, acct.tag).joinToString(" \u00B7 "),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        if (selected) Icon(painterResource(R.drawable.ic_check), contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                    }
+                    if (selected) {
+                        Row(Modifier.padding(start = 66.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            TextButton(onClick = { sheetOpen = false; showRenameDialog = true }) { Text(stringResource(R.string.action_rename)) }
+                            if (accounts.size > 1) {
+                                TextButton(onClick = { sheetOpen = false; showDeleteConfirm = true }) {
+                                    Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error)
+                                }
+                            }
+                        }
+                    }
+                }
+                Spacer(Modifier.size(8.dp))
+                Text(stringResource(R.string.accounts_add), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
+                Text(
+                    stringResource(R.string.accounts_add_hint),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
     }
@@ -334,41 +363,44 @@ private fun AccountSwitcherBar(
     }
 }
 
+/** One card for the village: name, Town Hall (with its picture), the next finish, the sync button and when it last ran. */
 @Composable
-private fun VillageSummary(model: WidgetModel) {
+private fun VillageOverviewCard(model: WidgetModel, last: SyncLogEntry?, busy: Boolean, onSync: () -> Unit) {
+    val failed = last?.ok == false
+    var showDetails by rememberSaveable { mutableStateOf(false) }
+    val context = LocalContext.current
+    val density = LocalDensity.current
+    val picture = remember(model.townHall) {
+        WidgetIcons.get(context).townHall(model.townHall, with(density) { 96.dp.roundToPx() })?.asImageBitmap()
+    }
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+        modifier = Modifier.fillMaxWidth().wiggleOnTap(),
+        colors = CardDefaults.cardColors(
+            containerColor = if (failed) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
+        ),
         shape = MaterialTheme.shapes.extraLarge,
     ) {
-        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(model.playerName, style = MaterialTheme.typography.headlineMedium)
-            Text(
-                listOfNotNull(
-                    model.townHall?.let { stringResource(R.string.town_hall, it) },
-                    stringResource(R.string.builders_busy, model.buildersBusy, model.buildersTotal),
-                    if (model.goblinWorking) stringResource(R.string.goblin_working) else null,
-                    if (model.showBuilderBase) stringResource(R.string.bb_active) else null,
-                ).joinToString(" · "),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            val dayUnit = stringResource(R.string.time_day_short)
-            val builderTotal = model.builderRows.filter { it.kind == RowKind.RUNNING }.sumOf { it.remaining }
-            val labTotal = (listOf(model.labRow) + model.extraLabRows).filter { it.kind == RowKind.RUNNING }.sumOf { it.remaining }
-            if (builderTotal > 0 || labTotal > 0) {
-                Text(
-                    listOfNotNull(
-                        builderTotal.takeIf { it > 0 }?.let { stringResource(R.string.total_builder_time, Countdown.text(it, dayUnit)) },
-                        labTotal.takeIf { it > 0 }?.let { stringResource(R.string.total_lab_time, Countdown.text(it, dayUnit)) },
-                    ).joinToString(" · "),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(model.playerName, style = MaterialTheme.typography.headlineMedium)
+                    Text(
+                        listOfNotNull(
+                            model.townHall?.let { stringResource(R.string.town_hall, it) },
+                            if (model.goblinWorking) stringResource(R.string.goblin_working) else null,
+                            if (model.showBuilderBase) stringResource(R.string.bb_active) else null,
+                        ).joinToString(" · "),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                if (picture != null) {
+                    Spacer(Modifier.size(12.dp))
+                    Image(bitmap = picture, contentDescription = null, modifier = Modifier.size(96.dp))
+                }
             }
             model.nextRunningTimer()?.let { next ->
-                next.row.finishAt?.let { finishAt ->
-                    Spacer(Modifier.size(4.dp))
+                next.row.finishAt?.let {
                     // Highlighted like the completion chip on the timer cards, so the next finish stands out.
                     Text(
                         stringResource(R.string.next_finish, next.row.name, Countdown.text(next.row.remaining, stringResource(R.string.time_day_short))),
@@ -382,6 +414,44 @@ private fun VillageSummary(model: WidgetModel) {
                     )
                 }
             }
+            if (failed) {
+                Text(stringResource(R.string.sync_failed), style = MaterialTheme.typography.titleMedium)
+                last?.let { SelectionContainer { Text(SyncRunner.plainText(it.message), style = MaterialTheme.typography.bodyMedium) } }
+                Text(stringResource(R.string.sync_retry_hint), style = MaterialTheme.typography.bodyMedium)
+            }
+            Button(
+                onClick = onSync,
+                enabled = !busy,
+                modifier = Modifier.fillMaxWidth().heightIn(min = ButtonDefaults.MediumContainerHeight),
+                shapes = ButtonDefaults.shapesFor(ButtonDefaults.MediumContainerHeight),
+                contentPadding = ButtonDefaults.contentPaddingFor(ButtonDefaults.MediumContainerHeight),
+            ) {
+                if (busy) {
+                    LoadingIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                } else {
+                    Icon(painterResource(R.drawable.ic_sync), contentDescription = null, modifier = Modifier.size(ButtonDefaults.MediumIconSize))
+                }
+                Spacer(Modifier.size(8.dp))
+                Text(
+                    stringResource(if (busy) R.string.syncing else if (failed) R.string.sync_retry else R.string.sync_from_clipboard),
+                    style = ButtonDefaults.textStyleFor(ButtonDefaults.MediumContainerHeight),
+                )
+            }
+            if (last != null && !failed) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text(stringResource(R.string.sync_last), style = MaterialTheme.typography.labelLarge)
+                        Text(formatTimestamp(last.at), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    TextButton(onClick = { showDetails = !showDetails }) {
+                        Text(stringResource(if (showDetails) R.string.hide_details else R.string.sync_details))
+                    }
+                }
+                if (showDetails) {
+                    SelectionContainer { Text(SyncRunner.plainText(last.message), style = MaterialTheme.typography.bodyMedium) }
+                    Text(stringResource(R.string.sync_copy_hint), style = MaterialTheme.typography.bodySmall)
+                }
+            }
         }
     }
 }
@@ -392,7 +462,7 @@ private fun SyncCard(last: SyncLogEntry?, busy: Boolean, onSync: () -> Unit) {
     var showDetails by rememberSaveable { mutableStateOf(false) }
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().wiggleOnTap(),
         colors = CardDefaults.cardColors(
             containerColor = if (failed) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.surfaceContainerLow,
         ),
@@ -454,7 +524,7 @@ private fun SyncCard(last: SyncLogEntry?, busy: Boolean, onSync: () -> Unit) {
 private fun TimerCard(timer: DashboardTimer) {
     val row = timer.row
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().wiggleOnTap(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
         shape = MaterialTheme.shapes.extraLarge,
     ) {
@@ -485,7 +555,7 @@ private fun TimerCard(timer: DashboardTimer) {
                         modifier = Modifier.size(48.dp).clip(MaterialTheme.shapes.medium),
                     )
                 }
-                Text(SyncRunner.plainText(row.label), style = MaterialTheme.typography.titleLargeEmphasized)
+                Text(row.label.replace(" → ", " ➛ "), style = MaterialTheme.typography.titleLargeEmphasized)
             }
             BasicText(
                 if (row.kind == RowKind.RUNNING) Countdown.text(row.remaining, stringResource(R.string.time_day_short)) else row.staticStatus,

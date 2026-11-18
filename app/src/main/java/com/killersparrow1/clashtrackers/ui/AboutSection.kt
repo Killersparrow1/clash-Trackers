@@ -8,7 +8,14 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.widget.Toast
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.runtime.rememberCoroutineScope
+import com.killersparrow1.clashtrackers.core.ReleaseInfo
+import com.killersparrow1.clashtrackers.core.UpdateCheck
+import com.killersparrow1.clashtrackers.update.AppUpdater
+import kotlinx.coroutines.launch
 import com.killersparrow1.clashtrackers.R
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -50,6 +57,34 @@ fun AboutSection(reportProvider: () -> String = { "" }) {
     val context = LocalContext.current
     val version = remember { appVersion(context) }
     var showLicence by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    var update by remember { mutableStateOf<UpdateState>(UpdateState.Idle) }
+    val installedVersion = remember { runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull().orEmpty() }
+    fun check() {
+        update = UpdateState.Checking
+        scope.launch {
+            update = try {
+                val info = AppUpdater.fetchLatest()
+                if (info != null && UpdateCheck.isNewer(installedVersion, info.version)) UpdateState.Available(info) else UpdateState.UpToDate
+            } catch (e: java.io.IOException) {
+                UpdateState.Failed((e.message ?: e.javaClass.simpleName) + "\n\n" + AppUpdater.diagnose(context))
+            } catch (e: Exception) {
+                UpdateState.Failed(e.message ?: e.javaClass.simpleName)
+            }
+        }
+    }
+    fun install(info: ReleaseInfo) {
+        scope.launch {
+            try {
+                update = UpdateState.Downloading(info, 0f)
+                val apk = AppUpdater.download(context, info) { update = UpdateState.Downloading(info, it) }
+                AppUpdater.install(context, apk)
+                update = UpdateState.Available(info)
+            } catch (e: Exception) {
+                update = UpdateState.Failed(e.message ?: e.javaClass.simpleName)
+            }
+        }
+    }
 
     // Every group starts at the card's left edge: same heading style, 4dp inside a group, 20dp between groups.
     Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
@@ -69,18 +104,48 @@ fun AboutSection(reportProvider: () -> String = { "" }) {
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
-                Button(
-                    onClick = { openUrl(context, RELEASES_URL) },
-                    modifier = Modifier.fillMaxWidth().heightIn(min = ButtonDefaults.MediumContainerHeight),
-                    shapes = ButtonDefaults.shapesFor(ButtonDefaults.MediumContainerHeight),
-                    contentPadding = ButtonDefaults.contentPaddingFor(ButtonDefaults.MediumContainerHeight),
-                ) {
-                    Icon(painterResource(R.drawable.ic_sync), contentDescription = null, modifier = Modifier.size(ButtonDefaults.MediumIconSize))
-                    Spacer(Modifier.size(8.dp))
+                when (val u = update) {
+                    is UpdateState.Available -> {
+                        Text(stringResource(R.string.update_available, u.info.version), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                        if (u.info.notes.isNotBlank()) Text(u.info.notes.take(600), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                        if (AppUpdater.canInstall(context)) {
+                            UpdateButton(R.string.update_download_install) { install(u.info) }
+                        } else {
+                            Text(stringResource(R.string.update_allow_note), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                            UpdateButton(R.string.update_allow_install) { AppUpdater.openInstallSettings(context) }
+                        }
+                    }
+                    is UpdateState.Downloading -> {
+                        Text(stringResource(R.string.update_downloading, (u.progress.coerceAtLeast(0f) * 100).toInt()), color = MaterialTheme.colorScheme.onPrimaryContainer)
+                        if (u.progress >= 0f) LinearProgressIndicator(progress = { u.progress }, modifier = Modifier.fillMaxWidth()) else LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                    }
+                    UpdateState.Checking -> Text(stringResource(R.string.update_checking), color = MaterialTheme.colorScheme.onPrimaryContainer)
+                    UpdateState.UpToDate -> {
+                        Text(stringResource(R.string.update_up_to_date), color = MaterialTheme.colorScheme.onPrimaryContainer)
+                        UpdateButton(R.string.about_check_updates) { check() }
+                    }
+                    is UpdateState.Failed -> {
+                        Text(stringResource(R.string.update_failed, u.message), color = MaterialTheme.colorScheme.onPrimaryContainer)
+                        UpdateButton(R.string.about_check_updates) { check() }
+                    }
+                    UpdateState.Idle -> UpdateButton(R.string.about_check_updates) { check() }
+                }
+                var auto by remember { mutableStateOf(com.killersparrow1.clashtrackers.update.UpdatePrefs.autoCheck(context)) }
+                Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                     Text(
-                        stringResource(R.string.about_check_updates),
-                        style = ButtonDefaults.textStyleFor(ButtonDefaults.MediumContainerHeight),
+                        stringResource(R.string.update_auto),
+                        modifier = Modifier.weight(1f),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
                     )
+                    androidx.compose.material3.Switch(checked = auto, onCheckedChange = {
+                        auto = it
+                        com.killersparrow1.clashtrackers.update.UpdatePrefs.setAutoCheck(context, it)
+                        com.killersparrow1.clashtrackers.update.UpdateCheckJob.sync(context)
+                    })
+                }
+                TextButton(onClick = { openUrl(context, RELEASES_URL) }, modifier = Modifier.heightIn(min = 48.dp), contentPadding = PaddingValues(0.dp)) {
+                    Text(stringResource(R.string.update_releases_page), color = MaterialTheme.colorScheme.onPrimaryContainer)
                 }
             }
         }
@@ -100,20 +165,33 @@ fun AboutSection(reportProvider: () -> String = { "" }) {
                 modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
             ) { Text(stringResource(R.string.about_view_issues)) }
         }
-        AboutGroup("Works fully offline") {
-            Text(
-                "The app has no internet permission. It reads only the village data you copy in Clash of Clans, " +
-                    "keeps it on this phone and sends nothing anywhere. No account, no ads, no tracking.",
-                style = MaterialTheme.typography.bodyMedium,
-            )
-        }
-        AboutGroup("Credits") {
+        var creditsOpen by remember { mutableStateOf(false) }
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(
+                Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable { creditsOpen = !creditsOpen },
+                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+            ) {
+                Text("Credits", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary, modifier = Modifier.weight(1f))
+                Text(if (creditsOpen) "\u2212" else "+", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+            }
+            if (creditsOpen) {
             Text(FAN_CONTENT_DISCLAIMER, style = MaterialTheme.typography.bodyMedium)
             Text(
-                "Clash of Clans names and images are the property of Supercell. Names, upgrade times and images " +
-                    "come from the clash-of-clans-data package. Font: Lilita One by Juan Montoreano, " +
-                    "SIL Open Font License 1.1.",
+                "Game data, pictures and event dates are provided by ClashKing. Thank you to the ClashKing team.",
                 style = MaterialTheme.typography.bodyMedium,
+            )
+            CREDIT_LINKS.forEach { (label, url) ->
+                TextButton(
+                    onClick = { openUrl(context, url) },
+                    modifier = Modifier.heightIn(min = 48.dp),
+                    contentPadding = PaddingValues(0.dp),
+                ) { Text(label) }
+            }
+            Text(
+                "Built-in icons: clash-of-clans-data by Christopher Pezza (MIT). " +
+                    "Fonts: Lilita One and Doto (SIL Open Font License 1.1).",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             TextButton(
                 onClick = { showLicence = !showLicence },
@@ -124,7 +202,31 @@ fun AboutSection(reportProvider: () -> String = { "" }) {
                 val licence = remember { readAsset(context, "licenses/LilitaOne-OFL.txt") }
                 Text(licence, style = MaterialTheme.typography.bodySmall)
             }
+            }
         }
+    }
+}
+
+private sealed interface UpdateState {
+    data object Idle : UpdateState
+    data object Checking : UpdateState
+    data object UpToDate : UpdateState
+    data class Available(val info: ReleaseInfo) : UpdateState
+    data class Downloading(val info: ReleaseInfo, val progress: Float) : UpdateState
+    data class Failed(val message: String) : UpdateState
+}
+
+@Composable
+private fun UpdateButton(label: Int, onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth().heightIn(min = ButtonDefaults.MediumContainerHeight),
+        shapes = ButtonDefaults.shapesFor(ButtonDefaults.MediumContainerHeight),
+        contentPadding = ButtonDefaults.contentPaddingFor(ButtonDefaults.MediumContainerHeight),
+    ) {
+        Icon(painterResource(R.drawable.ic_sync), contentDescription = null, modifier = Modifier.size(ButtonDefaults.MediumIconSize))
+        Spacer(Modifier.size(8.dp))
+        Text(stringResource(label), style = ButtonDefaults.textStyleFor(ButtonDefaults.MediumContainerHeight))
     }
 }
 
@@ -162,6 +264,12 @@ private const val RELEASES_URL = "https://github.com/Killersparrow1/clash-tracke
 private const val ISSUES_LIST_URL = "https://github.com/Killersparrow1/clash-Trackers/issues/"
 private const val ISSUES_URL = "https://github.com/Killersparrow1/clash-Trackers/issues/new"
 private const val FEATURE_URL = "https://github.com/Killersparrow1/clash-Trackers/issues/new?title=Feature+request%3A+&labels=enhancement"
+
+private val CREDIT_LINKS = listOf(
+    "ClashKing" to "https://clashk.ing",
+    "ClashKingAssets on GitHub" to "https://github.com/ClashKingInc/ClashKingAssets",
+    "ClashKing API documentation" to "https://api.clashk.ing/swagger/index.html",
+)
 
 /** `CT2.2 (4)` from the installed package (releases are named CT + versionName). */
 internal fun appVersion(context: Context): String = runCatching {

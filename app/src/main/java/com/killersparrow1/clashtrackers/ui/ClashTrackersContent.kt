@@ -8,6 +8,8 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -48,9 +50,23 @@ import com.killersparrow1.clashtrackers.core.WidgetModel
 
 private enum class Destination(@StringRes val labelRes: Int, val icon: Int) {
     TIMERS(R.string.nav_timers, R.drawable.ic_timers),
+    PLAN(R.string.nav_plan, R.drawable.ic_plan),
+    CLASH(R.string.nav_clash, R.drawable.ic_clash),
     SETTINGS(R.string.nav_settings, R.drawable.ic_settings),
-    SUPPORT(R.string.nav_support, R.drawable.ic_support),
 }
+
+/** Every swipeable page, in order. The first page of a tab is what its bottom-bar item opens. */
+private enum class Page(val dest: Destination, @StringRes val labelRes: Int?) {
+    TIMERS(Destination.TIMERS, null),
+    PLAN_ROAD(Destination.PLAN, R.string.plan_tab_road),
+    PLAN_BEDTIME(Destination.PLAN, R.string.plan_tab_bedtime),
+    CLASH_EVENTS(Destination.CLASH, R.string.clash_tab_events),
+    SETTINGS(Destination.SETTINGS, R.string.nav_settings),
+    PERSONALIZATION(Destination.SETTINGS, R.string.settings_tab_personalization),
+    SUPPORT(Destination.SETTINGS, R.string.nav_support),
+}
+
+private fun Destination.firstPage(): Int = Page.entries.indexOfFirst { it.dest == this }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,14 +88,19 @@ fun ClashTrackersContent(
     onDeleteAccount: (String) -> Unit,
     snackbarHost: SnackbarHostState = remember { SnackbarHostState() },
 ) {
-    var destination by rememberSaveable { mutableStateOf(Destination.TIMERS) }
+    UpdatePrompt()
+    EventsAutoRefresh()
+    GameDataAutoRefresh()
     var developerOpen by rememberSaveable { mutableStateOf(false) }
     val tapScope = androidx.compose.runtime.rememberCoroutineScope()
+    // One pager holds every page, so swiping follows the finger and tabs and sub-tabs share the same motion.
+    val pager = androidx.compose.foundation.pager.rememberPagerState { Page.entries.size }
+    val destination = Page.entries[pager.currentPage].dest
     val supportTaps = remember { mutableListOf<Long>() }
-    // Tap the Support tab 11 times within 4 seconds to open the hidden developer options.
+    // Tap the Settings tab 11 times within 4 seconds to open the hidden developer options.
     fun navigate(entry: Destination) {
-        destination = entry
-        if (entry != Destination.SUPPORT || developerOpen) return
+        if (entry != destination) tapScope.launch { pager.animateScrollToPage(entry.firstPage()) }
+        if (entry != Destination.SETTINGS || developerOpen) return
         val t = System.currentTimeMillis()
         supportTaps.add(t)
         supportTaps.removeAll { t - it > 4_000L }
@@ -96,8 +117,7 @@ fun ClashTrackersContent(
             }
         }
     }
-    val screenState = rememberSaveableStateHolder()
-    BackHandler(enabled = destination != Destination.TIMERS) { destination = Destination.TIMERS }
+    BackHandler(enabled = pager.currentPage != 0) { tapScope.launch { pager.animateScrollToPage(0) } }
 
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val wide = maxWidth >= 600.dp
@@ -151,10 +171,27 @@ fun ClashTrackersContent(
                     }
                 }
                 Box(Modifier.weight(1f).fillMaxSize(), contentAlignment = Alignment.TopCenter) {
-                    Box(Modifier.widthIn(max = 840.dp).fillMaxSize()) {
-                        screenState.SaveableStateProvider(destination) {
-                            when (destination) {
-                                Destination.TIMERS -> TimerDashboard(
+                    Column(Modifier.widthIn(max = 840.dp).fillMaxSize()) {
+                        val siblings = Page.entries.filter { it.dest == destination }
+                        if (siblings.size > 1) {
+                            val first = destination.firstPage()
+                            androidx.compose.material3.PrimaryTabRow(selectedTabIndex = pager.currentPage - first) {
+                                siblings.forEachIndexed { i, p ->
+                                    androidx.compose.material3.Tab(
+                                        selected = pager.currentPage == first + i,
+                                        onClick = { tapScope.launch { pager.animateScrollToPage(first + i) } },
+                                        text = { Text(stringResource(p.labelRes!!)) },
+                                    )
+                                }
+                            }
+                        }
+                        androidx.compose.foundation.pager.HorizontalPager(
+                            state = pager,
+                            modifier = Modifier.weight(1f).fillMaxWidth(),
+                            beyondViewportPageCount = 1,
+                        ) { index ->
+                            when (Page.entries[index]) {
+                                Page.TIMERS -> TimerDashboard(
                                     model = model,
                                     lastSync = log.lastResult,
                                     activeBoostState = state.activeBoosts,
@@ -163,6 +200,7 @@ fun ClashTrackersContent(
                                     selectedTag = selectedTag,
                                     now = now,
                                     busy = busy,
+                                    export = state.export,
                                     onSync = onSync,
                                     onUpdateBoosts = { transform ->
                                         onStateChange { s -> s.copy(activeBoosts = transform(s.activeBoosts)) }
@@ -175,14 +213,12 @@ fun ClashTrackersContent(
                                     onDeleteAccount = onDeleteAccount,
                                     wide = wide,
                                 )
-                                Destination.SETTINGS -> LazyColumn(
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentPadding = PaddingValues(16.dp),
-                                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                                ) {
-                                    item { SettingsSection(settings, state.export, now, onSettingsChange, selectedTag) }
-                                }
-                                Destination.SUPPORT -> SupportScreen(state, model, log, timesCount, now)
+                                Page.PLAN_ROAD -> PlanPage(state.export, model, now, 0)
+                                Page.PLAN_BEDTIME -> PlanPage(state.export, model, now, 1)
+                                Page.CLASH_EVENTS -> EventsPage(now)
+                                Page.SETTINGS -> SettingsPage(0, settings, state.export, now, onSettingsChange, selectedTag, state, model, log, timesCount)
+                                Page.PERSONALIZATION -> SettingsPage(1, settings, state.export, now, onSettingsChange, selectedTag, state, model, log, timesCount)
+                                Page.SUPPORT -> SettingsPage(2, settings, state.export, now, onSettingsChange, selectedTag, state, model, log, timesCount)
                             }
                         }
                     }

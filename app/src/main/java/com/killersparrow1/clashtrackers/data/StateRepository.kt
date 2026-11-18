@@ -344,6 +344,14 @@ class StateRepository(context: Context) {
         }
     }
 
+    /** Forgets every widget's own theme, so all widgets follow the app-wide theme chosen in Personalization. */
+    suspend fun clearWidgetThemes() {
+        store.edit { prefs ->
+            ensureMigrated(prefs)
+            prefs.remove(WIDGET_THEME)
+        }
+    }
+
     /** Atomically read-modify-write the app state of the selected account (or create/save if new account). */
     suspend fun <R> updateState(transform: (AppState) -> Pair<AppState, R>): R {
         var result: R? = null
@@ -450,6 +458,7 @@ object Names {
     private val cached = mutableMapOf<String, NameMap>()
 
     fun get(context: Context): NameMap {
+        runCatching { MaxDataStore.get(context) } // also hands names of newer items to NameMap.extra
         val lang = LanguageManager.language(context)
         return synchronized(this) { cached.getOrPut(lang) { load(context, lang) } }
     }

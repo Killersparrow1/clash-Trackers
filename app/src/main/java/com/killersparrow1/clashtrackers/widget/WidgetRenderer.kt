@@ -32,7 +32,6 @@ import com.killersparrow1.clashtrackers.core.WidgetActions
 import com.killersparrow1.clashtrackers.core.WidgetModel
 import com.killersparrow1.clashtrackers.core.WidgetRow
 import com.killersparrow1.clashtrackers.locale.LanguageManager
-import com.killersparrow1.clashtrackers.sync.SyncActivity
 import kotlin.math.roundToInt
 
 /** Maps a [WidgetModel] onto `widget_root.xml` + one `widget_row*.xml` per row. */
@@ -81,7 +80,7 @@ class WidgetRenderer(private val context: Context) {
         return id
     }
 
-    private fun palette(theme: String): Palette = basePalette(theme).copy(
+    internal fun palette(theme: String): Palette = basePalette(theme).copy(
         fillId = when (theme) {
             "clash" -> R.id.row_fill_clash
             "dark" -> R.id.row_fill_dark
@@ -127,18 +126,18 @@ class WidgetRenderer(private val context: Context) {
         )
     }
 
-    /** Android 17+: put the rows inside the widget itself instead of having the launcher call WidgetListService. */
+    /** Android 16+: put the rows inside the widget itself instead of having the launcher call WidgetListService. */
     var embedItems: Boolean = true
     private var itemStyle: String? = null
 
     /**
-     * Connects the scrolling list. Android 17 (API 37) builds the rows here and sends them with the widget
+     * Connects the scrolling list. Android 16 and newer (API 36+) build the rows here and sends them with the widget
      * (RemoteCollectionItems): CT1.2, which had no list service, drew correct icons on Android 17 while the
      * service-backed list showed wrong ones. Everything older keeps the service. If the rows are too big to send,
      * the caller turns [embedItems] off and the service is used.
      */
     private fun attachList(rv: RemoteViews, appWidgetId: Int, small: Boolean, cols: Int, model: WidgetModel, live: Boolean) {
-        if (embedItems && Build.VERSION.SDK_INT >= 37) {
+        if (embedItems && Build.VERSION.SDK_INT >= 36) {
             val items = runCatching {
                 val factory = WidgetListService.Factory(context, appWidgetId, small, cols, WidgetListService.Preset(model, live, itemStyle))
                 factory.onCreate()
@@ -190,7 +189,6 @@ class WidgetRenderer(private val context: Context) {
         val t = palette(model.widgetTheme)
         rv.setInt(R.id.panel, "setBackgroundResource", t.panel)
         rv.setInt(R.id.sync_button, "setBackgroundResource", t.syncButton)
-        rv.setOnClickPendingIntent(R.id.header, sync)
         rv.setOnClickPendingIntent(R.id.sync_button, sync)
         rv.setTextViewText(R.id.who, title(model, t))
         rv.setTextColor(R.id.who, t.text)
@@ -224,7 +222,6 @@ class WidgetRenderer(private val context: Context) {
     private fun renderMinimal(model: WidgetModel, appWidgetId: Int, liveCountdown: Boolean): RemoteViews {
         val rv = RemoteViews(pkg, R.layout.widget_root_minimal)
         val sync = syncIntent()
-        rv.setOnClickPendingIntent(R.id.header, sync)
         rv.setOnClickPendingIntent(R.id.sync_button, sync)
         rv.setTextViewText(R.id.who, title(model, palette(model.widgetTheme)).toString().uppercase())
         rv.setTextViewText(R.id.lbl_sync, lctx.getString(R.string.widget_sync).uppercase())
@@ -327,7 +324,6 @@ class WidgetRenderer(private val context: Context) {
         val t = palette(model.widgetTheme)
         rv.setInt(R.id.panel, "setBackgroundResource", t.panel)
         rv.setInt(R.id.sync_button, "setBackgroundResource", t.syncButton)
-        rv.setOnClickPendingIntent(R.id.header, sync)
         rv.setOnClickPendingIntent(R.id.sync_button, sync)
         rv.setTextViewText(R.id.who, title(model, t))
         rv.setTextColor(R.id.who, t.text)
@@ -712,10 +708,11 @@ class WidgetRenderer(private val context: Context) {
         return sb
     }
 
+    /** The Sync button starts the invisible Sync screen, which reads the copied village data without opening the app. */
     private fun syncIntent(): PendingIntent {
-        val intent = Intent(context, SyncActivity::class.java).addFlags(
-            Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_ANIMATION or Intent.FLAG_ACTIVITY_CLEAR_TASK,
-        )
+        val intent = Intent(context, com.killersparrow1.clashtrackers.sync.SyncActivity::class.java)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_ANIMATION or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+            .putExtra(com.killersparrow1.clashtrackers.sync.SyncActivity.EXTRA_WIDGET_TAP, true)
         return PendingIntent.getActivity(
             context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
@@ -753,26 +750,44 @@ class WidgetRenderer(private val context: Context) {
 }
 
 /**
- * Icons from `assets/icons/` (64×64 WebP made by tools/gen_icons.cjs; see tools/icon_checklist.txt),
+ * Icons from `assets/icons/` (64×64 WebP placeholders; the current pictures are downloaded from ClashKing, see RemoteIcons),
  * scaled to their on-screen size and cached. A hand-added `<name>.png` works too.
  */
 class WidgetIcons private constructor(private val context: Context) {
 
     /** File names present in `assets/icons/`. */
-    val available: Set<String> by lazy {
+    private val bundled: Set<String> by lazy {
         runCatching { context.assets.list("icons")?.toSet() }.getOrNull() ?: emptySet()
+    }
+
+    /** Icons downloaded from ClashKing, kept in the app's own storage. They are used ahead of the bundled ones. */
+    private val remoteDir = java.io.File(context.filesDir, "remote_icons")
+    @Volatile private var remote: Set<String>? = null
+    private fun remoteNames(): Set<String> = remote ?: (remoteDir.list()?.toSet() ?: emptySet()).also { remote = it }
+
+    /** File names of every icon available (bundled and downloaded). */
+    val available: Set<String> get() = bundled + remoteNames()
+
+    /** Call after icons were downloaded, so they are picked up. */
+    fun refreshRemote() {
+        remote = null
+        cache.evictAll()
     }
 
     private val cache = LruCache<String, Bitmap>(64)
 
     /** `assets/icons/<name>.webp` (or `.png`) scaled to [sizePx], or null if there is no such file. */
     fun bitmap(name: String, sizePx: Int): Bitmap? {
-        val file = EXTENSIONS.map { "$name.$it" }.firstOrNull { it in available } ?: return null
-        val key = "$file@$sizePx"
+        // The downloaded picture (ClashKing's current art) wins; the bundled one is the placeholder until it arrives.
+        val remoteFile = EXTENSIONS.map { "$name.$it" }.firstOrNull { it in remoteNames() }
+        val file = if (remoteFile == null) EXTENSIONS.map { "$name.$it" }.firstOrNull { it in bundled } else null
+        if (file == null && remoteFile == null) return null
+        val key = "${file ?: remoteFile}@$sizePx"
         cache.get(key)?.let { return it }
         val decoded = runCatching {
-            context.assets.open("icons/$file").use { BitmapFactory.decodeStream(it) }
-        }.getOrNull() ?: return null
+            if (file != null) context.assets.open("icons/$file").use { BitmapFactory.decodeStream(it) }
+            else java.io.File(remoteDir, remoteFile!!).inputStream().use { BitmapFactory.decodeStream(it) }
+        }.getOrNull()?.let { if (remoteFile != null) squared(it) else it } ?: return null
         val scaled = if (decoded.width == sizePx && decoded.height == sizePx) decoded else {
             val scale = sizePx.toFloat() / maxOf(decoded.width, decoded.height)
             Bitmap.createScaledBitmap(
@@ -786,6 +801,15 @@ class WidgetIcons private constructor(private val context: Context) {
         return scaled
     }
 
+    /** Downloaded pictures come in all shapes; centre them on a square so they line up like the bundled icons. */
+    private fun squared(b: Bitmap): Bitmap {
+        if (b.width == b.height) return b
+        val side = maxOf(b.width, b.height)
+        val out = Bitmap.createBitmap(side, side, Bitmap.Config.ARGB_8888)
+        android.graphics.Canvas(out).drawBitmap(b, (side - b.width) / 2f, (side - b.height) / 2f, null)
+        return out
+    }
+
     /**
      * The art for [level] of building/trap [id] (`<id>_<level>.webp`); if that level has no file, the
      * nearest lower one, then the plain `<id>` icon. Items without per-level art (heroes, troops) just
@@ -796,6 +820,25 @@ class WidgetIcons private constructor(private val context: Context) {
             for (l in level downTo 1) bitmap("${id}_$l", sizePx)?.let { return it }
         }
         return bitmap(id.toString(), sizePx)
+    }
+
+    /** Big, sharp Town Hall art for the app (`assets/townhall/th_<level>.webp`, 384 px); the nearest lower level if one is missing. */
+    fun townHall(level: Int?, sizePx: Int): Bitmap? {
+        val top = (level ?: return null).coerceIn(1, 40)
+        for (l in top downTo 1) {
+            val key = "th_$l@$sizePx"
+            cache.get(key)?.let { return it }
+            val decoded = runCatching {
+                context.assets.open("townhall/th_$l.webp").use { BitmapFactory.decodeStream(it) }
+            }.getOrNull() ?: continue
+            val scale = sizePx.toFloat() / maxOf(decoded.width, decoded.height)
+            val out = if (scale >= 1f) decoded else Bitmap.createScaledBitmap(
+                decoded, (decoded.width * scale).roundToInt().coerceAtLeast(1), (decoded.height * scale).roundToInt().coerceAtLeast(1), true,
+            )
+            cache.put(key, out)
+            return out
+        }
+        return null
     }
 
     /** Which asset file [bitmapForLevel] would use for these ids (first that exists), or null. For diagnostics. */

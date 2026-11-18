@@ -16,12 +16,21 @@ the MIT License. This includes:
   - app/src/main/assets/names.json        (game names)
   - app/src/main/assets/upgrade_times.json (game data)
   - tools/icon_checklist.txt              (game names)
+  - app/src/main/assets/max_data.json, icon_paths.json and pictures downloaded from assets.clashk.ing
+                                           (game data and images, from ClashKing)
   - docs/screenshots/                     (game images, as shown in the widget)
   - app/src/test/resources/fixtures/      (village data in the game's format)
 
 This material is unofficial and is not endorsed by Supercell. For more
 information see Supercell's Fan Content Policy:
 www.supercell.com/fan-content-policy.
+
+
+CLASHKING
+
+Game data, names (English and Russian), upgrade times and pictures come from ClashKing's ClashKingAssets:
+https://github.com/ClashKingInc/ClashKingAssets (GPL-3.0; data only, no code is copied). Credit: ClashKing, https://clashk.ing
+Raid weekend and season dates come from the ClashKing API (public, no key): https://api.clashk.ing/swagger/index.html
 
 
 CLASH-OF-CLANS-DATA

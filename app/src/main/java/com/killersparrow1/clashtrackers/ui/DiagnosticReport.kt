@@ -49,7 +49,7 @@ object DiagnosticReport {
         appendLine("  Clock Tower chip: ${if (ClockTowerTracking.enabled(context)) "on" else "off"}, alert: ${if (ClockTowerTracking.alertEnabled(context)) "on" else "off"}")
         appendLine()
         appendLine("Widgets")
-        val count = runCatching { WidgetUpdater.widgetIds(context).size }.getOrDefault(-1)
+        val count = runCatching { WidgetUpdater.widgetIds(context).size + com.killersparrow1.clashtrackers.widget.RoadWidgetUpdater.ids(context).size }.getOrDefault(-1)
         appendLine("  placed: $count")
         runCatching { widgetSizeReport(context, state) }.getOrNull()?.lines()?.filter { it.isNotBlank() }?.forEach { appendLine("  $it") }
         appendLine()

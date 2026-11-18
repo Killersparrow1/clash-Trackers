@@ -122,8 +122,24 @@ object ExportParser {
                 clockTowerLevel = clockTower?.int("lvl"),
                 clockTowerBoostRemaining = clockTowerBoost,
                 clockTowerCooldownRemaining = clockTowerCooldown,
+                ownedLevels = ownedLevels(root),
             )
         )
+    }
+
+    /** Owned copies per data id: `cnt` copies at `lvl`; an entry with a `timer` is being upgraded, so it counts as `lvl + 1`. */
+    private fun ownedLevels(root: JsonObject): Map<Int, List<Int>> {
+        val owned = HashMap<Int, MutableList<Int>>()
+        for (section in listOf("buildings", "traps", "guardians", "units", "spells", "siege_machines", "heroes", "pets")) {
+            for (e in root.array(section).objects()) {
+                val id = e.int("data") ?: continue
+                val level = (e.int("lvl") ?: 0) + if (e.long("timer") != null) 1 else 0
+                val copies = (e.int("cnt") ?: 1).coerceIn(1, 1000)
+                val list = owned.getOrPut(id) { mutableListOf() }
+                repeat(copies) { list += level }
+            }
+        }
+        return owned
     }
 
     private fun assignOccurrences(jobs: List<Job>): List<Job> {
