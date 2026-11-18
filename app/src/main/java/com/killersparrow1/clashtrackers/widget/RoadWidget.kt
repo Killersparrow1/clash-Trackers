@@ -162,7 +162,7 @@ object RoadWidgetUpdater {
         val day = ctx.getString(R.string.time_day_short)
         val all = road.builderWork + road.lab + road.pets
         rv.removeAllViews(R.id.col_time)
-        rv.addView(R.id.col_time, row(ctx.getString(R.string.road_widget_builders), duration(road.builderWork.seconds / builders.coerceAtLeast(1), day), 1000015, null))
+        rv.addView(R.id.col_time, row(ctx.getString(R.string.road_widget_builders), duration(road.builderSeconds(builders), day), 1000015, null))
         rv.addView(R.id.col_time, row(ctx.getString(R.string.road_lab), duration(road.lab.seconds, day), 1000007, null))
         rv.addView(R.id.col_time, row(ctx.getString(R.string.road_pets), duration(road.pets.seconds, day), 1000068, null))
 

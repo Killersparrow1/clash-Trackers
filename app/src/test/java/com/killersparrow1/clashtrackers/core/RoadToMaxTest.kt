@@ -2,6 +2,7 @@ package com.killersparrow1.clashtrackers.core
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Assert.assertNull
 import org.junit.Test
 
@@ -69,5 +70,45 @@ class RoadToMaxTest {
         org.junit.Assert.assertTrue(real.items.size > 100)
         org.junit.Assert.assertTrue(real.maxTownHall >= 16)
         org.junit.Assert.assertTrue(real.items.values.all { it.steps.isNotEmpty() })
+    }
+
+    @Test fun doneIsLevelsOwnedAgainstLevelsAtTheLimit() {
+        // TH2 cannons: max level 2, two copies. Both at 2 -> 4 of 4.
+        val all = RoadToMaxCalc.compute(data, export(2, mapOf(1 to listOf(2, 2))))!!
+        assertEquals(LevelShare(4, 4), all.levels.buildings)
+        assertEquals(1.0, all.levels.buildings.done!!, 1e-9)
+        // One copy at level 1, the other not built: 1 of 4.
+        val some = RoadToMaxCalc.compute(data, export(2, mapOf(1 to listOf(1))))!!
+        assertEquals(LevelShare(1, 4), some.levels.buildings)
+        assertEquals(0.25, some.levels.buildings.done!!, 1e-9)
+    }
+
+    @Test fun anUnlockedTroopYouDoNotHaveCountsAsLevelZero() {
+        // Barbarian (lab) is not in the export: 0 of 2 for the share, even though its first step is free.
+        val r = RoadToMaxCalc.compute(data, export(2, mapOf(1 to listOf(2, 2))))!!
+        assertEquals(LevelShare(0, 2), r.levels.lab)
+    }
+
+    @Test fun wallsAreMeasuredByLevelsToo() {
+        // 10 walls of 10 allowed at TH2 (max level 2): ten at level 1 is 10 of 20.
+        val r = RoadToMaxCalc.compute(data, export(2, mapOf(4 to List(10) { 1 }, 1 to listOf(2, 2))))!!
+        assertEquals(0.5, r.levels.walls.done!!, 1e-9)
+    }
+
+    @Test fun overallJoinsEveryGroupAndStaysInRange() {
+        val r = RoadToMaxCalc.compute(data, export(2, mapOf(1 to listOf(1))))!!
+        assertTrue(r.overallDone!! in 0.0..1.0)
+    }
+
+    @Test fun groupsWithNothingToDoHaveNoShare() {
+        assertEquals(null, LevelShare().done)
+        assertEquals(0.5, LevelShare(50, 100).done!!, 1e-9)
+    }
+
+    @Test fun morebuildersNeverBeatTheLongestHero() {
+        val r = RoadToMax(2, RoadTotals(seconds = 1000), RoadTotals(seconds = 400), RoadTotals(), RoadTotals(), RoadTotals(), longestHeroSeconds = 300)
+        assertEquals(300L, r.builderSeconds(20))   // 1400 / 20 = 70, but the hero needs 300
+        assertEquals(700L, r.builderSeconds(2))    // 1400 / 2
+        assertEquals(300L, r.heroSeconds(5))
     }
 }

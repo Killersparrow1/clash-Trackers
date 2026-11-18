@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package com.killersparrow1.clashtrackers.ui
 
 import androidx.annotation.DrawableRes
@@ -7,19 +9,17 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.selection.toggleable
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -27,7 +27,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.killersparrow1.clashtrackers.R
 import com.killersparrow1.clashtrackers.core.Countdown
@@ -40,53 +39,170 @@ import java.util.Locale
 
 /**
  * "Road to max": time and resources still needed to max out the current Town Hall, from the village export and the
- * bundled game data. Estimates: base times and costs, no potions, helpers, events or Gold Pass.
+ * bundled game data, as a summary, the time and resources left, and one card per group (buildings, walls, heroes,
+ * laboratory, pets) with how much of it is done. Estimates: base times and costs, no potions, helpers, events or
+ * Gold Pass.
  */
 @Composable
 internal fun RoadToMaxCard(export: VillageExport?, builders: Int, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val data = remember(MaxDataStore.version) { MaxDataStore.get(context) }
     val road = remember(export, data) { export?.let { RoadToMaxCalc.compute(data, it) } } ?: return
-    var includeWalls by rememberSaveable { mutableStateOf(false) }
     val dayUnit = stringResource(R.string.time_day_short)
+    val n = builders.coerceAtLeast(1)
+    val timed = road.builderWork + road.lab + road.pets
 
-    val builderWork = road.builderWork
-    val all = builderWork + road.lab + road.pets
-    CollapsibleCard(stringResource(R.string.road_title, road.townHall), "road_to_max", modifier, alwaysOpen = true) {
-        RoadRow(
-            label = stringResource(R.string.road_builders),
-            value = formatDuration(builderWork.seconds / builders.coerceAtLeast(1), dayUnit),
-            detail = if (builders > 1 && builderWork.seconds > 0)
-                stringResource(R.string.road_builders_work, builders, formatDuration(builderWork.seconds, dayUnit))
-            else null,
-            buildingId = 1000015,
+    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        CollapsibleCard(stringResource(R.string.road_title, road.townHall), "road_summary", alwaysOpen = true) {
+            ProgressLine(road.overallDone, large = true)
+        }
+
+        CollapsibleCard(stringResource(R.string.road_time_left), "road_time_left", alwaysOpen = true) {
+            RoadRow(
+                label = stringResource(R.string.road_builders_x, n),
+                value = formatDuration(road.builderSeconds(n), dayUnit),
+                detail = if (n > 1 && road.builderWork.seconds > 0)
+                    stringResource(R.string.road_builders_work, n, formatDuration(road.builderWork.seconds, dayUnit))
+                else null,
+                buildingId = 1000015,
+            )
+            RoadRow(stringResource(R.string.road_lab), formatDuration(road.lab.seconds, dayUnit), buildingId = 1000007)
+            RoadRow(stringResource(R.string.road_pets), formatDuration(road.pets.seconds, dayUnit), buildingId = 1000068)
+        }
+
+        CollapsibleCard(stringResource(R.string.road_resources_left), "road_resources_left", alwaysOpen = true) {
+            RoadRow(stringResource(R.string.resource_gold), compact(timed.gold), iconRes = R.drawable.road_gold)
+            RoadRow(stringResource(R.string.resource_elixir), compact(timed.elixir), iconRes = R.drawable.road_elixir)
+            RoadRow(stringResource(R.string.resource_dark_elixir), compact(timed.darkElixir), iconRes = R.drawable.road_dark_elixir)
+            if (road.walls.goldOrElixir > 0) {
+                RoadRow(stringResource(R.string.road_gold_or_elixir), compact(road.walls.goldOrElixir), iconRes = R.drawable.road_gold)
+            }
+        }
+
+        CategoryCard(
+            title = stringResource(R.string.road_buildings), buildingId = 1000015,
+            done = road.levels.buildings.done,
+            seconds = road.buildings.seconds / n, remaining = road.buildings, dayUnit = dayUnit,
         )
-        RoadRow(stringResource(R.string.road_lab), formatDuration(road.lab.seconds, dayUnit), buildingId = 1000007)
-        RoadRow(stringResource(R.string.road_pets), formatDuration(road.pets.seconds, dayUnit), buildingId = 1000068)
+        CategoryCard(
+            title = stringResource(R.string.road_walls), buildingId = 1000010,
+            done = road.levels.walls.done,
+            seconds = null, remaining = road.walls, dayUnit = dayUnit,
+        )
+        CategoryCard(
+            title = stringResource(R.string.road_heroes), buildingId = 1000071,
+            done = road.levels.heroes.done,
+            seconds = road.heroSeconds(n), remaining = road.heroes, dayUnit = dayUnit,
+        )
+        CategoryCard(
+            title = stringResource(R.string.road_lab), buildingId = 1000007,
+            done = road.levels.lab.done,
+            seconds = road.lab.seconds, remaining = road.lab, dayUnit = dayUnit,
+        )
+        CategoryCard(
+            title = stringResource(R.string.road_pets), buildingId = 1000068,
+            done = road.levels.pets.done,
+            seconds = road.pets.seconds, remaining = road.pets, dayUnit = dayUnit,
+        )
 
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(stringResource(R.string.road_cost), style = MaterialTheme.typography.titleSmall)
-            RoadRow(stringResource(R.string.resource_gold), compact(all.gold), iconRes = R.drawable.road_gold)
-            RoadRow(stringResource(R.string.resource_elixir), compact(all.elixir), iconRes = R.drawable.road_elixir)
-            RoadRow(stringResource(R.string.resource_dark_elixir), compact(all.darkElixir), iconRes = R.drawable.road_dark_elixir)
-            if (includeWalls) RoadRow(stringResource(R.string.road_walls_cost), compact(road.walls.goldOrElixir), iconRes = R.drawable.road_gold)
-        }
-
-        Row(
-            Modifier.fillMaxWidth().heightIn(min = 48.dp)
-                .toggleable(value = includeWalls, role = Role.Switch, onValueChange = { includeWalls = it }),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            Text(stringResource(R.string.road_include_walls), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
-            Switch(checked = includeWalls, onCheckedChange = null)
-        }
         Text(
             stringResource(R.string.road_note),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
+}
+
+/** One group of upgrades: picture, name, share done, a bar, the time left (or "No timer") and the cost left. */
+@Composable
+private fun CategoryCard(
+    title: String,
+    buildingId: Int,
+    done: Double?,
+    /** Null for upgrades that take no time (walls). */
+    seconds: Long?,
+    remaining: RoadTotals,
+    dayUnit: String,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth().wiggleOnTap(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        shape = MaterialTheme.shapes.large,
+    ) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                BuildingImage(buildingId, 40.dp)
+                Text(title, style = MaterialTheme.typography.titleMediumEmphasized, modifier = Modifier.weight(1f))
+                Text(percentText(done), style = MaterialTheme.typography.titleMedium)
+            }
+            ProgressLine(done, large = false, showPercent = false)
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(stringResource(R.string.road_time), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.width(48.dp))
+                Text(
+                    if (seconds != null && remaining.seconds > 0) formatDuration(seconds, dayUnit) else stringResource(R.string.road_no_timer),
+                    style = MaterialTheme.typography.titleSmall,
+                )
+            }
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(stringResource(R.string.road_cost_label), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.width(48.dp))
+                Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                    CostChip(R.drawable.road_gold, remaining.gold)
+                    CostChip(R.drawable.road_elixir, remaining.elixir)
+                    CostChip(R.drawable.road_dark_elixir, remaining.darkElixir)
+                    if (remaining.goldOrElixir > 0) {
+                        // Walls: Gold or Elixir, shown as the two drops together.
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Image(painterResource(R.drawable.road_gold), contentDescription = null, modifier = Modifier.size(20.dp))
+                            Image(painterResource(R.drawable.road_elixir), contentDescription = null, modifier = Modifier.size(20.dp))
+                            Text(compact(remaining.goldOrElixir), style = MaterialTheme.typography.titleSmall)
+                        }
+                    }
+                    if (remaining.gold + remaining.elixir + remaining.darkElixir + remaining.goldOrElixir == 0L) {
+                        Text("—", style = MaterialTheme.typography.titleSmall)
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** Icon and amount, shown only when there is something to pay. */
+@Composable
+private fun CostChip(@DrawableRes icon: Int, amount: Long) {
+    if (amount <= 0) return
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        Image(painterResource(icon), contentDescription = null, modifier = Modifier.size(20.dp))
+        Text(compact(amount), style = MaterialTheme.typography.titleSmall)
+    }
+}
+
+/** A bar with the percentage next to it; nothing to do means a full bar. */
+@Composable
+private fun ProgressLine(done: Double?, large: Boolean, showPercent: Boolean = true) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+        // The same wavy bar the Timers cards use.
+        LinearWavyProgressIndicator(progress = { (done ?: 1.0).toFloat().coerceIn(0f, 1f) }, modifier = Modifier.weight(1f))
+        if (showPercent) {
+            Text(
+                percentText(done),
+                style = if (large) MaterialTheme.typography.headlineMedium else MaterialTheme.typography.titleMedium,
+            )
+        }
+    }
+}
+
+/** Whole percent, rounded down so 99.6% never reads as finished. */
+private fun percentText(done: Double?): String = "${((done ?: 1.0) * 100).toInt().coerceIn(0, 100)}%"
+
+/** A building's picture from the bundled or downloaded icons; nothing when there is none. */
+@Composable
+private fun BuildingImage(buildingId: Int?, size: androidx.compose.ui.unit.Dp) {
+    val context = LocalContext.current
+    val density = LocalDensity.current
+    val bitmap = remember(buildingId) {
+        buildingId?.let { WidgetIcons.get(context).bitmapForLevel(it, null, with(density) { size.roundToPx() })?.asImageBitmap() }
+    }
+    if (bitmap != null) Image(bitmap, contentDescription = null, modifier = Modifier.size(size)) else Spacer(Modifier.size(size))
 }
 
 /** One line of the card: a small picture (a building from the bundled icons, or a resource drawable), label and value. */

@@ -83,7 +83,7 @@ internal fun PlanPage(export: VillageExport?, model: WidgetModel, now: Long, pag
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
+            contentPadding = listPadding(),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             if (export == null || !model.hasData) {

@@ -87,9 +87,43 @@ data class RoadToMax(
     val lab: RoadTotals,
     val pets: RoadTotals,
     val walls: RoadTotals,
+    /** Levels owned against levels at the Town Hall limit, per group. */
+    val levels: RoadLevels = RoadLevels(),
+    /** Time the hero with the most work left needs. A hero is upgraded one level after another, so more builders cannot beat it. */
+    val longestHeroSeconds: Long = 0,
 ) {
     /** Everything a builder does: buildings plus heroes. */
     val builderWork: RoadTotals get() = buildings + heroes
+
+    /** Builder time when the work is shared across [builders], but never less than the longest single hero. */
+    fun builderSeconds(builders: Int): Long =
+        maxOf(builderWork.seconds / builders.coerceAtLeast(1), longestHeroSeconds)
+
+    /** Heroes alone, with the same floor. */
+    fun heroSeconds(builders: Int): Long =
+        maxOf(heroes.seconds / builders.coerceAtLeast(1), longestHeroSeconds)
+
+    /** The average of the groups' shares done, 0..1; null when there is nothing to do. */
+    val overallDone: Double? get() = listOfNotNull(
+        levels.buildings.done, levels.walls.done, levels.heroes.done, levels.lab.done, levels.pets.done,
+    ).takeIf { it.isNotEmpty() }?.average()
+}
+
+/** Levels owned against levels at the Town Hall limit, per group: what "done" is measured by (not owned counts as 0). */
+data class RoadLevels(
+    val buildings: LevelShare = LevelShare(),
+    val heroes: LevelShare = LevelShare(),
+    val lab: LevelShare = LevelShare(),
+    val pets: LevelShare = LevelShare(),
+    val walls: LevelShare = LevelShare(),
+)
+
+/** The sum of the levels you have and the sum of the levels you could have at this Town Hall. */
+data class LevelShare(val have: Long = 0, val max: Long = 0) {
+    operator fun plus(o: LevelShare) = LevelShare(have + o.have, max + o.max)
+
+    /** 0..1, or null when there is nothing at this Town Hall. */
+    val done: Double? get() = if (max > 0) (have.toDouble() / max).coerceIn(0.0, 1.0) else null
 }
 
 object RoadToMaxCalc {
@@ -98,6 +132,8 @@ object RoadToMaxCalc {
         val townHall = export.townHallLevel?.coerceIn(1, data.maxTownHall.coerceAtLeast(1)) ?: return null
         if (data.items.isEmpty() || export.ownedLevels.isEmpty()) return null
         var buildings = RoadTotals(); var heroes = RoadTotals(); var lab = RoadTotals(); var pets = RoadTotals(); var walls = RoadTotals()
+        var lBuildings = LevelShare(); var lHeroes = LevelShare(); var lLab = LevelShare(); var lPets = LevelShare(); var lWalls = LevelShare()
+        var longestHero = 0L
         for ((id, item) in data.items) {
             val maxLevel = item.steps.indexOfLast { it.townHall <= townHall } + 1
             if (maxLevel == 0) continue
@@ -107,17 +143,24 @@ object RoadToMaxCalc {
             val owned = (export.ownedLevels[id] ?: emptyList()).sortedDescending().take(count).toMutableList()
             // Missing copies: unbuilt buildings start from nothing; troops and spells are unlocked at level 1 (free).
             val missingLevel = if (item.kind == 'l') 1 else 0
+            // For the share done, a copy or a troop you do not have yet counts as level 0.
+            val ownedSum = owned.sumOf { it.toLong() }
             while (owned.size < count) owned += missingLevel
             var total = RoadTotals()
-            for (level in owned) for (i in level until maxLevel) total = total.add(item.steps[i])
+            for (level in owned) {
+                var chain = 0L
+                for (i in level until maxLevel) { total = total.add(item.steps[i]); chain += item.steps[i].seconds }
+                if (item.kind == 'h') longestHero = maxOf(longestHero, chain)
+            }
+            val share = LevelShare(ownedSum, owned.size.toLong() * maxLevel)
             when (item.kind) {
-                'b' -> buildings += total
-                'h' -> heroes += total
-                'l' -> lab += total
-                'p' -> pets += total
-                'w' -> walls += total
+                'b' -> { buildings += total; lBuildings += share }
+                'h' -> { heroes += total; lHeroes += share }
+                'l' -> { lab += total; lLab += share }
+                'p' -> { pets += total; lPets += share }
+                'w' -> { walls += total; lWalls += share }
             }
         }
-        return RoadToMax(townHall, buildings, heroes, lab, pets, walls)
+        return RoadToMax(townHall, buildings, heroes, lab, pets, walls, RoadLevels(lBuildings, lHeroes, lLab, lPets, lWalls), longestHero)
     }
 }

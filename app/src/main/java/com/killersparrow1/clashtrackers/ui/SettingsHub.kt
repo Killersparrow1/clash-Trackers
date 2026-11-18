@@ -38,7 +38,7 @@ internal fun SettingsPage(
     when (page) {
                 0 -> LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
+                    contentPadding = listPadding(),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
                     item { SettingsSection(settings, export, now, onSettingsChange, selectedTag) }
@@ -46,7 +46,7 @@ internal fun SettingsPage(
                 }
                 1 -> LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
+                    contentPadding = listPadding(),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) { item { PersonalizationSection(settings, onSettingsChange) } }
                 else -> SupportScreen(state, model, log, timesCount, now)
