@@ -35,7 +35,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.launch
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.layout
+import kotlin.math.roundToInt
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.pager.PagerDefaults
@@ -106,6 +112,11 @@ fun ClashTrackersContent(
         if (reduced) tween<Float>(180) else spring<Float>(dampingRatio = 0.9f, stiffness = Spring.StiffnessMediumLow)
     }
     val barState = rememberFloatingBarState(pager)
+    // The sub-tabs (Plan, Settings) hide and show together with the bottom bar.
+    val subHide = remember { Animatable(0f) }
+    LaunchedEffect(barState.visible, reduced) {
+        subHide.animateTo(if (barState.visible || reduced) 0f else 1f, spring(dampingRatio = 0.9f, stiffness = Spring.StiffnessMedium))
+    }
     val barItems = remember { Destination.entries.map { TabBarItem(it.labelRes, it.icon) } }
     val supportTaps = remember { mutableListOf<Long>() }
     // Tap the Settings tab 11 times within 4 seconds to open the hidden developer options.
@@ -188,7 +199,17 @@ fun ClashTrackersContent(
                         val siblings = Page.entries.filter { it.dest == destination }
                         if (siblings.size > 1) {
                             val first = destination.firstPage()
-                            androidx.compose.material3.PrimaryTabRow(selectedTabIndex = pager.currentPage - first) {
+                            androidx.compose.material3.PrimaryTabRow(
+                                selectedTabIndex = pager.currentPage - first,
+                                modifier = Modifier
+                                    .clipToBounds()
+                                    .layout { m, c ->
+                                        val p = m.measure(c)
+                                        val h = (p.height * (1f - subHide.value)).roundToInt()
+                                        layout(p.width, h) { p.placeRelative(0, -(p.height * subHide.value).roundToInt()) }
+                                    }
+                                    .graphicsLayer { alpha = 1f - subHide.value },
+                            ) {
                                 siblings.forEachIndexed { i, p ->
                                     androidx.compose.material3.Tab(
                                         selected = pager.currentPage == first + i,
