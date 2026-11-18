@@ -38,10 +38,8 @@ import kotlinx.coroutines.launch
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.layout
-import kotlin.math.roundToInt
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.pager.PagerDefaults
@@ -75,6 +73,9 @@ private enum class Page(val dest: Destination, @StringRes val labelRes: Int?) {
     PERSONALIZATION(Destination.SETTINGS, R.string.settings_tab_personalization),
     SUPPORT(Destination.SETTINGS, R.string.nav_support),
 }
+
+/** Height of the Plan and Settings sub-tab row (text-only tabs). */
+private val SubTabsHeight = 48.dp
 
 private fun Destination.firstPage(): Int = Page.entries.indexOfFirst { it.dest == this }
 
@@ -201,14 +202,11 @@ fun ClashTrackersContent(
                             val first = destination.firstPage()
                             androidx.compose.material3.PrimaryTabRow(
                                 selectedTabIndex = pager.currentPage - first,
-                                modifier = Modifier
-                                    .clipToBounds()
-                                    .layout { m, c ->
-                                        val p = m.measure(c)
-                                        val h = (p.height * (1f - subHide.value)).roundToInt()
-                                        layout(p.width, h) { p.placeRelative(0, -(p.height * subHide.value).roundToInt()) }
-                                    }
-                                    .graphicsLayer { alpha = 1f - subHide.value },
+                                // Transform and opacity only: the row slides up under the app bar, the layout never changes.
+                                modifier = Modifier.graphicsLayer {
+                                    translationY = -SubTabsHeight.toPx() * subHide.value
+                                    alpha = 1f - subHide.value
+                                },
                             ) {
                                 siblings.forEachIndexed { i, p ->
                                     androidx.compose.material3.Tab(
@@ -221,7 +219,15 @@ fun ClashTrackersContent(
                         }
                         androidx.compose.foundation.pager.HorizontalPager(
                             state = pager,
-                            modifier = Modifier.weight(1f).fillMaxWidth(),
+                            modifier = Modifier.weight(1f).fillMaxWidth()
+                                // Always as tall as the page plus the sub-tab row, and slid up by the row's height as it hides:
+                                // the page uses the freed room without ever being re-measured while scrolling.
+                                .layout { m, c ->
+                                    val extra = SubTabsHeight.roundToPx()
+                                    val p = m.measure(c.copy(minHeight = c.maxHeight + extra, maxHeight = c.maxHeight + extra))
+                                    layout(p.width, c.maxHeight) { p.place(0, 0) }
+                                }
+                                .graphicsLayer { if (siblings.size > 1) translationY = -SubTabsHeight.toPx() * subHide.value },
                             // The page you are on plus one each side stay composed, so a swipe or a skip never shows a blank page.
                             beyondViewportPageCount = 1,
                             flingBehavior = PagerDefaults.flingBehavior(
