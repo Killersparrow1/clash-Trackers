@@ -59,7 +59,7 @@ internal fun EventsPage(now: Long) {
     fun local(epoch: Long) = format.format(Instant.ofEpochSecond(epoch).atZone(zone))
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
+        contentPadding = listPadding(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         items(events, key = { it.id }) { e ->

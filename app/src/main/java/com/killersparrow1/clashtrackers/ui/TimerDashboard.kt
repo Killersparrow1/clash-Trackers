@@ -158,7 +158,7 @@ fun TimerDashboard(
             columns = GridCells.Fixed(if (wide) 2 else 1),
             state = gridState,
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
+            contentPadding = listPadding(),
             verticalArrangement = Arrangement.spacedBy(12.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {

@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -22,9 +23,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.ShortNavigationBar
-import androidx.compose.material3.ShortNavigationBarArrangement
-import androidx.compose.material3.ShortNavigationBarItem
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -37,6 +35,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.launch
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.pager.PagerDefaults
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -96,10 +100,18 @@ fun ClashTrackersContent(
     // One pager holds every page, so swiping follows the finger and tabs and sub-tabs share the same motion.
     val pager = androidx.compose.foundation.pager.rememberPagerState { Page.entries.size }
     val destination = Page.entries[pager.currentPage].dest
+    val reduced = rememberReducedMotion()
+    // Tabs move on a spring (a short tween when the phone has animations removed).
+    val pageSpring = remember(reduced) {
+        if (reduced) tween<Float>(180) else spring<Float>(dampingRatio = 0.9f, stiffness = Spring.StiffnessMediumLow)
+    }
+    val barState = rememberFloatingBarState(pager)
+    val barItems = remember { Destination.entries.map { TabBarItem(it.labelRes, it.icon) } }
     val supportTaps = remember { mutableListOf<Long>() }
     // Tap the Settings tab 11 times within 4 seconds to open the hidden developer options.
     fun navigate(entry: Destination) {
-        if (entry != destination) tapScope.launch { pager.animateScrollToPage(entry.firstPage()) }
+        barState.show()
+        if (entry != destination) tapScope.launch { pager.animateScrollToPage(entry.firstPage(), animationSpec = pageSpring) }
         if (entry != Destination.SETTINGS || developerOpen) return
         val t = System.currentTimeMillis()
         supportTaps.add(t)
@@ -117,45 +129,42 @@ fun ClashTrackersContent(
             }
         }
     }
-    BackHandler(enabled = pager.currentPage != 0) { tapScope.launch { pager.animateScrollToPage(0) } }
+    BackHandler(enabled = pager.currentPage != 0) { tapScope.launch { pager.animateScrollToPage(0, animationSpec = pageSpring) } }
 
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val wide = maxWidth >= 600.dp
         Scaffold(
             topBar = {
                 TopAppBar(title = {
-                    Text(
-                        if (destination == Destination.TIMERS) stringResource(R.string.app_name) else stringResource(destination.labelRes),
-                        style = MaterialTheme.typography.titleLargeEmphasized,
-                        modifier = Modifier.titleEasterEgg(),
-                    )
+                    // The title slides the way the tabs moved; it changes when the page passes the middle of a swipe.
+                    SlideSwitcher(index = destination.ordinal, reduced = reduced) { i ->
+                        val shown = Destination.entries[i]
+                        Text(
+                            if (shown == Destination.TIMERS) stringResource(R.string.app_name) else stringResource(shown.labelRes),
+                            style = MaterialTheme.typography.titleLargeEmphasized,
+                            modifier = Modifier.titleEasterEgg(),
+                        )
+                    }
                 }, actions = {
-                    if (destination == Destination.TIMERS) {
-                        val openContext = androidx.compose.ui.platform.LocalContext.current
-                        val failed = stringResource(R.string.open_game_failed)
-                        OpenGameButton(onClick = {
-                            if (!openGameLink(openContext, CLASH_MORE_SETTINGS_LINK)) {
-                                tapScope.launch { snackbarHost.showSnackbar(failed) }
+                    // A fixed-size slot, so the bar never re-lays out when the button comes and goes.
+                    Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+                        SlideSwitcher(index = destination.ordinal, reduced = reduced) { i ->
+                            if (Destination.entries[i] == Destination.TIMERS) {
+                                val openContext = androidx.compose.ui.platform.LocalContext.current
+                                val failed = stringResource(R.string.open_game_failed)
+                                OpenGameButton(onClick = {
+                                    if (!openGameLink(openContext, CLASH_MORE_SETTINGS_LINK)) {
+                                        tapScope.launch { snackbarHost.showSnackbar(failed) }
+                                    }
+                                })
                             }
-                        })
+                        }
                     }
                 })
             },
-            bottomBar = {
-                if (!wide) {
-                    ShortNavigationBar(arrangement = ShortNavigationBarArrangement.EqualWeight) {
-                        Destination.entries.forEach { entry ->
-                            ShortNavigationBarItem(
-                                selected = destination == entry,
-                                onClick = { navigate(entry) },
-                                icon = { Icon(painterResource(entry.icon), contentDescription = null) },
-                                label = { Text(stringResource(entry.labelRes)) },
-                            )
-                        }
-                    }
-                }
+            snackbarHost = {
+                Box(Modifier.padding(bottom = if (wide) 0.dp else FloatingBar.ContentInset - 4.dp)) { SnackbarHost(snackbarHost) }
             },
-            snackbarHost = { SnackbarHost(snackbarHost) },
         ) { padding ->
             Row(Modifier.fillMaxSize().padding(padding)) {
                 if (wide) {
@@ -171,7 +180,11 @@ fun ClashTrackersContent(
                     }
                 }
                 Box(Modifier.weight(1f).fillMaxSize(), contentAlignment = Alignment.TopCenter) {
-                    Column(Modifier.widthIn(max = 840.dp).fillMaxSize()) {
+                    CompositionLocalProvider(LocalBarInset provides (if (wide) 0.dp else FloatingBar.ContentInset)) {
+                    Column(
+                        Modifier.widthIn(max = 840.dp).fillMaxSize()
+                            .then(if (wide || reduced) Modifier else Modifier.nestedScroll(barState.connection)),
+                    ) {
                         val siblings = Page.entries.filter { it.dest == destination }
                         if (siblings.size > 1) {
                             val first = destination.firstPage()
@@ -179,7 +192,7 @@ fun ClashTrackersContent(
                                 siblings.forEachIndexed { i, p ->
                                     androidx.compose.material3.Tab(
                                         selected = pager.currentPage == first + i,
-                                        onClick = { tapScope.launch { pager.animateScrollToPage(first + i) } },
+                                        onClick = { tapScope.launch { pager.animateScrollToPage(first + i, animationSpec = pageSpring) } },
                                         text = { Text(stringResource(p.labelRes!!)) },
                                     )
                                 }
@@ -188,8 +201,14 @@ fun ClashTrackersContent(
                         androidx.compose.foundation.pager.HorizontalPager(
                             state = pager,
                             modifier = Modifier.weight(1f).fillMaxWidth(),
+                            // The page you are on plus one each side stay composed, so a swipe or a skip never shows a blank page.
                             beyondViewportPageCount = 1,
+                            flingBehavior = PagerDefaults.flingBehavior(
+                                state = pager,
+                                snapAnimationSpec = spring(dampingRatio = 0.9f, stiffness = Spring.StiffnessMediumLow),
+                            ),
                         ) { index ->
+                            Box(Modifier.fillMaxSize().pageScale(pager, index, enabled = !reduced)) {
                             when (Page.entries[index]) {
                                 Page.TIMERS -> TimerDashboard(
                                     model = model,
@@ -220,10 +239,22 @@ fun ClashTrackersContent(
                                 Page.PERSONALIZATION -> SettingsPage(1, settings, state.export, now, onSettingsChange, selectedTag, state, model, log, timesCount)
                                 Page.SUPPORT -> SettingsPage(2, settings, state.export, now, onSettingsChange, selectedTag, state, model, log, timesCount)
                             }
+                            }
                         }
+                    }
                     }
                 }
             }
+        }
+        if (!wide) {
+            FloatingTabBar(
+                items = barItems,
+                selectedIndex = destination.ordinal,
+                onSelect = { navigate(Destination.entries[it]) },
+                barState = barState,
+                reduced = reduced,
+                modifier = Modifier.align(Alignment.BottomCenter),
+            )
         }
         if (developerOpen) DeveloperOptionsScreen(selectedTag, log, onClose = { developerOpen = false })
     }

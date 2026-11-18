@@ -79,7 +79,7 @@ fun SupportScreen(state: AppState, model: WidgetModel, log: SyncLog, timesCount:
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
+        contentPadding = listPadding(),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
