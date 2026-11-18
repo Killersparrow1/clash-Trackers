@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.Spacer
@@ -16,7 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -181,7 +180,8 @@ private fun CostChip(@DrawableRes icon: Int, amount: Long) {
 @Composable
 private fun ProgressLine(done: Double?, large: Boolean, showPercent: Boolean = true) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-        LinearProgressIndicator(progress = { (done ?: 1.0).toFloat() }, modifier = Modifier.weight(1f).height(if (large) 10.dp else 8.dp))
+        // The same wavy bar the Timers cards use.
+        LinearWavyProgressIndicator(progress = { (done ?: 1.0).toFloat().coerceIn(0f, 1f) }, modifier = Modifier.weight(1f))
         if (showPercent) {
             Text(
                 percentText(done),
