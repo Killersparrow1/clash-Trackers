@@ -101,6 +101,7 @@ Built with **Material 3 Expressive**, the Clash typeface, a deterministic boost 
 
 ### Interface
 - **Four tabs**: Timers, Plan, Clash and Settings (sub-tabs: Plan has Road to max and Bedtime level up; Clash has Events; Settings has Settings, Personalization and Support), with swipe to switch.
+- **Six app looks** in **Settings > Personalization > App look**: Material You (follows your phone), Material light and Material dark (always light or always dark, whatever the phone is set to), and the fixed Clean, Classic and Game palettes. Widgets have their own theme.
 - Material You colour on Android 12+, a themed launcher icon on Android 13+, a navigation rail on tablets and a two-column Timers screen on wide displays.
 - A subtle wiggle and light haptic feedback when you press cards.
 - Lilita One for headings and numbers; filter chips that get out of the way as you scroll.

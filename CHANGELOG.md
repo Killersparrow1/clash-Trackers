@@ -8,6 +8,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ### Changed
 
+- A short message when the app opens without internet, asking you to connect to get the latest game data and event dates.
 - Settings > Game data now takes the game data straight from ClashKing: it downloads `static_data.json` (assets.clashk.ing, with the GitHub copy as a backup), asks first whether it changed (`Last-Modified`), converts it on the phone, checks it, and only then replaces the saved data (written to a temporary file and moved into place). Any failure leaves the data in use untouched. The project's own `data/max_data.json` on GitHub is no longer used.
 - Clash > Events: the raid weekend and the season end come from the ClashKing API (`/v2/dates/current`, `/v2/dates/season-start-end`) when it is reachable and marked "ClashKing". The dates are saved on the phone, shown at once when the tab opens, work offline, refresh in the background (every 6 hours at most, on app open) and with the refresh button, and the last sync time is shown. Everything else, and anything the API cannot answer, still uses the existing schedule; times set in the schedule file win over the API. ClashKing says the season ends at 05:00 UTC; the old schedule assumed 08:00 UTC.
 - Credits: ClashKing attribution with links to ClashKing, ClashKingAssets and the API documentation; the old package is credited only for the icons that are still built into the app.
@@ -20,6 +21,8 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ### Fixed
 
+- Road to max widget: opening its setup no longer crashes (`ClassNotFoundException`); the setup screen had been cut out of the code by an earlier edit and is back.
+- App look: Material light is now light even when the phone is in dark mode (the window background, splash and system bars follow the chosen look too). Material You still follows the phone.
 - Widget: the Sync button is back to starting the quiet Sync screen (no app window). The stray launches were Back Tap set to the app's Sync shortcut, which is also allowed through the launch guard now.
 - Personalization > Widget theme now changes every widget. A widget that had its own theme from its settings kept it and ignored the app-wide choice; picking a theme in the app now replaces those.
 - With "Sync from clipboard when the app opens" switched off, the app no longer reads the clipboard at all (it used to read it and only skip the import, which still triggered Android's "pasted from clipboard" notice). The widget Sync button still syncs, since you asked for it.
