@@ -390,4 +390,7 @@
     <string name="perm_battery_why">Choose Allow, so Android does not stop background updates.</string>
     <string name="perm_unused">Pause app activity if unused</string>
     <string name="perm_unused_why">Turn this off. Otherwise Android removes permissions and stops alerts when the app is not opened for a while.</string>
+    <string name="tabbar_title">Tab bar</string>
+    <string name="tabbar_floating">Floating tab bar</string>
+    <string name="tabbar_floating_desc">A rounded bar that floats above the page and hides while you scroll down. Turn off for the usual bar fixed at the bottom.</string>
 </resources>

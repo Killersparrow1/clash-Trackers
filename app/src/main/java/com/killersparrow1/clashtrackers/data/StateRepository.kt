@@ -43,6 +43,7 @@ class StateRepository(context: Context) {
             notificationsEnabled = oldSettings.notificationsEnabled,
             liveCountdown = oldSettings.liveCountdown,
             widgetTheme = oldSettings.widgetTheme,
+            floatingTabBar = oldSettings.floatingTabBar,
         )
         prefs[GLOBAL_SETTINGS] = global.encode()
 
@@ -121,6 +122,7 @@ class StateRepository(context: Context) {
             liveCountdown = global.liveCountdown,
             playerName = acctSettings.playerName,
             widgetTheme = global.widgetTheme,
+            floatingTabBar = global.floatingTabBar,
         )
     }.distinctUntilChanged()
 
@@ -149,6 +151,7 @@ class StateRepository(context: Context) {
             liveCountdown = global.liveCountdown,
             playerName = acct.playerName,
             widgetTheme = global.widgetTheme,
+            floatingTabBar = global.floatingTabBar,
         )
     }
 
@@ -401,6 +404,7 @@ class StateRepository(context: Context) {
                 liveCountdown = global.liveCountdown,
                 playerName = acct.playerName,
                 widgetTheme = global.widgetTheme,
+            floatingTabBar = global.floatingTabBar,
             )
             val next = transform(currentAppSet)
 
@@ -408,6 +412,7 @@ class StateRepository(context: Context) {
                 notificationsEnabled = next.notificationsEnabled,
                 liveCountdown = next.liveCountdown,
                 widgetTheme = next.widgetTheme,
+                floatingTabBar = next.floatingTabBar,
             ).encode()
 
             val updatedAcct = AccountSettings(

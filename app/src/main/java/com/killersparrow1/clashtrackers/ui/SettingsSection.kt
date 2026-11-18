@@ -76,6 +76,14 @@ private const val H = 3600L
 fun PersonalizationSection(settings: AppSettings, onChange: ((AppSettings) -> AppSettings) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         SectionCard(stringResource(R.string.look_title)) { AppLookPicker() }
+        SectionCard(stringResource(R.string.tabbar_title)) {
+            SwitchRow(stringResource(R.string.tabbar_floating), settings.floatingTabBar) { on -> onChange { it.copy(floatingTabBar = on) } }
+            Text(
+                stringResource(R.string.tabbar_floating_desc),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
         SectionCard(stringResource(R.string.settings_section_widget)) {
             WidgetThemeSetting(settings, onChange)
             SwitchRow(stringResource(R.string.settings_live_countdown), settings.liveCountdown) { on -> onChange { it.copy(liveCountdown = on) } }
