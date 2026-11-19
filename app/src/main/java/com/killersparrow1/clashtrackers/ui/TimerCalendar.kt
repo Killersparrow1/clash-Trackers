@@ -224,6 +224,13 @@ private fun CalendarBar(bar: Bar, kind: Int, now: Long, dayUnit: String, left: D
         3 -> scheme.surfaceContainerHighest
         else -> scheme.primaryContainer
     }
+    // Text takes the colour made for its background, so it reads on every theme (a suggestion sits on the plain surface).
+    val onBar: Color = if (bar.suggested) scheme.onSurface else when (kind) {
+        1 -> scheme.onTertiaryContainer
+        2 -> scheme.onSecondaryContainer
+        3 -> scheme.onSurface
+        else -> scheme.onPrimaryContainer
+    }
     val width = (right - left).coerceAtLeast(40.dp)
     val shape = RoundedCornerShape(14.dp)
     val context = LocalContext.current
@@ -238,7 +245,7 @@ private fun CalendarBar(bar: Bar, kind: Int, now: Long, dayUnit: String, left: D
             .width(width)
             .height(LaneHeight - 12.dp)
             .clip(shape)
-            .background(if (bar.suggested) base.copy(alpha = 0.35f) else base)
+            .background(if (bar.suggested) scheme.surfaceContainerHigh else base)
             .then(if (bar.suggested) Modifier.border(BorderStroke(1.5.dp, scheme.outline), shape) else Modifier)
             .padding(horizontal = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -246,9 +253,9 @@ private fun CalendarBar(bar: Bar, kind: Int, now: Long, dayUnit: String, left: D
     ) {
         if (icon != null) Image(icon, contentDescription = null, modifier = Modifier.iconTile(28.dp))
         Column(Modifier.weight(1f)) {
-            Text(bar.title, style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(bar.title, style = MaterialTheme.typography.labelLarge, color = onBar, maxLines = 1, overflow = TextOverflow.Ellipsis)
             val sub = if (bar.suggested) "${bar.sub} · ${Countdown.text(bar.end - bar.start, dayUnit)}" else Countdown.text((bar.end - now).coerceAtLeast(0), dayUnit)
-            Text(sub, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(sub, style = MaterialTheme.typography.bodySmall, color = onBar.copy(alpha = 0.8f), maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
     }
 }
