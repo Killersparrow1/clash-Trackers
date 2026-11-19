@@ -132,34 +132,13 @@ fun TimerDashboard(
     Column(modifier.fillMaxSize().nestedScroll(scrollConnection)) {
         // The account switcher and the filter chips fade and collapse together; the app title stays put.
         AnimatedVisibility(
-            visible = (accounts.isNotEmpty() || model.hasData) && showFilters,
+            visible = accounts.isNotEmpty() && showFilters,
             enter = fadeIn() + expandVertically(),
             exit = fadeOut() + shrinkVertically(),
         ) {
           Column {
             if (accounts.isNotEmpty()) {
                 AccountSwitcherBar(accounts, selectedTag, onSelectAccount, onRenameAccount, onDeleteAccount)
-            }
-            if (model.hasData) Row(
-                Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                // Switches the list of cards for the calendar timeline.
-                FilterChip(
-                    selected = calendar,
-                    onClick = { calendar = !calendar },
-                    label = { Text(stringResource(R.string.calendar_toggle)) },
-                    leadingIcon = if (calendar) { { Icon(painterResource(R.drawable.ic_check), contentDescription = null) } } else null,
-                    modifier = Modifier.heightIn(min = 48.dp),
-                )
-                TimerFilter.entries.forEach { entry ->
-                    FilterChip(
-                        selected = filter == entry,
-                        onClick = { filter = entry },
-                        label = { Text(stringResource(entry.labelRes)) },
-                        modifier = Modifier.heightIn(min = 48.dp),
-                    )
-                }
             }
           }
         }
@@ -205,11 +184,7 @@ fun TimerDashboard(
 
             if (model.hasData) {
                 item(key = "heading", span = { GridItemSpan(maxLineSpan) }) {
-                    Text(
-                        if (filter == TimerFilter.ALL) stringResource(R.string.village_upgrades) else stringResource(R.string.upgrades_filtered, stringResource(filter.labelRes)),
-                        style = MaterialTheme.typography.titleMediumEmphasized,
-                        modifier = Modifier.padding(top = 8.dp),
-                    )
+                    UpgradesHeader(filter, { filter = it }, calendar, { calendar = it })
                 }
                 if (calendar) {
                     item(key = "calendar", span = { GridItemSpan(maxLineSpan) }) { TimerCalendar(model, export, now, filter) }

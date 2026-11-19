@@ -396,6 +396,9 @@
     <string name="tabbar_floating">Floating tab bar</string>
     <string name="tabbar_floating_desc">A rounded bar that floats above the page and hides while you scroll down. Turn off for the usual bar fixed at the bottom.</string>
     <string name="calendar_toggle">Calendar</string>
+    <string name="calendar_tip_title">Calendar view</string>
+    <string name="calendar_tip_body">See every running upgrade on a timeline across the coming days, with the next upgrades Bedtime level up would start. Switch off to go back to the cards.</string>
+    <string name="calendar_tip_ok">Got it</string>
     <string name="calendar_slot">Slot %1$d</string>
     <string name="calendar_today">Today</string>
     <string name="calendar_next">Up next</string>
