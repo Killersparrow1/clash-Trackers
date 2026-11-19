@@ -144,14 +144,6 @@ fun TimerDashboard(
                 Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                TimerFilter.entries.forEach { entry ->
-                    FilterChip(
-                        selected = filter == entry,
-                        onClick = { filter = entry },
-                        label = { Text(stringResource(entry.labelRes)) },
-                        modifier = Modifier.heightIn(min = 48.dp),
-                    )
-                }
                 // Switches the list of cards for the calendar timeline.
                 FilterChip(
                     selected = calendar,
@@ -160,6 +152,14 @@ fun TimerDashboard(
                     leadingIcon = if (calendar) { { Icon(painterResource(R.drawable.ic_check), contentDescription = null) } } else null,
                     modifier = Modifier.heightIn(min = 48.dp),
                 )
+                TimerFilter.entries.forEach { entry ->
+                    FilterChip(
+                        selected = filter == entry,
+                        onClick = { filter = entry },
+                        label = { Text(stringResource(entry.labelRes)) },
+                        modifier = Modifier.heightIn(min = 48.dp),
+                    )
+                }
             }
           }
         }
