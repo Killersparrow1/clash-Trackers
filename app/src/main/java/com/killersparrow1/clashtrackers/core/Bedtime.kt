@@ -35,7 +35,8 @@ data class SleepWindow(val startMin: Int = 23 * 60, val endMin: Int = 7 * 60) {
     fun nextSleepStart(epoch: Long, zone: ZoneId): Long = nextAt(epoch, startMin, zone)
 }
 
-enum class PlanSlot { BUILDER, LAB, PET }
+/** BB_BUILDER and STAR_LAB are the Builder Base's builders and Star Laboratory. */
+enum class PlanSlot { BUILDER, LAB, PET, BB_BUILDER, STAR_LAB }
 
 /** One upgrade the player could start in a free slot ([count] copies of the same item at the same level). */
 data class PlanCandidate(
@@ -45,7 +46,7 @@ data class PlanCandidate(
     val count: Int,
     val seconds: Long,
     val cost: Long,
-    /** 0 Gold, 1 Elixir, 2 Dark Elixir, 3 Gold or Elixir. */
+    /** 0 Gold, 1 Elixir, 2 Dark Elixir, 3 Gold or Elixir, 4 Builder Gold, 5 Builder Elixir. */
     val resource: Int,
     val finishAt: Long,
     /** d defense, a army, r resource, p permanent (see [MaxItem.category]). */
@@ -64,10 +65,13 @@ data class PlanFilter(
     val onlyNew: Boolean = false,
     val sort: PlanSort = PlanSort.FINISH,
 ) {
-    fun accepts(c: PlanCandidate): Boolean =
-        (categories.isEmpty() || c.category in categories) &&
+    fun accepts(c: PlanCandidate): Boolean {
+        // Builder Gold and Builder Elixir count as Gold and Elixir.
+        val resource = when (c.resource) { 4 -> 0; 5 -> 1; else -> c.resource }
+        return (categories.isEmpty() || c.category in categories) &&
             (!onlyNew || c.level == 1) &&
-            (resources.isEmpty() || c.resource in resources || (c.resource == 3 && (0 in resources || 1 in resources)))
+            (resources.isEmpty() || resource in resources || (resource == 3 && (0 in resources || 1 in resources)))
+    }
 
     fun sorted(list: List<PlanCandidate>): List<PlanCandidate> = when (sort) {
         PlanSort.FINISH -> list.sortedWith(compareBy({ it.finishAt }, { it.id }))
@@ -84,6 +88,14 @@ object Bedtime {
         PlanSlot.BUILDER -> setOf('b', 'h')
         PlanSlot.LAB -> setOf('l')
         PlanSlot.PET -> setOf('p')
+        PlanSlot.BB_BUILDER -> setOf('B', 'M')
+        PlanSlot.STAR_LAB -> setOf('S')
+    }
+
+    /** The Builder Hall level (the Builder Base's "Town Hall"); null when there is no Builder Base. A Builder Hall being upgraded still counts at its current level. */
+    fun builderHall(export: VillageExport): Int? {
+        val level = export.ownedLevels[GameIds.BUILDER_HALL]?.maxOrNull() ?: return null
+        return (if (export.jobs.any { it.dataId == GameIds.BUILDER_HALL }) level - 1 else level).takeIf { it >= 1 }
     }
 
     /**
@@ -101,7 +113,9 @@ object Bedtime {
         limit: Int = 12,
         filter: PlanFilter = PlanFilter(),
     ): BedtimePlan? {
-        val townHall = export.townHallLevel?.coerceIn(1, data.maxTownHall.coerceAtLeast(1)) ?: return null
+        val builderBase = slot == PlanSlot.BB_BUILDER || slot == PlanSlot.STAR_LAB
+        val townHall = if (builderBase) builderHall(export) ?: return null
+        else export.townHallLevel?.coerceIn(1, data.maxTownHall.coerceAtLeast(1)) ?: return null
         if (data.items.isEmpty() || export.ownedLevels.isEmpty()) return null
         val startAt = window.nextAwake(freeAt, zone)
         val wakeAt = window.nextAwake(window.nextSleepStart(startAt, zone), zone)
@@ -114,6 +128,8 @@ object Bedtime {
             val count = if (item.counts == null) 1 else item.counts.getOrElse(townHall) { item.counts.lastOrNull() ?: 0 }
             if (count == 0) continue
             val owned = (export.ownedLevels[id] ?: emptyList()).sortedDescending().take(count).toMutableList()
+            // Builder Base troops and heroes are unlocked by other buildings, so only the ones you own are levelled.
+            if (item.kind == 'S' || item.kind == 'M') { if (owned.isEmpty()) continue }
             val missingLevel = if (item.kind == 'l') 1 else 0
             while (owned.size < count) owned += missingLevel
             // A copy that is being upgraded right now is listed at its next level: take it out of the candidates.

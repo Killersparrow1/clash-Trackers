@@ -110,4 +110,47 @@ class BedtimeTest {
         assertEquals(listOf(10, 11, 12, 13), ids(PlanFilter(sort = PlanSort.COST_HIGH)))
         assertEquals(listOf(13, 12, 11, 10), ids(PlanFilter(sort = PlanSort.COST_LOW)))
     }
+
+    // Builder Base: kinds B (buildings), M (Battle Machine) and S (Star Lab troops); a step's "Town Hall" is the Builder Hall level.
+    private val bbData = MaxData.fromJson(
+        """{"maxTh":2,"items":{
+          "1":{"k":"b","n":null,"l":[[21600,10,0,1]]},
+          "20":{"k":"B","n":[0,1,1,1,1,1],"l":[[21600,1,4,1],[43200,1,4,2],[50400,1,4,3],[360000,1,4,5]]},
+          "21":{"k":"S","n":null,"l":[[0,0,5,1],[41400,7,5,1]]},
+          "22":{"k":"S","n":null,"l":[[0,0,5,1],[41400,7,5,1]]}
+        }}""",
+    )
+    private val bbOwned = mapOf(1000034 to listOf(3), 20 to listOf(2), 21 to listOf(1))
+
+    @Test fun builderBaseUsesTheBuilderHallLevelAndOnlyOwnedTroops() {
+        val builders = Bedtime.plan(bbData, export(bbOwned), PlanSlot.BB_BUILDER, at(19, 44), sleep, utc)!!
+        // Item 20 is at level 2; level 3 (14 h) is allowed at Builder Hall 3, level 4 is not.
+        assertEquals(listOf(20 to 3), builders.items.map { it.id to it.level })
+        assertEquals(4, builders.items.single().resource)
+        // Troop 21 is owned (11.5 h, ends 7:14 am, awake); troop 22 is not owned, so it is not suggested.
+        val lab = Bedtime.plan(bbData, export(bbOwned), PlanSlot.STAR_LAB, at(19, 44), sleep, utc)!!
+        assertEquals(listOf(21 to 2), lab.items.map { it.id to it.level })
+    }
+
+    @Test fun homeSlotsIgnoreBuilderBaseItemsAndTheOtherWayAround() {
+        val home = Bedtime.plan(bbData, export(bbOwned + (1 to listOf(0))), PlanSlot.BUILDER, at(19, 44), sleep, utc)!!
+        assertTrue(home.items.none { it.id in setOf(20, 21, 22) })
+        assertEquals(null, Bedtime.plan(bbData, export(mapOf(1 to listOf(0))), PlanSlot.BB_BUILDER, at(19, 44), sleep, utc))
+    }
+
+    @Test fun aBuilderHallBeingUpgradedCountsAtItsCurrentLevel() {
+        val job = Job(category = JobCategory.BB_BUILDER, source = JobSource.BB_BUILDING, dataId = 1000034, currentLevel = 3, remainingAtT0 = 3600, helperLinked = false)
+        // The export lists a Builder Hall that is being upgraded at its next level (4).
+        assertEquals(3, Bedtime.builderHall(export(mapOf(1000034 to listOf(4)), listOf(job))))
+        assertEquals(4, Bedtime.builderHall(export(mapOf(1000034 to listOf(4)))))
+        assertEquals(null, Bedtime.builderHall(export(mapOf(1 to listOf(1)))))
+    }
+
+    @Test fun builderGoldAndElixirMatchTheGoldAndElixirFilters() {
+        val gold = PlanCandidate(1, 2, 1, 100, 5, 4, 0)
+        val elixir = PlanCandidate(2, 2, 1, 100, 5, 5, 0)
+        assertTrue(PlanFilter(resources = setOf(0)).accepts(gold))
+        assertFalse(PlanFilter(resources = setOf(0)).accepts(elixir))
+        assertTrue(PlanFilter(resources = setOf(1)).accepts(elixir))
+    }
 }

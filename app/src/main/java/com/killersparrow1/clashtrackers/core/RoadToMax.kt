@@ -135,6 +135,7 @@ object RoadToMaxCalc {
         var lBuildings = LevelShare(); var lHeroes = LevelShare(); var lLab = LevelShare(); var lPets = LevelShare(); var lWalls = LevelShare()
         var longestHero = 0L
         for ((id, item) in data.items) {
+            if (item.kind !in "bhlpw") continue // Builder Base items (capital letters) are planned in Bedtime level up only
             val maxLevel = item.steps.indexOfLast { it.townHall <= townHall } + 1
             if (maxLevel == 0) continue
             val count = if (item.counts == null) 1 else item.counts.getOrElse(townHall) { item.counts.lastOrNull() ?: 0 }

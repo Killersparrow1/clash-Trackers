@@ -7,6 +7,7 @@ object GameIds {
     const val BOBS_HUT = 1000064
     /** Builder Base Clock Tower (`buildings2`). */
     const val CLOCK_TOWER = 1000039
+    const val BUILDER_HALL = 1000034
 
     // Helper IDs, as listed in ClashKing's game data (assets.clashk.ing static_data.json).
     const val HELPER_BUILDERS_APPRENTICE = 93000000

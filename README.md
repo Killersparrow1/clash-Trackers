@@ -71,7 +71,7 @@ Built with **Material 3 Expressive**, the Clash typeface, a deterministic boost 
 
 ### Plan tab
 - **Road to max**: time and Gold / Elixir / Dark Elixir still needed to max your Town Hall (buildings, defences, traps, heroes, lab, pets and an optional walls total). An estimate from your export plus ClashKing's game data; potions, helpers, events and the Gold Pass are not counted.
-- **Bedtime level up**: set when you sleep and it lists what to start in each free builder, lab or pet slot so upgrades run through the night and finish after you wake.
+- **Bedtime level up**: set when you sleep and it lists what to start in each free builder, lab, pet, Builder Base builder or Star Laboratory slot so upgrades run through the night and finish after you wake.
 - A **Road to max widget** shows the same numbers on the home screen.
 
 ### Clash tab

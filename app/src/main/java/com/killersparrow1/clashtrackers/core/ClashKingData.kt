@@ -28,7 +28,13 @@ object ClashKingData {
     private const val TOWN_HALL = 1000001L
     private val SKIP_IDS = setOf(TOWN_HALL, 1000015L /* Builder's Hut */, 1000064L /* B.O.B's Hut */)
     private val BUILDING_CATEGORY = mapOf("Defense" to "d", "Army" to "a", "Resource" to "r", "Helper" to "p")
-    private val RESOURCE = mapOf("Gold" to 0, "Elixir" to 1, "Dark Elixir" to 2, "Gold or Elixir" to 3)
+    private val RESOURCE = mapOf(
+        "Gold" to 0, "Elixir" to 1, "Dark Elixir" to 2, "Gold or Elixir" to 3, "Builder Gold" to 4, "Builder Elixir" to 5,
+    )
+    private const val BUILDER_HALL = 1000034L
+    private val BB_CATEGORY = mapOf("Defense" to "d", "Army" to "a", "Resource" to "r", "BB Builder Hall" to "p")
+    /** Builder Base: Wall and B.O.T.O's Shack are left out. */
+    private val BB_SKIP_IDS = setOf(1000033L, 1000047L)
 
     /** troops, spells, heroes, pets, guardians: group, kind, category. */
     private val LEVELLED = listOf(
@@ -54,9 +60,9 @@ object ClashKingData {
         name.lowercase().replace(" ", "_").replace(".", "").replace("?", "").replace("\\q", "").replace("’", "")
 
     /** Where the picture of an item is on assets.clashk.ing, relative to the site root. */
-    internal fun iconPath(group: String, name: String, levels: Int): String = when (group) {
-        "buildings" -> "buildings/home-village/${clean(name)}/level_$levels.webp"
-        "traps" -> "traps/home-village/${clean(name)}/level_$levels.webp"
+    internal fun iconPath(group: String, name: String, levels: Int, builderBase: Boolean = false): String = when (group) {
+        "buildings" -> "buildings/${if (builderBase) "builder-base" else "home-village"}/${clean(name)}/level_$levels.webp"
+        "traps" -> "traps/${if (builderBase) "builder-base" else "home-village"}/${clean(name)}/level_$levels.webp"
         "spells" -> "spells/${clean(name)}.webp"
         else -> "$group/${clean(name)}/icon.webp"
     }
@@ -93,17 +99,35 @@ object ClashKingData {
             return (0..maxTh).map { t -> total += u[t] ?: 0; total }
         }
 
+        // Builder Base counts come from the Builder Hall's unlocks, indexed by Builder Hall level.
+        val bbUnlocked = HashMap<Long, HashMap<Int, Int>>()
+        val builderHallLevels = root.objects("buildings").firstOrNull { it.long("_id") == BUILDER_HALL }?.objects("levels").orEmpty()
+        val maxBh = builderHallLevels.maxOfOrNull { it.intOrNull("level") ?: 0 } ?: 0
+        for (l in builderHallLevels) {
+            val level = l.intOrNull("level") ?: continue
+            for (u in l.objects("unlocks")) {
+                val id = u.long("_id")
+                if (id != 0L) bbUnlocked.getOrPut(id) { HashMap() }[level] = u.intOrNull("quantity") ?: 0
+            }
+        }
+        fun bbCounts(id: Long): List<Int>? {
+            val u = bbUnlocked[id] ?: return null
+            var total = 0
+            return (0..maxBh).map { t -> total += u[t] ?: 0; total }
+        }
+
         class Out(val kind: String, val category: String, val counts: List<Int>?, val steps: List<List<Long>>, val name: String?, val icon: String?)
         val items = TreeMap<Long, Out>()
 
-        fun add(o: JsonObject, kind: String, category: String, steps: List<List<Long>>, group: String) {
+        fun add(o: JsonObject, kind: String, category: String, steps: List<List<Long>>, group: String, builderBase: Boolean = false) {
             if (steps.isEmpty()) return
             val id = o.long("_id")
             val name = o.text("name") ?: return
-            items[id] = Out(kind, category, counts(id), steps, name, iconPath(group, name, steps.size))
+            items[id] = Out(kind, category, if (builderBase) bbCounts(id) else counts(id), steps, name, iconPath(group, name, steps.size, builderBase))
         }
-        // A step without a Town Hall requirement would break the reader: assume the newest Town Hall.
-        fun th(value: Int?) = (value ?: maxTh).toLong()
+        // A step without a Town Hall requirement would break the reader: assume the newest Town Hall (Builder Hall 1 in the
+        // Builder Base, where the Builder Hall itself and B.O.B Control have none).
+        fun th(value: Int?, builderBase: Boolean = false) = (value ?: if (builderBase) 1 else maxTh).toLong()
         fun resource(o: JsonObject) = (RESOURCE[o.text("upgrade_resource")] ?: 0).toLong()
 
         // Buildings of the home village, including walls.
@@ -148,6 +172,38 @@ object ClashKingData {
                     steps += listOf(levels[i].long("upgrade_time"), levels[i].long("upgrade_cost"), resource(o), th(levels[i + 1].intOrNull("required_townhall")))
                 }
                 add(o, kind, category, steps, group)
+            }
+        }
+
+        // Builder Base (kinds in capitals): B buildings and traps, M Battle Machine and Battle Copter, S Star Laboratory
+        // troops. The "Town Hall" of a step is the Builder Hall level.
+        for (o in root.objects("buildings")) {
+            val id = o.long("_id")
+            if (o.text("village") != "builderBase" || id in BB_SKIP_IDS || o["levels"] !is JsonArray) continue
+            val levels = o.objects("levels")
+            val category = BB_CATEGORY[o.text("type")] ?: continue
+            if (levels.isEmpty() || RESOURCE[o.text("upgrade_resource")] == null) continue
+            add(o, "B", category, levels.map { l ->
+                listOf(l.long("build_time"), l.long("build_cost"), resource(o), th(l.intOrNull("required_townhall"), true))
+            }, "buildings", true)
+        }
+        for (o in root.objects("traps")) {
+            if (o.text("village") != "builderBase") continue
+            add(o, "B", "p", o.objects("levels").map { l ->
+                listOf(l.long("build_time"), l.long("build_cost"), resource(o), th(l.intOrNull("required_townhall"), true))
+            }, "traps", true)
+        }
+        for ((group, kind) in listOf("troops" to "S", "heroes" to "M")) {
+            for (o in root.objects(group)) {
+                if (o.text("village") != "builderBase") continue
+                val levels = o.objects("levels")
+                if (levels.isEmpty()) continue
+                val steps = ArrayList<List<Long>>()
+                steps += listOf(0L, 0L, resource(o), th(levels[0].intOrNull("required_townhall"), true))
+                for (i in 0 until levels.size - 1) {
+                    steps += listOf(levels[i].long("upgrade_time"), levels[i].long("upgrade_cost"), resource(o), th(levels[i + 1].intOrNull("required_townhall"), true))
+                }
+                add(o, kind, "a", steps, group, true)
             }
         }
         require(items.size >= 20) { "Not enough items in the game data" }

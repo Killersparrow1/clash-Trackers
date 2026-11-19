@@ -58,6 +58,8 @@
     <string name="plan_builders">Builders</string>
     <string name="plan_lab">Laboratory</string>
     <string name="plan_pets">Pet House</string>
+    <string name="plan_bb_builders">Builder Base builders</string>
+    <string name="plan_star_lab">Star Laboratory</string>
     <string name="plan_next_free">Next one free at %1$s</string>
     <string name="plan_free_now">A slot is free now</string>
     <string name="plan_done_at">Done %1$s</string>

@@ -78,7 +78,7 @@ private class Section(val title: String, val kind: Int, val lanes: List<Lane>)
 /**
  * The Timers as a calendar: one line per builder, lab or pet slot, every running upgrade drawn from its start to its
  * finish, and (dashed) the first upgrade Bedtime level up would start next in that slot. Suggestions use base times and
- * your sleep window, so they are estimates; Builder Base has no suggestions.
+ * your sleep window, so they are estimates.
  */
 @Composable
 internal fun TimerCalendar(model: WidgetModel, export: VillageExport?, now: Long, filter: TimerFilter) {
@@ -90,6 +90,7 @@ internal fun TimerCalendar(model: WidgetModel, export: VillageExport?, now: Long
     val window = remember { SleepStore.get(context) }
     val slotText = stringResource(R.string.calendar_slot)
     val goblinText = stringResource(R.string.cat_goblin_builder)
+    val starLabText = stringResource(R.string.plan_star_lab)
     val nextText = stringResource(R.string.calendar_next)
     val titles = listOf(
         stringResource(R.string.plan_builders), stringResource(R.string.plan_lab),
@@ -127,6 +128,17 @@ internal fun TimerCalendar(model: WidgetModel, export: VillageExport?, now: Long
                 }
                 Lane(label(i, row), bars)
             }
+        // A slot with nothing running: its queue starts now.
+        fun idleLane(label: String, slot: PlanSlot): Lane {
+            val bars = ArrayList<Bar>()
+            var free = now
+            repeat(3) {
+                val up = next(slot, free) ?: return@repeat
+                bars += up
+                free = up.end
+            }
+            return Lane(label, bars)
+        }
         buildList {
             if (filter == TimerFilter.ALL || filter == TimerFilter.BUILDERS) {
                 add(Section(titles[0], 0, lanes(model.builderRows, PlanSlot.BUILDER) { i, r -> if (r.goblin) goblinText else slotText.format(i + 1) }))
@@ -138,8 +150,18 @@ internal fun TimerCalendar(model: WidgetModel, export: VillageExport?, now: Long
                 add(Section(titles[2], 2, lanes(listOf(model.petRow), PlanSlot.PET) { i, _ -> slotText.format(i + 1) }))
             }
             if (filter == TimerFilter.ALL || filter == TimerFilter.BUILDER_BASE) {
-                val bb = model.bbRows + listOfNotNull(model.starLabRow)
-                if (bb.isNotEmpty()) add(Section(titles[3], 3, lanes(bb, null) { i, _ -> slotText.format(i + 1) }))
+                val hasBb = export != null && Bedtime.builderHall(export) != null
+                val builders = lanes(model.bbRows, if (hasBb) PlanSlot.BB_BUILDER else null) { i, _ -> slotText.format(i + 1) }
+                // Only running upgrades are known, so two Builder Base builders are assumed when fewer are busy.
+                val idle = if (hasBb) (builders.size until 2).map { idleLane(slotText.format(it + 1), PlanSlot.BB_BUILDER) } else emptyList()
+                val starLabRow = model.starLabRow
+                val starLab: List<Lane> = when {
+                    starLabRow != null -> lanes(listOf(starLabRow), if (hasBb) PlanSlot.STAR_LAB else null) { _, _ -> starLabText }
+                    hasBb -> listOf(idleLane(starLabText, PlanSlot.STAR_LAB))
+                    else -> emptyList()
+                }
+                val all = builders + idle + starLab
+                if (all.isNotEmpty()) add(Section(titles[3], 3, all))
             }
         }
     }

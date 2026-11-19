@@ -102,6 +102,8 @@ internal fun PlanPage(export: VillageExport?, model: WidgetModel, now: Long, pag
             }
             item { FilterCard(filter) { filter = it } }
             for (slot in PlanSlot.entries) {
+                // The Builder Base cards need a Builder Hall in the village.
+                if ((slot == PlanSlot.BB_BUILDER || slot == PlanSlot.STAR_LAB) && Bedtime.builderHall(export) == null) continue
                 item(key = "plan_$slot") {
                     val busyRows = model.builderRows.filter { it.kind == RowKind.RUNNING && it.finishAt != null }
                     val freeAt: Long = when (slot) {
@@ -109,6 +111,12 @@ internal fun PlanPage(export: VillageExport?, model: WidgetModel, now: Long, pag
                             if (model.buildersBusy < model.buildersTotal) now else busyRows.minOfOrNull { it.finishAt!! } ?: now
                         PlanSlot.LAB -> model.labRow.takeIf { it.kind == RowKind.RUNNING }?.finishAt ?: now
                         PlanSlot.PET -> model.petRow.takeIf { it.kind == RowKind.RUNNING }?.finishAt ?: now
+                        // Only running upgrades are known, so two Builder Base builders are assumed.
+                        PlanSlot.BB_BUILDER -> {
+                            val running = model.bbRows.filter { it.kind == RowKind.RUNNING && it.finishAt != null }
+                            if (running.size < 2) now else running.minOf { it.finishAt!! }
+                        }
+                        PlanSlot.STAR_LAB -> model.starLabRow?.takeIf { it.kind == RowKind.RUNNING }?.finishAt ?: now
                     }
                     // A slot that is free now keeps moving with the clock: recompute once a minute, not every second.
                     val key = if (freeAt <= now) now / 60 * 60 else freeAt
@@ -246,6 +254,8 @@ private fun SlotCard(slot: PlanSlot, waiting: Boolean, freeAt: Long, items: List
             PlanSlot.BUILDER -> R.string.plan_builders
             PlanSlot.LAB -> R.string.plan_lab
             PlanSlot.PET -> R.string.plan_pets
+            PlanSlot.BB_BUILDER -> R.string.plan_bb_builders
+            PlanSlot.STAR_LAB -> R.string.plan_star_lab
         },
     )
     Card(
