@@ -13,6 +13,8 @@ import kotlinx.coroutines.launch
 import com.killersparrow1.clashtrackers.R
 import androidx.compose.ui.res.stringResource
 import android.Manifest
+import com.killersparrow1.clashtrackers.companion.CompanionPrefs
+import com.killersparrow1.clashtrackers.companion.CompanionService
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -156,6 +158,54 @@ fun SettingsSection(
                 ctScope.launch { SyncRunner.refreshWidgets(context.applicationContext, "settings") }
             }
             Text(stringResource(R.string.settings_clock_tower_alert_desc), style = MaterialTheme.typography.bodyMedium)
+        }
+        SectionCard(stringResource(R.string.companion_section)) {
+            var cOn by remember { mutableStateOf(CompanionPrefs.enabled(context)) }
+            var cBar by remember { mutableStateOf(CompanionPrefs.bar(context)) }
+            var cNotif by remember { mutableStateOf(CompanionPrefs.notification(context)) }
+            var cTick by remember { mutableIntStateOf(0) }
+            val owner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+            androidx.compose.runtime.DisposableEffect(owner) {
+                val obs = androidx.lifecycle.LifecycleEventObserver { _, e -> if (e == androidx.lifecycle.Lifecycle.Event.ON_RESUME) cTick++ }
+                owner.lifecycle.addObserver(obs)
+                onDispose { owner.lifecycle.removeObserver(obs) }
+            }
+            val serviceOn = remember(cTick) { CompanionPrefs.serviceEnabled(context) }
+            val notifOk = remember(cTick, permissionTick) { Notifier.allowed(context) }
+            SwitchRow(stringResource(R.string.companion_enable), cOn) { on ->
+                cOn = on; CompanionPrefs.setEnabled(context, on); CompanionService.refresh()
+            }
+            Text(stringResource(R.string.companion_enable_desc), style = MaterialTheme.typography.bodyMedium)
+            if (cOn) {
+                SwitchRow(stringResource(R.string.companion_bar), cBar) { on -> cBar = on; CompanionPrefs.setBar(context, on); CompanionService.refresh() }
+                SwitchRow(stringResource(R.string.companion_notification), cNotif) { on ->
+                    cNotif = on; CompanionPrefs.setNotification(context, on); CompanionService.refresh()
+                }
+                Text(
+                    stringResource(if (serviceOn) R.string.companion_access_on else R.string.companion_access_off),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                if (!serviceOn) {
+                    OutlinedButton(onClick = {
+                        context.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                    }) { Text(stringResource(R.string.companion_open_access)) }
+                }
+                if (cNotif && !notifOk) {
+                    Text(stringResource(R.string.companion_notif_missing), style = MaterialTheme.typography.bodyMedium)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        OutlinedButton(onClick = { askPermission.launch(Manifest.permission.POST_NOTIFICATIONS) }) {
+                            Text(stringResource(R.string.companion_grant_notif))
+                        }
+                    }
+                }
+                Text(stringResource(R.string.companion_hint), style = MaterialTheme.typography.bodySmall)
+                OutlinedButton(onClick = {
+                    context.startActivity(
+                        Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}"))
+                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                    )
+                }) { Text(stringResource(R.string.companion_open_app_info)) }
+            }
         }
         SectionCard(stringResource(R.string.settings_language)) {
             LanguageSetting()

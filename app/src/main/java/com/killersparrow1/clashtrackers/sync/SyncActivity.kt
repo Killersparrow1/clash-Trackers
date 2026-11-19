@@ -23,6 +23,7 @@ class SyncActivity : ComponentActivity() {
 
     private val handler = Handler(Looper.getMainLooper())
     private var started = false
+    private val source get() = intent.getStringExtra(EXTRA_SOURCE) ?: SOURCE
 
     private val focusFallback = Runnable { startSync(viaFallback = true) }
     private val hardTimeout = Runnable {
@@ -78,9 +79,13 @@ class SyncActivity : ComponentActivity() {
         if (viaFallback) log(null, "No window focus after ${FOCUS_FALLBACK_MS} ms; read clipboard anyway")
 
         lifecycleScope.launch {
-            val result = SyncRunner.sync(this@SyncActivity, text, SOURCE)
+            val result = SyncRunner.sync(this@SyncActivity, text, source)
             // Shown while this activity is still in front, so ROMs that block background toasts allow it.
             Toast.makeText(this@SyncActivity, result.message, Toast.LENGTH_LONG).show()
+            if (source == "companion") {
+                if (result.ok) com.killersparrow1.clashtrackers.sync.ClipboardAutoSync.markUsed(applicationContext, text)
+                com.killersparrow1.clashtrackers.companion.CompanionService.report(result.ok, result.message)
+            }
             finishQuietly()
         }
     }
@@ -88,7 +93,7 @@ class SyncActivity : ComponentActivity() {
     private fun log(ok: Boolean?, message: String) {
         val app = applicationContext
         // NonCancellable: breadcrumbs must survive the activity finishing right after.
-        lifecycleScope.launch(NonCancellable) { StateRepository(app).log(SOURCE, ok, message) }
+        lifecycleScope.launch(NonCancellable) { StateRepository(app).log(source, ok, message) }
     }
 
     /** Why this screen opened: who started it, the screen state and the app that was in front (for the activity log). */
@@ -119,6 +124,7 @@ class SyncActivity : ComponentActivity() {
 
     companion object {
         const val EXTRA_WIDGET_TAP = "widget_tap"
+        const val EXTRA_SOURCE = "source"
         private const val SOURCE = "widget"
         private const val FOCUS_FALLBACK_MS = 1500L
         private const val HARD_TIMEOUT_MS = 8000L

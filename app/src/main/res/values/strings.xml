@@ -403,4 +403,24 @@
     <string name="calendar_today">Today</string>
     <string name="calendar_next">Up next</string>
     <string name="calendar_note">Solid bars are running upgrades. Dashed bars are the next upgrades Bedtime level up would start, one after another, using base times and your sleep hours, so they are estimates.</string>
+    <!-- Clash Companion -->
+    <string name="companion_paste">Paste JSON</string>
+    <string name="companion_channel">Clash Companion</string>
+    <string name="companion_channel_desc">Shown only while Clash of Clans is open</string>
+    <string name="companion_notif_title">Clash Trackers</string>
+    <string name="companion_notif_text">Copy your village JSON, then tap Paste JSON</string>
+    <string name="companion_service_label">Clash Companion</string>
+    <string name="companion_service_desc">Detects when Clash of Clans is in front so Clash Trackers can show a Paste JSON button. It only sees which app is open, never what is on screen.</string>
+    <string name="companion_section">Import assistant</string>
+    <string name="companion_enable">Clash Companion</string>
+    <string name="companion_enable_desc">While Clash of Clans is open, show a Paste JSON bar and notification that import your copied village without opening this app.</string>
+    <string name="companion_bar">Floating Paste JSON bar</string>
+    <string name="companion_notification">Paste JSON notification</string>
+    <string name="companion_access_on">Accessibility service: on</string>
+    <string name="companion_access_off">Accessibility service: off. Needed to know when the game is open.</string>
+    <string name="companion_open_access">Open Accessibility settings</string>
+    <string name="companion_notif_missing">Notifications are off, so only the bar will show.</string>
+    <string name="companion_grant_notif">Allow notifications</string>
+    <string name="companion_hint">If the bar stops appearing, turn off battery restrictions for this app. On Android 13+ a sideloaded app may need App info > ⋮ > Allow restricted settings before the service can be switched on. The paste screen flashes over the game for a moment because Android only lets the focused app read the clipboard.</string>
+    <string name="companion_open_app_info">Open App info</string>
 </resources>

@@ -103,6 +103,20 @@
             android:taskAffinity=""
             android:theme="@style/Theme.ClashTimer.Invisible" />
 
+        <!-- Clash Companion (companion/CompanionService.kt): window-change events only, switched on by the user in Accessibility settings. -->
+        <service
+            android:name=".companion.CompanionService"
+            android:exported="false"
+            android:label="@string/companion_service_label"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/companion_accessibility" />
+        </service>
+
         <!-- Widget configuration activity for choosing an account -->
         <activity
             android:name=".widget.WidgetConfigActivity"
