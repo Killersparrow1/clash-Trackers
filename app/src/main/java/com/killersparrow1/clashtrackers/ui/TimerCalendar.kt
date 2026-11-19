@@ -18,6 +18,21 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.calculateZoom
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.withFrameNanos
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -54,9 +69,14 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-private val DayWidth = 132.dp
+private val DefaultDayWidth = 132.dp
+private val MinDayWidth = 40.dp
+private val MaxDayWidth = 720.dp
+/** Upgrades queued per slot, and how far ahead (days) they are suggested. */
+private const val QueueMax = 12
+private const val QueueDays = 21L
 private val LabelWidth = 84.dp
-private val HeaderHeight = 32.dp
+private val HeaderHeight = 48.dp
 private val SectionHeight = 36.dp
 private val LaneHeight = 56.dp
 
@@ -108,7 +128,7 @@ internal fun TimerCalendar(model: WidgetModel, export: VillageExport?, now: Long
         val used = HashMap<Pair<Int, Int>, Int>()
         fun next(slot: PlanSlot, freeAt: Long): Bar? {
             if (export == null) return null
-            val plan = Bedtime.plan(data, export, slot, freeAt, window, zone, limit = 12) ?: return null
+            val plan = Bedtime.plan(data, export, slot, freeAt, window, zone, limit = 40) ?: return null
             val pick = plan.items.firstOrNull { (used[it.id to it.level] ?: 0) < it.count } ?: return null
             used[pick.id to pick.level] = (used[pick.id to pick.level] ?: 0) + 1
             val title = "${names.name(pick.id)} ➛ ${pick.level}"
@@ -119,12 +139,16 @@ internal fun TimerCalendar(model: WidgetModel, export: VillageExport?, now: Long
                 val run = running(row)
                 val bars = ArrayList<Bar>()
                 run?.let { bars += it }
-                // Up to three upgrades queued one after another, each starting when the one before it ends.
+                // Upgrades queued one after another, each starting when the one before it ends, up to QueueDays ahead.
                 var free = run?.end ?: now
-                if (slot != null) repeat(3) {
-                    val up = next(slot, free) ?: return@repeat
-                    bars += up
-                    free = up.end
+                if (slot != null) {
+                    var n = 0
+                    while (n < QueueMax && free < now + QueueDays * 86_400L) {
+                        val up = next(slot, free) ?: break
+                        bars += up
+                        free = up.end
+                        n++
+                    }
                 }
                 Lane(label(i, row), bars)
             }
@@ -132,10 +156,12 @@ internal fun TimerCalendar(model: WidgetModel, export: VillageExport?, now: Long
         fun idleLane(label: String, slot: PlanSlot): Lane {
             val bars = ArrayList<Bar>()
             var free = now
-            repeat(3) {
-                val up = next(slot, free) ?: return@repeat
+            var n = 0
+            while (n < QueueMax && free < now + QueueDays * 86_400L) {
+                val up = next(slot, free) ?: break
                 bars += up
                 free = up.end
+                n++
             }
             return Lane(label, bars)
         }
@@ -169,6 +195,28 @@ internal fun TimerCalendar(model: WidgetModel, export: VillageExport?, now: Long
     val t0 = remember(now / 3600) { Instant.ofEpochSecond(now).atZone(zone).toLocalDate().atStartOfDay(zone).toEpochSecond() }
     val lastEnd = sections.maxOfOrNull { s -> s.lanes.maxOfOrNull { l -> l.bars.maxOfOrNull { it.end } ?: 0L } ?: 0L } ?: 0L
     val days = (((maxOf(lastEnd, now + 2 * 86_400L) - t0) / 86_400L) + 1).toInt().coerceIn(3, 45)
+    // Zoom: pinch, or the + / - buttons. Zoomed in far enough, hour labels appear.
+    var dayDp by rememberSaveable { mutableFloatStateOf(DefaultDayWidth.value) }
+    val DayWidth = dayDp.dp
+    val hourStep = when {
+        dayDp >= 560f -> 1
+        dayDp >= 280f -> 3
+        dayDp >= 170f -> 6
+        else -> 0
+    }
+    val scroll = rememberScrollState()
+    val scope = rememberCoroutineScope()
+    var viewport by remember { mutableIntStateOf(0) }
+    fun zoomBy(factor: Float) {
+        val old = dayDp
+        val new = (old * factor).coerceIn(MinDayWidth.value, MaxDayWidth.value)
+        if (new == old) return
+        dayDp = new
+        // Keep the middle of the visible part where it is.
+        val ratio = new / old
+        val target = ((scroll.value + viewport / 2f) * ratio - viewport / 2f).toInt().coerceAtLeast(0)
+        scope.launch { withFrameNanos { }; scroll.scrollTo(target) }
+    }
     val hourWidth = DayWidth / 24f
     fun xOf(t: Long): Dp = hourWidth * ((t - t0) / 3600f)
 
@@ -180,6 +228,18 @@ internal fun TimerCalendar(model: WidgetModel, export: VillageExport?, now: Long
     val density = LocalDensity.current
 
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                stringResource(R.string.calendar_zoom_hint), style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f),
+            )
+            FilledTonalIconButton(onClick = { zoomBy(1f / 1.5f) }, enabled = dayDp > MinDayWidth.value) {
+                Text("−", style = MaterialTheme.typography.titleLarge)
+            }
+            FilledTonalIconButton(onClick = { zoomBy(1.5f) }, enabled = dayDp < MaxDayWidth.value) {
+                Text("+", style = MaterialTheme.typography.titleLarge)
+            }
+        }
         Row(Modifier.fillMaxWidth()) {
             // Slot names stay in place while the days scroll.
             Column(Modifier.width(LabelWidth)) {
@@ -196,7 +256,11 @@ internal fun TimerCalendar(model: WidgetModel, export: VillageExport?, now: Long
                 }
             }
             Box(
-                Modifier.weight(1f).horizontalScroll(rememberScrollState()),
+                Modifier
+                    .weight(1f)
+                    .onSizeChanged { viewport = it.width }
+                    .pinchZoom { zoomBy(it) }
+                    .horizontalScroll(scroll),
             ) {
                 Column(
                     Modifier
@@ -204,6 +268,13 @@ internal fun TimerCalendar(model: WidgetModel, export: VillageExport?, now: Long
                         .drawBehind {
                             val dayPx = DayWidth.toPx()
                             for (d in 0..days) drawLine(lineColor, Offset(d * dayPx, 0f), Offset(d * dayPx, size.height), 1.dp.toPx())
+                            if (hourStep > 0) {
+                                val faint = lineColor.copy(alpha = lineColor.alpha * 0.5f)
+                                for (d in 0 until days) for (h in hourStep until 24 step hourStep) {
+                                    val x = d * dayPx + dayPx * h / 24f
+                                    drawLine(faint, Offset(x, HeaderHeight.toPx()), Offset(x, size.height), 1.dp.toPx())
+                                }
+                            }
                         }
                         .drawWithContent {
                             drawContent()
@@ -214,8 +285,19 @@ internal fun TimerCalendar(model: WidgetModel, export: VillageExport?, now: Long
                     Row(Modifier.height(HeaderHeight)) {
                         for (d in 0 until days) {
                             val label = if (d == 0) today else dayFormat.format(Instant.ofEpochSecond(t0 + d * 86_400L).atZone(zone))
-                            Box(Modifier.width(DayWidth).fillMaxHeight(), contentAlignment = Alignment.Center) {
-                                Text(label, style = MaterialTheme.typography.labelLarge, color = if (d == 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface)
+                            Box(Modifier.width(DayWidth).fillMaxHeight()) {
+                                Text(
+                                    label, style = MaterialTheme.typography.labelLarge,
+                                    color = if (d == 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                                    maxLines = 1, modifier = Modifier.align(Alignment.TopStart).padding(start = 6.dp, top = 4.dp),
+                                )
+                                if (hourStep > 0) for (h in hourStep until 24 step hourStep) {
+                                    Text(
+                                        "%02d:00".format(h), style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1,
+                                        modifier = Modifier.align(Alignment.BottomStart).offset(x = hourWidth * h.toFloat() + 3.dp).padding(bottom = 4.dp),
+                                    )
+                                }
                             }
                         }
                     }
@@ -279,5 +361,22 @@ private fun CalendarBar(bar: Bar, kind: Int, now: Long, dayUnit: String, left: D
             val sub = if (bar.suggested) "${bar.sub} · ${Countdown.text(bar.end - bar.start, dayUnit)}" else Countdown.text((bar.end - now).coerceAtLeast(0), dayUnit)
             Text(sub, style = MaterialTheme.typography.bodySmall, color = onBar.copy(alpha = 0.8f), maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
+    }
+}
+
+/** Two-finger pinch reported as a zoom factor; the fingers are consumed so the list does not scroll while pinching. */
+private fun Modifier.pinchZoom(onZoom: (Float) -> Unit): Modifier = pointerInput(Unit) {
+    awaitEachGesture {
+        awaitFirstDown(requireUnconsumed = false)
+        do {
+            val event = awaitPointerEvent(PointerEventPass.Initial)
+            if (event.changes.count { it.pressed } >= 2) {
+                val zoom = event.calculateZoom()
+                if (zoom != 1f) {
+                    onZoom(zoom)
+                    event.changes.forEach { it.consume() }
+                }
+            }
+        } while (event.changes.any { it.pressed })
     }
 }

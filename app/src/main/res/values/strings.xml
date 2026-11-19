@@ -423,4 +423,5 @@
     <string name="companion_grant_notif">Allow notifications</string>
     <string name="companion_hint">If the bar stops appearing, turn off battery restrictions for this app. On Android 13+ a sideloaded app may need App info > ⋮ > Allow restricted settings before the service can be switched on. The paste screen flashes over the game for a moment because Android only lets the focused app read the clipboard.</string>
     <string name="companion_open_app_info">Open App info</string>
+    <string name="calendar_zoom_hint">Pinch or use + / − to zoom; zoom in for hours</string>
 </resources>
