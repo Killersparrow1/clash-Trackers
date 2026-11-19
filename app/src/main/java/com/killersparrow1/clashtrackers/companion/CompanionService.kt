@@ -122,22 +122,35 @@ class CompanionService : AccessibilityService() {
             y = (dm.heightPixels * fy - size / 2f).toInt()
         }
         view.setOnClickListener { startActivity(pasteIntent()) }
-        view.setOnLongClickListener { barDismissed = true; hideBar(); true } // hidden until the game is left and reopened
+        // One handler for tap, drag and long-press. (A framework long-click listener keeps running while a drag is
+        // consumed here, which hid the button mid-drag, so the long-press is timed by hand and cancelled by movement.)
         var sx = 0f; var sy = 0f; var ox = 0; var oy = 0; var moved = false
-        view.setOnTouchListener { _, e ->
+        val longPress = Runnable { if (!moved) { barDismissed = true; hideBar() } }
+        view.setOnTouchListener { v, e ->
             when (e.actionMasked) {
-                MotionEvent.ACTION_DOWN -> { sx = e.rawX; sy = e.rawY; ox = lp.x; oy = lp.y; moved = false; false }
+                MotionEvent.ACTION_DOWN -> {
+                    sx = e.rawX; sy = e.rawY; ox = lp.x; oy = lp.y; moved = false
+                    handler.postDelayed(longPress, 700)
+                }
                 MotionEvent.ACTION_MOVE -> {
-                    if (kotlin.math.abs(e.rawX - sx) > 10 * d || kotlin.math.abs(e.rawY - sy) > 10 * d) moved = true
-                    if (moved) { lp.x = ox + (e.rawX - sx).toInt(); lp.y = oy + (e.rawY - sy).toInt(); runCatching { wm.updateViewLayout(view, lp) } }
-                    moved
+                    if (kotlin.math.abs(e.rawX - sx) > 10 * d || kotlin.math.abs(e.rawY - sy) > 10 * d) {
+                        moved = true
+                        handler.removeCallbacks(longPress)
+                    }
+                    if (moved) {
+                        lp.x = (ox + (e.rawX - sx)).toInt().coerceIn(0, dm.widthPixels - size)
+                        lp.y = (oy + (e.rawY - sy)).toInt().coerceIn(0, dm.heightPixels - size)
+                        runCatching { wm.updateViewLayout(view, lp) }
+                    }
                 }
                 MotionEvent.ACTION_UP -> {
+                    handler.removeCallbacks(longPress)
                     if (moved) CompanionPrefs.setBarPosition(this, (lp.x + size / 2f) / dm.widthPixels, (lp.y + size / 2f) / dm.heightPixels)
-                    moved
+                    else v.performClick()
                 }
-                else -> moved
+                MotionEvent.ACTION_CANCEL -> handler.removeCallbacks(longPress)
             }
+            true
         }
         runCatching { wm.addView(view, lp); bar = view }
         showBadge()
