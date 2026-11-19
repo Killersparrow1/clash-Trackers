@@ -6,7 +6,7 @@
     <string name="action_close">Close</string>
     <string name="action_configure">Configure</string>
     <string name="action_delete">Delete</string>
-    <string name="nav_plan">Plan</string>
+    <string name="nav_plan">Progress</string>
     <string name="nav_clash">Clash</string>
     <string name="clash_tab_events">Events</string>
     <string name="clash_ev_clan_games">Clan Games</string>
