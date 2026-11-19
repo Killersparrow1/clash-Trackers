@@ -380,6 +380,7 @@ private fun VillageOverviewCard(model: WidgetModel, last: SyncLogEntry?, busy: B
     val failed = last?.ok == false
     var showDetails by rememberSaveable { mutableStateOf(false) }
     val context = LocalContext.current
+    val autoSync = remember { com.killersparrow1.clashtrackers.sync.ClipboardAutoSync.enabled(context) }
     val density = LocalDensity.current
     val picture = remember(model.townHall) {
         WidgetIcons.get(context).townHall(model.townHall, with(density) { 96.dp.roundToPx() })?.asImageBitmap()
@@ -430,23 +431,26 @@ private fun VillageOverviewCard(model: WidgetModel, last: SyncLogEntry?, busy: B
                 last?.let { SelectionContainer { Text(SyncRunner.plainText(it.message), style = MaterialTheme.typography.bodyMedium) } }
                 Text(stringResource(R.string.sync_retry_hint), style = MaterialTheme.typography.bodyMedium)
             }
-            Button(
-                onClick = onSync,
-                enabled = !busy,
-                modifier = Modifier.fillMaxWidth().heightIn(min = ButtonDefaults.MediumContainerHeight),
-                shapes = ButtonDefaults.shapesFor(ButtonDefaults.MediumContainerHeight),
-                contentPadding = ButtonDefaults.contentPaddingFor(ButtonDefaults.MediumContainerHeight),
-            ) {
-                if (busy) {
-                    LoadingIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                } else {
-                    Icon(painterResource(R.drawable.ic_sync), contentDescription = null, modifier = Modifier.size(ButtonDefaults.MediumIconSize))
+            // The village is read from the clipboard automatically, so the button is only for a failed sync or when auto-sync is off.
+            if (failed || !autoSync) {
+                Button(
+                    onClick = onSync,
+                    enabled = !busy,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = ButtonDefaults.MediumContainerHeight),
+                    shapes = ButtonDefaults.shapesFor(ButtonDefaults.MediumContainerHeight),
+                    contentPadding = ButtonDefaults.contentPaddingFor(ButtonDefaults.MediumContainerHeight),
+                ) {
+                    if (busy) {
+                        LoadingIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    } else {
+                        Icon(painterResource(R.drawable.ic_sync), contentDescription = null, modifier = Modifier.size(ButtonDefaults.MediumIconSize))
+                    }
+                    Spacer(Modifier.size(8.dp))
+                    Text(
+                        stringResource(if (busy) R.string.syncing else if (failed) R.string.sync_retry else R.string.sync_from_clipboard),
+                        style = ButtonDefaults.textStyleFor(ButtonDefaults.MediumContainerHeight),
+                    )
                 }
-                Spacer(Modifier.size(8.dp))
-                Text(
-                    stringResource(if (busy) R.string.syncing else if (failed) R.string.sync_retry else R.string.sync_from_clipboard),
-                    style = ButtonDefaults.textStyleFor(ButtonDefaults.MediumContainerHeight),
-                )
             }
             if (last != null && !failed) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
