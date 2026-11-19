@@ -105,6 +105,7 @@ fun TimerDashboard(
 ) {
     var filter by rememberSaveable { mutableStateOf(TimerFilter.ALL) }
     var showHelp by rememberSaveable { mutableStateOf(false) }
+    var calendar by rememberSaveable { mutableStateOf(false) }
     val timers = remember(model, filter) { model.timers(filter) }
 
     // Filters collapse when the list is pushed up and come back when it is pulled down (or at the very top).
@@ -151,6 +152,14 @@ fun TimerDashboard(
                         modifier = Modifier.heightIn(min = 48.dp),
                     )
                 }
+                // Switches the list of cards for the calendar timeline.
+                FilterChip(
+                    selected = calendar,
+                    onClick = { calendar = !calendar },
+                    label = { Text(stringResource(R.string.calendar_toggle)) },
+                    leadingIcon = if (calendar) { { Icon(painterResource(R.drawable.ic_check), contentDescription = null) } } else null,
+                    modifier = Modifier.heightIn(min = 48.dp),
+                )
             }
           }
         }
@@ -202,7 +211,9 @@ fun TimerDashboard(
                         modifier = Modifier.padding(top = 8.dp),
                     )
                 }
-                if (timers.isEmpty()) {
+                if (calendar) {
+                    item(key = "calendar", span = { GridItemSpan(maxLineSpan) }) { TimerCalendar(model, export, now, filter) }
+                } else if (timers.isEmpty()) {
                     item(key = "empty_filter", span = { GridItemSpan(maxLineSpan) }) {
                         Card(
                             modifier = Modifier.fillMaxWidth(),
@@ -218,7 +229,7 @@ fun TimerDashboard(
                         }
                     }
                 }
-                items(timers, key = { it.row.jobKey ?: "${it.category}_${it.row.name}" }) { timer ->
+                if (!calendar) items(timers, key = { it.row.jobKey ?: "${it.category}_${it.row.name}" }) { timer ->
                     TimerCard(timer)
                 }
             }

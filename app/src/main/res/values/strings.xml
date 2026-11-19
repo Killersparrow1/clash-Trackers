@@ -393,4 +393,9 @@
     <string name="tabbar_title">Tab bar</string>
     <string name="tabbar_floating">Floating tab bar</string>
     <string name="tabbar_floating_desc">A rounded bar that floats above the page and hides while you scroll down. Turn off for the usual bar fixed at the bottom.</string>
+    <string name="calendar_toggle">Calendar</string>
+    <string name="calendar_slot">Slot %1$d</string>
+    <string name="calendar_today">Today</string>
+    <string name="calendar_next">Up next</string>
+    <string name="calendar_note">Solid bars are running upgrades. Dashed bars are the next upgrade Bedtime level up would start, using base times and your sleep hours, so they are estimates.</string>
 </resources>
