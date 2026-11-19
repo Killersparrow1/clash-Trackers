@@ -178,6 +178,7 @@ fun SettingsSection(
             Text(stringResource(R.string.companion_enable_desc), style = MaterialTheme.typography.bodyMedium)
             if (cOn) {
                 SwitchRow(stringResource(R.string.companion_bar), cBar) { on -> cBar = on; CompanionPrefs.setBar(context, on); CompanionService.refresh() }
+                if (cBar) Text(stringResource(R.string.companion_bar_hint), style = MaterialTheme.typography.bodySmall)
                 SwitchRow(stringResource(R.string.companion_notification), cNotif) { on ->
                     cNotif = on; CompanionPrefs.setNotification(context, on); CompanionService.refresh()
                 }

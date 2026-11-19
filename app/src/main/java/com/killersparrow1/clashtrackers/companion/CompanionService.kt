@@ -16,7 +16,9 @@ import android.view.MotionEvent
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import android.view.inputmethod.InputMethodManager
-import android.widget.LinearLayout
+import android.view.View
+import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.app.NotificationCompat
 import com.killersparrow1.clashtrackers.R
@@ -34,10 +36,11 @@ class CompanionService : AccessibilityService() {
     private val handler = Handler(Looper.getMainLooper())
     private var gameActive = false
     private var barDismissed = false
-    private var bar: LinearLayout? = null
-    private var label: TextView? = null
+    private var bar: View? = null
+    private var badge: TextView? = null
     private var status: String? = null
-    private val clearStatus = Runnable { status = null; label?.text = getString(R.string.companion_paste); postNotification() }
+    private var lastResult: Boolean? = null
+    private val clearStatus = Runnable { status = null; lastResult = null; showBadge(); postNotification() }
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -67,7 +70,8 @@ class CompanionService : AccessibilityService() {
     /** Result of an import started from the bar or the notification. */
     fun showResult(ok: Boolean, message: String) {
         status = (if (ok) "✓ " else "✕ ") + message
-        label?.text = status
+        lastResult = ok
+        showBadge()
         postNotification()
         handler.removeCallbacks(clearStatus)
         handler.postDelayed(clearStatus, 5000)
@@ -81,51 +85,78 @@ class CompanionService : AccessibilityService() {
     private fun showBar() {
         if (bar != null) return
         val wm = getSystemService(WINDOW_SERVICE) as WindowManager
-        val d = resources.displayMetrics.density
-        fun tv(text: String, click: () -> Unit) = TextView(this).apply {
-            this.text = text
+        val dm = resources.displayMetrics
+        val d = dm.density
+        val size = (56 * d).toInt()
+        // The app's own gold game-style button (same drawable family as the widget's Sync button) with its refresh arrow.
+        val icon = ImageView(this).apply {
+            setImageResource(R.drawable.ic_sync)
+            scaleType = ImageView.ScaleType.FIT_CENTER
+            setPadding((13 * d).toInt(), (11 * d).toInt(), (13 * d).toInt(), (15 * d).toInt())
+        }
+        val badge = TextView(this).apply {
+            textSize = 11f
             setTextColor(Color.WHITE)
-            textSize = 14f
-            setPadding((14 * d).toInt(), (10 * d).toInt(), (14 * d).toInt(), (10 * d).toInt())
-            setOnClickListener { click() }
+            gravity = Gravity.CENTER
+            visibility = View.GONE
+            background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(Color.GRAY); setStroke((1.5f * d).toInt(), Color.WHITE) }
         }
-        val paste = tv(getString(R.string.companion_paste)) { startActivity(pasteIntent()) }
-        val close = tv("✕") { barDismissed = true; hideBar() }
-        label = paste
-        val view = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            background = GradientDrawable().apply { setColor(0xEE1F2A44.toInt()); cornerRadius = 28 * d }
+        val view = FrameLayout(this).apply {
+            setBackgroundResource(R.drawable.btn_sync_clash)
             elevation = 6 * d
-            addView(paste)
-            addView(close)
+            contentDescription = getString(R.string.companion_paste)
+            addView(icon, FrameLayout.LayoutParams(size, size))
+            addView(badge, FrameLayout.LayoutParams((20 * d).toInt(), (20 * d).toInt(), Gravity.TOP or Gravity.END))
         }
+        this.badge = badge
         val lp = WindowManager.LayoutParams(
-            WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT,
+            size, size,
             WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             PixelFormat.TRANSLUCENT,
-        ).apply { gravity = Gravity.TOP or Gravity.START; x = (16 * d).toInt(); y = (120 * d).toInt() }
-        // Drag by the bar background/label; a plain tap still reaches the buttons.
+        ).apply {
+            gravity = Gravity.TOP or Gravity.START
+            // Default: just above the Build button, under Shop; drag to fine-tune, the spot is remembered.
+            val (fx, fy) = CompanionPrefs.barPosition(this@CompanionService)
+            x = (dm.widthPixels * fx - size / 2f).toInt()
+            y = (dm.heightPixels * fy - size / 2f).toInt()
+        }
+        view.setOnClickListener { startActivity(pasteIntent()) }
+        view.setOnLongClickListener { barDismissed = true; hideBar(); true } // hidden until the game is left and reopened
         var sx = 0f; var sy = 0f; var ox = 0; var oy = 0; var moved = false
         view.setOnTouchListener { _, e ->
             when (e.actionMasked) {
                 MotionEvent.ACTION_DOWN -> { sx = e.rawX; sy = e.rawY; ox = lp.x; oy = lp.y; moved = false; false }
                 MotionEvent.ACTION_MOVE -> {
-                    if (kotlin.math.abs(e.rawX - sx) > 12 * d || kotlin.math.abs(e.rawY - sy) > 12 * d) moved = true
+                    if (kotlin.math.abs(e.rawX - sx) > 10 * d || kotlin.math.abs(e.rawY - sy) > 10 * d) moved = true
                     if (moved) { lp.x = ox + (e.rawX - sx).toInt(); lp.y = oy + (e.rawY - sy).toInt(); runCatching { wm.updateViewLayout(view, lp) } }
+                    moved
+                }
+                MotionEvent.ACTION_UP -> {
+                    if (moved) CompanionPrefs.setBarPosition(this, (lp.x + size / 2f) / dm.widthPixels, (lp.y + size / 2f) / dm.heightPixels)
                     moved
                 }
                 else -> moved
             }
         }
         runCatching { wm.addView(view, lp); bar = view }
-        if (status != null) label?.text = status
+        showBadge()
+    }
+
+    /** Small ✓ (green) or ✕ (red) on the button after an import, so the result is visible without leaving the game. */
+    private fun showBadge() {
+        val b = badge ?: return
+        val r = lastResult
+        if (r == null) { b.visibility = View.GONE; return }
+        b.text = if (r) "✓" else "✕"
+        (b.background as? GradientDrawable)?.setColor(if (r) 0xFF2E9E4F.toInt() else 0xFFD13B3B.toInt())
+        b.visibility = View.VISIBLE
     }
 
     private fun hideBar() {
         val v = bar ?: return
         runCatching { (getSystemService(WINDOW_SERVICE) as WindowManager).removeView(v) }
-        bar = null; label = null
+        bar = null; badge = null
     }
 
     private fun postNotification() {

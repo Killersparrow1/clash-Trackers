@@ -414,7 +414,8 @@
     <string name="companion_section">Import assistant</string>
     <string name="companion_enable">Clash Companion</string>
     <string name="companion_enable_desc">While Clash of Clans is open, show a Paste JSON bar and notification that import your copied village without opening this app.</string>
-    <string name="companion_bar">Floating Paste JSON bar</string>
+    <string name="companion_bar">Floating import button</string>
+    <string name="companion_bar_hint">A gold button above the Build button. Tap to import the copied village, drag to move it, long-press to hide it until you reopen the game.</string>
     <string name="companion_notification">Paste JSON notification</string>
     <string name="companion_access_on">Accessibility service: on</string>
     <string name="companion_access_off">Accessibility service: off. Needed to know when the game is open.</string>
