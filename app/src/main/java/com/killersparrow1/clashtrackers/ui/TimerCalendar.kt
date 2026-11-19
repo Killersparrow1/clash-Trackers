@@ -116,9 +116,16 @@ internal fun TimerCalendar(model: WidgetModel, export: VillageExport?, now: Long
         fun lanes(rows: List<WidgetRow>, slot: PlanSlot?, label: (Int, WidgetRow) -> String): List<Lane> =
             rows.mapIndexed { i, row ->
                 val run = running(row)
-                val free = run?.end ?: now
-                val upNext = slot?.let { next(it, free) }
-                Lane(label(i, row), listOfNotNull(run, upNext))
+                val bars = ArrayList<Bar>()
+                run?.let { bars += it }
+                // Up to three upgrades queued one after another, each starting when the one before it ends.
+                var free = run?.end ?: now
+                if (slot != null) repeat(3) {
+                    val up = next(slot, free) ?: return@repeat
+                    bars += up
+                    free = up.end
+                }
+                Lane(label(i, row), bars)
             }
         buildList {
             if (filter == TimerFilter.ALL || filter == TimerFilter.BUILDERS) {

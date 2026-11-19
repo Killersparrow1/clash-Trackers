@@ -397,5 +397,5 @@
     <string name="calendar_slot">Slot %1$d</string>
     <string name="calendar_today">Today</string>
     <string name="calendar_next">Up next</string>
-    <string name="calendar_note">Solid bars are running upgrades. Dashed bars are the next upgrade Bedtime level up would start, using base times and your sleep hours, so they are estimates.</string>
+    <string name="calendar_note">Solid bars are running upgrades. Dashed bars are the next upgrades Bedtime level up would start, one after another, using base times and your sleep hours, so they are estimates.</string>
 </resources>
