@@ -396,7 +396,7 @@ private fun VillageOverviewCard(model: WidgetModel, last: SyncLogEntry?, busy: B
                 }
                 if (picture != null) {
                     Spacer(Modifier.size(12.dp))
-                    Image(bitmap = picture, contentDescription = null, modifier = Modifier.size(96.dp))
+                    Image(bitmap = picture, contentDescription = null, modifier = Modifier.iconTile(96.dp))
                 }
             }
             model.nextRunningTimer()?.let { next ->
@@ -552,7 +552,7 @@ private fun TimerCard(timer: DashboardTimer) {
                     Image(
                         bitmap = icon,
                         contentDescription = null,
-                        modifier = Modifier.size(48.dp).clip(MaterialTheme.shapes.medium),
+                        modifier = Modifier.iconTile(48.dp),
                     )
                 }
                 Text(row.label.replace(" → ", " ➛ "), style = MaterialTheme.typography.titleLargeEmphasized)

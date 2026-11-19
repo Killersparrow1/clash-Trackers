@@ -202,7 +202,7 @@ private fun BuildingImage(buildingId: Int?, size: androidx.compose.ui.unit.Dp) {
     val bitmap = remember(buildingId) {
         buildingId?.let { WidgetIcons.get(context).bitmapForLevel(it, null, with(density) { size.roundToPx() })?.asImageBitmap() }
     }
-    if (bitmap != null) Image(bitmap, contentDescription = null, modifier = Modifier.size(size)) else Spacer(Modifier.size(size))
+    if (bitmap != null) Image(bitmap, contentDescription = null, modifier = Modifier.iconTile(size)) else Spacer(Modifier.size(size))
 }
 
 /** One line of the card: a small picture (a building from the bundled icons, or a resource drawable), label and value. */
@@ -221,7 +221,7 @@ private fun RoadRow(
     }
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         when {
-            building != null -> Image(building, contentDescription = null, modifier = Modifier.size(32.dp))
+            building != null -> Image(building, contentDescription = null, modifier = Modifier.iconTile(32.dp))
             iconRes != null -> Image(painterResource(iconRes), contentDescription = null, modifier = Modifier.size(32.dp).padding(2.dp))
             else -> Spacer(Modifier.size(32.dp))
         }

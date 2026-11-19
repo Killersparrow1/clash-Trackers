@@ -294,7 +294,7 @@ private fun CandidateRow(name: String, item: PlanCandidate, doneText: String, da
             horizontalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             if (icon != null) {
-                Image(icon, contentDescription = null, modifier = Modifier.size(44.dp).clip(RoundedCornerShape(12.dp)).background(MaterialTheme.colorScheme.surfaceContainerHighest).padding(3.dp))
+                Image(icon, contentDescription = null, modifier = Modifier.iconTile(44.dp))
             } else {
                 Spacer(Modifier.size(44.dp))
             }
