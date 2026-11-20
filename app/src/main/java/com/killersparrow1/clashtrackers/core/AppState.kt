@@ -74,6 +74,8 @@ data class GlobalSettings(
     val notificationsEnabled: Boolean = true,
     val liveCountdown: Boolean = true,
     val widgetTheme: String = "material_you",
+    /** The bottom tabs float as a pill that hides on scroll; off = the usual docked bar that always stays. */
+    val floatingTabBar: Boolean = true,
 ) {
     fun encode(): String = AppState.JSON.encodeToString(serializer(), this)
     companion object {
@@ -116,6 +118,8 @@ data class AppSettings(
      */
     val playerName: String? = null,
     val widgetTheme: String = "material_you",
+    /** The bottom tabs float as a pill that hides on scroll; off = the usual docked bar that always stays. */
+    val floatingTabBar: Boolean = true,
 ) {
     /** The name the widget shows: [playerName], or [DEFAULT_PLAYER_NAME] if it is missing or blank. */
     val displayName: String get() = playerName?.trim()?.takeIf { it.isNotEmpty() } ?: DEFAULT_PLAYER_NAME

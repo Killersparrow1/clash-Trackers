@@ -23,6 +23,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ShortNavigationBar
+import androidx.compose.material3.ShortNavigationBarArrangement
+import androidx.compose.material3.ShortNavigationBarItem
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -131,6 +134,9 @@ fun ClashTrackersContent(
     LaunchedEffect(barState.subVisible, reduced) {
         subHide.animateTo(if (barState.subVisible || reduced) 0f else 1f, spring(dampingRatio = 0.9f, stiffness = Spring.StiffnessMedium))
     }
+    val floatingOn = settings.floatingTabBar
+    // Switching to the docked bar brings everything back.
+    LaunchedEffect(floatingOn) { if (!floatingOn) barState.show() }
     val barItems = remember { Destination.entries.map { TabBarItem(it.labelRes, it.icon) } }
     val supportTaps = remember { mutableListOf<Long>() }
     // Tap the Settings tab 11 times within 4 seconds to open the hidden developer options.
@@ -158,6 +164,7 @@ fun ClashTrackersContent(
 
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val wide = maxWidth >= 600.dp
+        val floating = floatingOn && !wide
         Scaffold(
             topBar = {
                 TopAppBar(title = {
@@ -187,8 +194,22 @@ fun ClashTrackersContent(
                     }
                 })
             },
+            bottomBar = {
+                if (!wide && !floatingOn) {
+                    ShortNavigationBar(arrangement = ShortNavigationBarArrangement.EqualWeight) {
+                        Destination.entries.forEach { entry ->
+                            ShortNavigationBarItem(
+                                selected = destination == entry,
+                                onClick = { navigate(entry) },
+                                icon = { Icon(painterResource(entry.icon), contentDescription = null) },
+                                label = { Text(stringResource(entry.labelRes)) },
+                            )
+                        }
+                    }
+                }
+            },
             snackbarHost = {
-                Box(Modifier.padding(bottom = if (wide) 0.dp else FloatingBar.ContentInset - 4.dp)) { SnackbarHost(snackbarHost) }
+                Box(Modifier.padding(bottom = if (floating) FloatingBar.ContentInset - 4.dp else 0.dp)) { SnackbarHost(snackbarHost) }
             },
         ) { padding ->
             Row(Modifier.fillMaxSize().padding(padding)) {
@@ -205,10 +226,10 @@ fun ClashTrackersContent(
                     }
                 }
                 Box(Modifier.weight(1f).fillMaxSize(), contentAlignment = Alignment.TopCenter) {
-                    CompositionLocalProvider(LocalBarInset provides (if (wide) 0.dp else FloatingBar.ContentInset)) {
+                    CompositionLocalProvider(LocalBarInset provides ((if (floating) FloatingBar.ContentInset else 0.dp) + SubTabsHeight)) {
                     Column(
                         Modifier.widthIn(max = 840.dp).fillMaxSize()
-                            .then(if (wide || reduced) Modifier else Modifier.nestedScroll(barState.connection)),
+                            .then(if (!floating || reduced) Modifier else Modifier.nestedScroll(barState.connection)),
                     ) {
                         val siblings = Page.entries.filter { it.dest == destination }
                         if (siblings.size > 1) {
@@ -286,7 +307,7 @@ fun ClashTrackersContent(
                 }
             }
         }
-        if (!wide) {
+        if (floating) {
             FloatingTabBar(
                 items = barItems,
                 selectedIndex = destination.ordinal,

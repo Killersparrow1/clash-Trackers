@@ -32,6 +32,13 @@ Built with **Material 3 Expressive**, the Clash typeface, a deterministic boost 
 </p>
 
 ---
+## In Game Village Import
+<p align="center">
+  <img src="docs/screenshots/On_game_village_import.png" alt="App Looks- screenshots" width="900">
+
+  <p align="center"> Draggable on-screen Village Import floating button, removable with a double tap. </p>
+</p>
+
 ## Looks
 <p align="center">
   <img src="docs/screenshots/applooks.png" alt="App Looks - Screenshots" width="900">
@@ -71,7 +78,7 @@ Built with **Material 3 Expressive**, the Clash typeface, a deterministic boost 
 
 ### Plan tab
 - **Road to max**: time and Gold / Elixir / Dark Elixir still needed to max your Town Hall (buildings, defences, traps, heroes, lab, pets and an optional walls total). An estimate from your export plus ClashKing's game data; potions, helpers, events and the Gold Pass are not counted.
-- **Bedtime level up**: set when you sleep and it lists what to start in each free builder, lab or pet slot so upgrades run through the night and finish after you wake.
+- **Bedtime level up**: set when you sleep and it lists what to start in each free builder, lab, pet, Builder Base builder or Star Laboratory slot so upgrades run through the night and finish after you wake.
 - A **Road to max widget** shows the same numbers on the home screen.
 
 ### Clash tab
@@ -203,7 +210,6 @@ cd clash-Trackers
 - **Original project**: built upon [Kuswaa/clash-timers](https://github.com/Kuswaa/clash-timers); Material 3 UI ideas from [Hy4ri/clash-timers](https://github.com/Hy4ri/clash-timers/tree/feat/material-app-ui).
 - **Built-in icons** (shown until the current pictures download) and the Study Soup and Clock Tower level images: [clash-of-clans-data](https://github.com/chiefpansancolt/clash-of-clans-data) by Christopher Pezza (MIT). This is the only thing still taken from that package.
 - **Fonts**: [Lilita One](app/src/main/res/font/lilita_one.ttf) by Juan Montoreano and [Doto](https://github.com/oliverlalan/Doto) by The Doto Project Authors, both SIL Open Font License 1.1 (licences in `app/src/main/assets/licenses/`).
-- **Finished-upgrade sound**: game audio from Clash of Clans, © Supercell, used under the Fan Content Policy and not covered by the MIT License. Source: [Zedge mirror](https://www.zedge.net/notification-sounds/2e5dc20a-223a-460a-8ab7-14ac75b6c127).
 
 Thank you to everyone on [r/ClashOfClans](https://www.reddit.com/r/ClashOfClans/) who tried the app, reported bugs, shared test exports and suggested features. Contributions are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md).
 

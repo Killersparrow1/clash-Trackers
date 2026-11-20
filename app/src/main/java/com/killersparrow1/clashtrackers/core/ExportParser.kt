@@ -130,7 +130,10 @@ object ExportParser {
     /** Owned copies per data id: `cnt` copies at `lvl`; an entry with a `timer` is being upgraded, so it counts as `lvl + 1`. */
     private fun ownedLevels(root: JsonObject): Map<Int, List<Int>> {
         val owned = HashMap<Int, MutableList<Int>>()
-        for (section in listOf("buildings", "traps", "guardians", "units", "spells", "siege_machines", "heroes", "pets")) {
+        for (section in listOf(
+            "buildings", "traps", "guardians", "units", "spells", "siege_machines", "heroes", "pets",
+            "buildings2", "traps2", "units2", "heroes2",
+        )) {
             for (e in root.array(section).objects()) {
                 val id = e.int("data") ?: continue
                 val level = (e.int("lvl") ?: 0) + if (e.long("timer") != null) 1 else 0

@@ -114,6 +114,22 @@ internal fun EventsPage(now: Long) {
                         EventsStore.setAuto(context, it)
                     })
                 }
+                var alerts by remember { mutableStateOf(com.killersparrow1.clashtrackers.notify.EventAlerts.enabled(context)) }
+                androidx.compose.foundation.layout.Row(
+                    Modifier.fillMaxWidth(),
+                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                ) {
+                    Text(stringResource(R.string.ev_settings_enable), modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+                    androidx.compose.material3.Switch(checked = alerts, onCheckedChange = {
+                        alerts = it
+                        com.killersparrow1.clashtrackers.notify.EventAlerts.setEnabled(context, it)
+                    })
+                }
+                Text(
+                    stringResource(R.string.ev_settings_more),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
                 OutlinedButton(
                     enabled = !refreshing,
                     onClick = {
@@ -127,6 +143,7 @@ internal fun EventsPage(now: Long) {
                                 val e = clashKing.exceptionOrNull() ?: schedule.exceptionOrNull()
                                 refreshError = e?.message ?: e?.javaClass?.simpleName
                             }
+                            com.killersparrow1.clashtrackers.notify.EventAlerts.schedule(context)
                             refreshing = false
                         }
                     },
@@ -144,10 +161,11 @@ internal fun EventsAutoRefresh() {
     androidx.compose.runtime.LaunchedEffect(Unit) {
         EventsStore.refreshIfDue(context)
         ClashKingDatesStore.refreshIfDue(context)
+        com.killersparrow1.clashtrackers.notify.EventAlerts.schedule(context) // new dates can move an alert
     }
 }
 
-private fun eventName(id: String): Int = when (id) {
+internal fun eventName(id: String): Int = when (id) {
     GameEvents.CLAN_GAMES -> R.string.clash_ev_clan_games
     GameEvents.RAID_WEEKEND -> R.string.clash_ev_raid
     GameEvents.CWL_SIGNUP -> R.string.clash_ev_cwl_signup

@@ -105,6 +105,7 @@ fun TimerDashboard(
 ) {
     var filter by rememberSaveable { mutableStateOf(TimerFilter.ALL) }
     var showHelp by rememberSaveable { mutableStateOf(false) }
+    var calendar by rememberSaveable { mutableStateOf(false) }
     val timers = remember(model, filter) { model.timers(filter) }
 
     // Filters collapse when the list is pushed up and come back when it is pulled down (or at the very top).
@@ -131,26 +132,13 @@ fun TimerDashboard(
     Column(modifier.fillMaxSize().nestedScroll(scrollConnection)) {
         // The account switcher and the filter chips fade and collapse together; the app title stays put.
         AnimatedVisibility(
-            visible = (accounts.isNotEmpty() || model.hasData) && showFilters,
+            visible = accounts.isNotEmpty() && showFilters,
             enter = fadeIn() + expandVertically(),
             exit = fadeOut() + shrinkVertically(),
         ) {
           Column {
             if (accounts.isNotEmpty()) {
                 AccountSwitcherBar(accounts, selectedTag, onSelectAccount, onRenameAccount, onDeleteAccount)
-            }
-            if (model.hasData) Row(
-                Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                TimerFilter.entries.forEach { entry ->
-                    FilterChip(
-                        selected = filter == entry,
-                        onClick = { filter = entry },
-                        label = { Text(stringResource(entry.labelRes)) },
-                        modifier = Modifier.heightIn(min = 48.dp),
-                    )
-                }
             }
           }
         }
@@ -196,13 +184,11 @@ fun TimerDashboard(
 
             if (model.hasData) {
                 item(key = "heading", span = { GridItemSpan(maxLineSpan) }) {
-                    Text(
-                        if (filter == TimerFilter.ALL) stringResource(R.string.village_upgrades) else stringResource(R.string.upgrades_filtered, stringResource(filter.labelRes)),
-                        style = MaterialTheme.typography.titleMediumEmphasized,
-                        modifier = Modifier.padding(top = 8.dp),
-                    )
+                    UpgradesHeader(filter, { filter = it }, calendar, { calendar = it })
                 }
-                if (timers.isEmpty()) {
+                if (calendar) {
+                    item(key = "calendar", span = { GridItemSpan(maxLineSpan) }) { TimerCalendar(model, export, now, filter) }
+                } else if (timers.isEmpty()) {
                     item(key = "empty_filter", span = { GridItemSpan(maxLineSpan) }) {
                         Card(
                             modifier = Modifier.fillMaxWidth(),
@@ -218,7 +204,7 @@ fun TimerDashboard(
                         }
                     }
                 }
-                items(timers, key = { it.row.jobKey ?: "${it.category}_${it.row.name}" }) { timer ->
+                if (!calendar) items(timers, key = { it.row.jobKey ?: "${it.category}_${it.row.name}" }) { timer ->
                     TimerCard(timer)
                 }
             }
@@ -369,6 +355,7 @@ private fun VillageOverviewCard(model: WidgetModel, last: SyncLogEntry?, busy: B
     val failed = last?.ok == false
     var showDetails by rememberSaveable { mutableStateOf(false) }
     val context = LocalContext.current
+    val autoSync = remember { com.killersparrow1.clashtrackers.sync.ClipboardAutoSync.enabled(context) }
     val density = LocalDensity.current
     val picture = remember(model.townHall) {
         WidgetIcons.get(context).townHall(model.townHall, with(density) { 96.dp.roundToPx() })?.asImageBitmap()
@@ -396,7 +383,7 @@ private fun VillageOverviewCard(model: WidgetModel, last: SyncLogEntry?, busy: B
                 }
                 if (picture != null) {
                     Spacer(Modifier.size(12.dp))
-                    Image(bitmap = picture, contentDescription = null, modifier = Modifier.size(96.dp))
+                    Image(bitmap = picture, contentDescription = null, modifier = Modifier.iconTile(96.dp))
                 }
             }
             model.nextRunningTimer()?.let { next ->
@@ -419,23 +406,26 @@ private fun VillageOverviewCard(model: WidgetModel, last: SyncLogEntry?, busy: B
                 last?.let { SelectionContainer { Text(SyncRunner.plainText(it.message), style = MaterialTheme.typography.bodyMedium) } }
                 Text(stringResource(R.string.sync_retry_hint), style = MaterialTheme.typography.bodyMedium)
             }
-            Button(
-                onClick = onSync,
-                enabled = !busy,
-                modifier = Modifier.fillMaxWidth().heightIn(min = ButtonDefaults.MediumContainerHeight),
-                shapes = ButtonDefaults.shapesFor(ButtonDefaults.MediumContainerHeight),
-                contentPadding = ButtonDefaults.contentPaddingFor(ButtonDefaults.MediumContainerHeight),
-            ) {
-                if (busy) {
-                    LoadingIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                } else {
-                    Icon(painterResource(R.drawable.ic_sync), contentDescription = null, modifier = Modifier.size(ButtonDefaults.MediumIconSize))
+            // The village is read from the clipboard automatically, so the button is only for a failed sync or when auto-sync is off.
+            if (failed || !autoSync) {
+                Button(
+                    onClick = onSync,
+                    enabled = !busy,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = ButtonDefaults.MediumContainerHeight),
+                    shapes = ButtonDefaults.shapesFor(ButtonDefaults.MediumContainerHeight),
+                    contentPadding = ButtonDefaults.contentPaddingFor(ButtonDefaults.MediumContainerHeight),
+                ) {
+                    if (busy) {
+                        LoadingIndicator(Modifier.size(24.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    } else {
+                        Icon(painterResource(R.drawable.ic_sync), contentDescription = null, modifier = Modifier.size(ButtonDefaults.MediumIconSize))
+                    }
+                    Spacer(Modifier.size(8.dp))
+                    Text(
+                        stringResource(if (busy) R.string.syncing else if (failed) R.string.sync_retry else R.string.sync_from_clipboard),
+                        style = ButtonDefaults.textStyleFor(ButtonDefaults.MediumContainerHeight),
+                    )
                 }
-                Spacer(Modifier.size(8.dp))
-                Text(
-                    stringResource(if (busy) R.string.syncing else if (failed) R.string.sync_retry else R.string.sync_from_clipboard),
-                    style = ButtonDefaults.textStyleFor(ButtonDefaults.MediumContainerHeight),
-                )
             }
             if (last != null && !failed) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -552,7 +542,7 @@ private fun TimerCard(timer: DashboardTimer) {
                     Image(
                         bitmap = icon,
                         contentDescription = null,
-                        modifier = Modifier.size(48.dp).clip(MaterialTheme.shapes.medium),
+                        modifier = Modifier.iconTile(48.dp),
                     )
                 }
                 Text(row.label.replace(" → ", " ➛ "), style = MaterialTheme.typography.titleLargeEmphasized)

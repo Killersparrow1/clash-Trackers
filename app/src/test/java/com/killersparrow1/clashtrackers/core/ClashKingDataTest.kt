@@ -60,7 +60,10 @@ class ClashKingDataTest {
         val builder = """{"_id":4000033,"name":"Beta Minion","village":"builderBase","upgrade_resource":"Gold","levels":[${lLevel(1, 10, 100, 1)},${lLevel(2, 0, 0, 2)}]}"""
         val d = convert(file(troops = "$superTroop,$builder"))
         assertNull(d.items[4000001])
-        assertNull(d.items[4000033])
+        // Builder Base troops are kept in their own kind: Star Laboratory troops, levelled by Builder Hall level.
+        val beta = d.items.getValue(4000033)
+        assertEquals('S', beta.kind)
+        assertEquals(listOf(MaxStep(0, 0, 0, 1), MaxStep(10, 100, 0, 2)), beta.steps)
     }
 
     @Test fun wallsCanBePaidInGoldOrElixirFromLevelFive() {
