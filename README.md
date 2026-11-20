@@ -210,7 +210,6 @@ cd clash-Trackers
 - **Original project**: built upon [Kuswaa/clash-timers](https://github.com/Kuswaa/clash-timers); Material 3 UI ideas from [Hy4ri/clash-timers](https://github.com/Hy4ri/clash-timers/tree/feat/material-app-ui).
 - **Built-in icons** (shown until the current pictures download) and the Study Soup and Clock Tower level images: [clash-of-clans-data](https://github.com/chiefpansancolt/clash-of-clans-data) by Christopher Pezza (MIT). This is the only thing still taken from that package.
 - **Fonts**: [Lilita One](app/src/main/res/font/lilita_one.ttf) by Juan Montoreano and [Doto](https://github.com/oliverlalan/Doto) by The Doto Project Authors, both SIL Open Font License 1.1 (licences in `app/src/main/assets/licenses/`).
-- **Finished-upgrade sound**: game audio from Clash of Clans, © Supercell, used under the Fan Content Policy and not covered by the MIT License. Source: [Zedge mirror](https://www.zedge.net/notification-sounds/2e5dc20a-223a-460a-8ab7-14ac75b6c127).
 
 Thank you to everyone on [r/ClashOfClans](https://www.reddit.com/r/ClashOfClans/) who tried the app, reported bugs, shared test exports and suggested features. Contributions are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md).
 
