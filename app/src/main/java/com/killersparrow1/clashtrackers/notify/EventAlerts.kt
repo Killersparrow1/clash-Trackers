@@ -21,14 +21,13 @@ import com.killersparrow1.clashtrackers.widget.WidgetAlarm
 /**
  * Notifications for the Clash tab's events (clan games, raid weekend, CWL, season end, league reset). One alarm is kept
  * for the next alert; when it fires, the alerts that are due are shown and the next alarm is set. The plan itself is
- * [EventAlertPlanner]. The sound is res/raw/event_sound if the app has one, otherwise the phone's default.
+ * [EventAlertPlanner]. The sound is res/raw/event_sound (a channel's sound is fixed once created, so a new sound needs a new channel id).
  */
 object EventAlerts {
     private const val PREFS = "event_alerts"
     private const val ACTION = "com.killersparrow1.clashtrackers.EVENT_ALERT"
     private const val CLASH_PACKAGE = "com.supercell.clashofclans"
-    private const val CHANNEL_CUSTOM = "events_custom_v1"
-    private const val CHANNEL_DEFAULT = "events_default_v1"
+    private const val CHANNEL = "events_v1"
 
     val EVENT_IDS = listOf(
         GameEvents.CLAN_GAMES, GameEvents.RAID_WEEKEND, GameEvents.CWL_SIGNUP,
@@ -99,24 +98,20 @@ object EventAlerts {
         schedule(ctx)
     }
 
-    private fun hasCustomSound(c: Context) = c.resources.getIdentifier("event_sound", "raw", c.packageName) != 0
-
     private fun ensureChannel(c: Context): String {
         val nm = c.getSystemService(NotificationManager::class.java)
-        val custom = hasCustomSound(c)
-        val id = if (custom) CHANNEL_CUSTOM else CHANNEL_DEFAULT
-        if (nm != null && nm.getNotificationChannel(id) == null) {
+        if (nm != null && nm.getNotificationChannel(CHANNEL) == null) {
             val lctx = com.killersparrow1.clashtrackers.locale.LanguageManager.wrap(c)
-            val channel = NotificationChannel(id, lctx.getString(R.string.ev_channel), NotificationManager.IMPORTANCE_DEFAULT)
-                .apply { description = lctx.getString(R.string.ev_channel_desc) }
-            if (custom) {
-                val attrs = AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_NOTIFICATION)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build()
-                channel.setSound(Uri.parse("android.resource://${c.packageName}/${c.resources.getIdentifier("event_sound", "raw", c.packageName)}"), attrs)
-            }
-            nm.createNotificationChannel(channel)
+            val attrs = AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build()
+            nm.createNotificationChannel(
+                NotificationChannel(CHANNEL, lctx.getString(R.string.ev_channel), NotificationManager.IMPORTANCE_DEFAULT).apply {
+                    description = lctx.getString(R.string.ev_channel_desc)
+                    setSound(Uri.parse("android.resource://${c.packageName}/${R.raw.event_sound}"), attrs)
+                },
+            )
         }
-        return id
+        return CHANNEL
     }
 
     private fun leadLabel(c: Context, sec: Long): String = c.getString(
