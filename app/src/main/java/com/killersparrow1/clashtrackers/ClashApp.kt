@@ -11,6 +11,12 @@ import com.killersparrow1.clashtrackers.crash.CrashReporter
  * screen can never loop.
  */
 class ClashApp : Application() {
+    override fun onCreate() {
+        super.onCreate()
+        // Event alerts keep one alarm for the next alert; make sure it exists (it is cleared by force-stop, not by a reboot).
+        runCatching { if (!CrashReporter.isCrashProcess(this)) com.killersparrow1.clashtrackers.notify.EventAlerts.schedule(this) }
+    }
+
     override fun attachBaseContext(base: Context) {
         super.attachBaseContext(base)
         // The crash catcher must never be the thing that stops the app from starting.

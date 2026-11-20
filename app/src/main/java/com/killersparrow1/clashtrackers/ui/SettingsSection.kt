@@ -69,6 +69,7 @@ import com.killersparrow1.clashtrackers.core.AppSettings
 import com.killersparrow1.clashtrackers.core.BoostSettings
 import com.killersparrow1.clashtrackers.core.GameIds
 import com.killersparrow1.clashtrackers.core.VillageExport
+import com.killersparrow1.clashtrackers.notify.EventAlerts
 import com.killersparrow1.clashtrackers.notify.Notifier
 
 private const val H = 3600L
@@ -158,6 +159,33 @@ fun SettingsSection(
                 ctScope.launch { SyncRunner.refreshWidgets(context.applicationContext, "settings") }
             }
             Text(stringResource(R.string.settings_clock_tower_alert_desc), style = MaterialTheme.typography.bodyMedium)
+        }
+        SectionCard(stringResource(R.string.ev_settings_title)) {
+            var evOn by remember { mutableStateOf(EventAlerts.enabled(context)) }
+            var lead by remember { mutableStateOf(EventAlerts.leadSec(context)) }
+            var testBlocked by remember { mutableStateOf(false) }
+            SwitchRow(stringResource(R.string.ev_settings_enable), evOn) { on -> evOn = on; EventAlerts.setEnabled(context, on) }
+            Text(stringResource(R.string.ev_settings_desc), style = MaterialTheme.typography.bodyMedium)
+            if (evOn) {
+                EventAlerts.EVENT_IDS.forEach { id ->
+                    var on by remember(id) { mutableStateOf(EventAlerts.eventOn(context, id)) }
+                    SwitchRow(stringResource(eventName(id)), on) { v -> on = v; EventAlerts.setEventOn(context, id, v) }
+                }
+                Text(stringResource(R.string.ev_settings_lead), style = MaterialTheme.typography.titleSmall)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf(
+                        3600L to R.string.ev_lead_1h, 6 * 3600L to R.string.ev_lead_6h, 24 * 3600L to R.string.ev_lead_24h,
+                    ).forEach { (sec, label) ->
+                        androidx.compose.material3.FilterChip(
+                            selected = lead == sec,
+                            onClick = { lead = sec; EventAlerts.setLeadSec(context, sec) },
+                            label = { Text(stringResource(label)) },
+                        )
+                    }
+                }
+                OutlinedButton(onClick = { testBlocked = !EventAlerts.test(context) }) { Text(stringResource(R.string.ev_settings_test)) }
+                if (testBlocked) Text(stringResource(R.string.ev_settings_blocked), style = MaterialTheme.typography.bodySmall)
+            }
         }
         SectionCard(stringResource(R.string.companion_section)) {
             var cOn by remember { mutableStateOf(CompanionPrefs.enabled(context)) }

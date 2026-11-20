@@ -432,4 +432,22 @@
     <string name="perm_accessibility_why">Lets the import button appear while Clash of Clans is open. It only sees which app is in front, never what is on screen. If the switch is greyed out, open App info, tap the three dots and choose Allow restricted settings.</string>
     <string name="perm_install">Install unknown apps</string>
     <string name="perm_install_why">Needed to install app updates from inside the app.</string>
+    <!-- Event alerts -->
+    <string name="ev_channel">Game events</string>
+    <string name="ev_channel_desc">Clan Games, Raid Weekend, CWL, season end and league reset</string>
+    <string name="ev_alert_started">%1$s has started</string>
+    <string name="ev_alert_ending">%1$s ends in %2$s</string>
+    <string name="ev_alert_coming">%1$s in %2$s</string>
+    <string name="ev_alert_tap">Tap to open Clash of Clans</string>
+    <string name="ev_alert_test">Event alert test</string>
+    <string name="ev_lead_1h">1 hour</string>
+    <string name="ev_lead_6h">6 hours</string>
+    <string name="ev_lead_24h">1 day</string>
+    <string name="ev_settings_title">Event alerts</string>
+    <string name="ev_settings_enable">Alert me about game events</string>
+    <string name="ev_settings_desc">When an event starts, and shortly before it ends or happens. Times follow the Clash tab.</string>
+    <string name="ev_settings_lead">Warn me this long before the end</string>
+    <string name="ev_settings_more">Choose which events, and how early, in Settings.</string>
+    <string name="ev_settings_test">Send a test alert</string>
+    <string name="ev_settings_blocked">Notifications are off for this app, so no alert was shown.</string>
 </resources>

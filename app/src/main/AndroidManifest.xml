@@ -148,6 +148,18 @@
             </intent-filter>
         </activity>
 
+        <!-- Alerts for the Clash tab's events (notify/EventAlerts.kt). -->
+        <receiver
+            android:name=".notify.EventAlertReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+            </intent-filter>
+        </receiver>
+
         <!-- Background check for a new app release (update/UpdateCheckJob.kt). -->
         <service
             android:name=".update.UpdateCheckJob"
