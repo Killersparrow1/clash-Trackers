@@ -18,7 +18,6 @@ import android.os.Looper
 import android.os.SystemClock
 import android.view.Gravity
 import android.view.View
-import android.view.WindowInsets
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import android.view.inputmethod.InputMethodManager
@@ -153,12 +152,8 @@ class CompanionService : AccessibilityService() {
             (b.background as? GradientDrawable)?.setColor(if (ok) 0xFF2E9E4F.toInt() else 0xFFD13B3B.toInt())
             b.visibility = View.VISIBLE
         }
-        if (ok) {
-            session.markUsed()
-            handler.postDelayed({ apply(); clearBadge.run() }, SUCCESS_SHOW_MS) // green check, then gone for the session
-        } else {
-            handler.postDelayed(clearBadge, FAIL_SHOW_MS) // stays available for another try
-        }
+        // The button always stays; only a double tap hides it. The result mark fades after a moment.
+        handler.postDelayed(clearBadge, if (ok) SUCCESS_SHOW_MS else FAIL_SHOW_MS)
     }
 
     // ---- overlay ------------------------------------------------------------------------------------------------
@@ -185,20 +180,15 @@ class CompanionService : AccessibilityService() {
             addView(badge, FrameLayout.LayoutParams((22 * d).toInt(), (22 * d).toInt(), Gravity.TOP or Gravity.END))
             setOnClickListener { onTap() }
         }
-        // Right side, EDGE_DP from the right edge of the usable screen, in the gap above the Build button's cluster
-        // (below Shop, above the goblin builder counters), measured as fractions of the usable height.
-        val bounds: android.graphics.Rect
-        var left = 0; var top = 0; var right = 0; var bottom = 0
-        if (Build.VERSION.SDK_INT >= 30) {
-            val m = wm.currentWindowMetrics
-            bounds = m.bounds
-            val ins = m.windowInsets.getInsetsIgnoringVisibility(WindowInsets.Type.systemBars() or WindowInsets.Type.displayCutout())
-            left = ins.left; top = ins.top; right = ins.right; bottom = ins.bottom
+        // Centred over the Shop / Build column, in the gap between Shop and the goblin counters. Placed in real screen
+        // coordinates (cutout mode below), as fractions of the full screen, so the notch and bars do not shift it.
+        val bounds: android.graphics.Rect = if (Build.VERSION.SDK_INT >= 30) {
+            wm.currentWindowMetrics.bounds
         } else {
-            val dm = resources.displayMetrics
-            bounds = android.graphics.Rect(0, 0, dm.widthPixels, dm.heightPixels)
+            val dm = android.util.DisplayMetrics()
+            @Suppress("DEPRECATION") wm.defaultDisplay.getRealMetrics(dm)
+            android.graphics.Rect(0, 0, dm.widthPixels, dm.heightPixels)
         }
-        val usableH = bounds.height() - top - bottom
         val lp = WindowManager.LayoutParams(
             size, size,
             WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
@@ -206,8 +196,11 @@ class CompanionService : AccessibilityService() {
             PixelFormat.TRANSLUCENT,
         ).apply {
             gravity = Gravity.TOP or Gravity.START
-            x = bounds.right - right - (EDGE_DP * d).toInt() - size
-            y = bounds.top + top + (usableH * CENTER_Y).toInt() - size / 2
+            // Without this the window's origin is after the notch, which pushed the button off the right edge.
+            if (Build.VERSION.SDK_INT >= 30) layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
+            else if (Build.VERSION.SDK_INT >= 28) layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+            x = (bounds.width() * CENTER_X).toInt().minus(size / 2).coerceIn(0, bounds.width() - size)
+            y = (bounds.height() * CENTER_Y).toInt().minus(size / 2).coerceIn(0, bounds.height() - size)
         }
         runCatching { wm.addView(view, lp); bar = view; this.icon = icon; this.badge = badge }
         if (fetching) startFetchAnimationOnly()
@@ -283,9 +276,9 @@ class CompanionService : AccessibilityService() {
         private const val CHANNEL = "companion"
         private const val NOTIFICATION_ID = 7001
         private const val BUTTON_DP = 56
-        private const val EDGE_DP = 18
-        /** Vertical centre of the button as a fraction of the usable height: between Shop and the Build cluster's counters. */
-        private const val CENTER_Y = 0.642f
+        /** Centre of the button as fractions of the screen: the Shop/Build column, in the gap above the goblin counters. */
+        private const val CENTER_X = 0.912f
+        private const val CENTER_Y = 0.635f
         private const val DOUBLE_TAP_MS = 350L
         private const val FETCH_TIMEOUT_MS = 12_000L
         private const val SUCCESS_SHOW_MS = 1_200L

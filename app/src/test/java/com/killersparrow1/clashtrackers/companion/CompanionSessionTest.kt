@@ -22,7 +22,7 @@ class CompanionSessionTest {
         assertTrue(s.canShow(10_000))
     }
 
-    @Test fun dismissalAndUseLastForTheSessionOnly() {
+    @Test fun dismissalLastsForTheSessionOnly() {
         val s = CompanionSession()
         s.onGameEntered(0)
         s.dismiss()
@@ -33,9 +33,7 @@ class CompanionSessionTest {
         assertFalse(s.dismissed)
         assertFalse(s.canShow(31_000 + 60_000))        // delay applies again
         assertTrue(s.canShow(31_000 + 60_000 + 6_250))
-        s.markUsed()
-        assertFalse(s.canShow(200_000))
-        assertFalse(s.pending())
+        assertTrue(s.canShow(200_000))                 // an import never hides it, only a double tap does
     }
 
     @Test fun hiddenWhenGameNotActive() {
