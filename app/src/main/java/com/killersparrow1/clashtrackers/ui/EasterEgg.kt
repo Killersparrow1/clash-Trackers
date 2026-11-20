@@ -49,10 +49,20 @@ fun Modifier.titleEasterEgg(): Modifier {
         player = null
     }
 
+    // Every title_easter_egg*.ogg in res/raw is a candidate; one is picked at random, never the same one twice in a row.
+    val sounds = remember {
+        listOf("title_easter_egg", "title_easter_egg1", "title_easter_egg2", "title_easter_egg3")
+            .map { context.resources.getIdentifier(it, "raw", context.packageName) }.filter { it != 0 }
+    }
+    var lastSound by remember { mutableStateOf(-1) }
+
     fun play() {
         stop()
+        val pool = sounds.filter { it != lastSound }.ifEmpty { sounds }
+        val pick = pool.randomOrNull() ?: R.raw.title_easter_egg
+        lastSound = pick
         player = runCatching {
-            MediaPlayer.create(context, R.raw.title_easter_egg)?.apply {
+            MediaPlayer.create(context, pick)?.apply {
                 setAudioAttributes(
                     AudioAttributes.Builder()
                         .setUsage(AudioAttributes.USAGE_MEDIA)
