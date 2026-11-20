@@ -32,6 +32,13 @@ Built with **Material 3 Expressive**, the Clash typeface, a deterministic boost 
 </p>
 
 ---
+## In Game Village Import
+<p align="center">
+  <img src="docs/screenshots/On_game_village_import.png" alt="App Looks- screenshots" width="900">
+
+  <p align="center"> Draggable on-screen Village Import floating button, removable with a double tap. </p>
+</p>
+
 ## Looks
 <p align="center">
   <img src="docs/screenshots/applooks.png" alt="App Looks - Screenshots" width="900">
