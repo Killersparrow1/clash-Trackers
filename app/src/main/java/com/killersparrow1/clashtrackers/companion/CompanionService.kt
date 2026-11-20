@@ -17,6 +17,7 @@ import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.view.Gravity
+import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
@@ -50,6 +51,7 @@ class CompanionService : AccessibilityService() {
     private var badge: TextView? = null
     private var pulse: ObjectAnimator? = null
     private var fetching = false
+    private var barPlacing = false
     private var lastTapAt = 0L
     private var status: String? = null
 
@@ -86,8 +88,11 @@ class CompanionService : AccessibilityService() {
         handler.removeCallbacks(applyLater)
         val enabled = session.active && CompanionPrefs.enabled(this)
         val t = now()
-        if (enabled && CompanionPrefs.bar(this) && session.canShow(t)) {
-            showBar()
+        // Until a spot has been chosen (or when asked to choose again) the button is shown for placing, straight away.
+        val placingNow = enabled && CompanionPrefs.bar(this) && placing()
+        if (bar != null && barPlacing != placingNow) hideBar()
+        if (placingNow || (enabled && CompanionPrefs.bar(this) && session.canShow(t))) {
+            showBar(placingNow)
         } else {
             hideBar()
             // Not yet time: one timer for the remainder of the start delay (cancelled when the game leaves).
@@ -103,7 +108,10 @@ class CompanionService : AccessibilityService() {
 
     // ---- tap handling -------------------------------------------------------------------------------------------
 
+    private fun placing() = CompanionPrefs.placing(this) || !CompanionPrefs.hasPosition(this)
+
     private fun onTap() {
+        if (barPlacing) return
         val t = now()
         if (t - lastTapAt < DOUBLE_TAP_MS) { // double tap: hide for this session
             lastTapAt = 0
@@ -158,7 +166,7 @@ class CompanionService : AccessibilityService() {
 
     // ---- overlay ------------------------------------------------------------------------------------------------
 
-    private fun showBar() {
+    private fun showBar(placingMode: Boolean) {
         if (bar != null) return
         val wm = getSystemService(WINDOW_SERVICE) as WindowManager
         val d = resources.displayMetrics.density
@@ -175,13 +183,30 @@ class CompanionService : AccessibilityService() {
             visibility = View.GONE
             background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(Color.GRAY); setStroke((1.5f * d).toInt(), Color.WHITE) }
         }
-        val view = FrameLayout(this).apply {
+        val button = FrameLayout(this).apply {
             addView(icon, FrameLayout.LayoutParams(size, size))
             addView(badge, FrameLayout.LayoutParams((22 * d).toInt(), (22 * d).toInt(), Gravity.TOP or Gravity.END))
             setOnClickListener { onTap() }
         }
-        // Centred over the Shop / Build column, in the gap between Shop and the goblin counters. Placed in real screen
-        // coordinates (cutout mode below), as fractions of the full screen, so the notch and bars do not shift it.
+        val root: View = if (placingMode) {
+            // Placing: a small "Done" note to the left of the button; drag the button above Build, then tap Done.
+            val note = TextView(this).apply {
+                text = getString(R.string.companion_place_done)
+                textSize = 13f
+                setTextColor(Color.WHITE)
+                setPadding((12 * d).toInt(), (8 * d).toInt(), (12 * d).toInt(), (8 * d).toInt())
+                background = GradientDrawable().apply { setColor(0xE61F2A44.toInt()); cornerRadius = 14 * d }
+            }
+            android.widget.LinearLayout(this).apply {
+                orientation = android.widget.LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+                addView(note, android.widget.LinearLayout.LayoutParams(android.widget.LinearLayout.LayoutParams.WRAP_CONTENT, android.widget.LinearLayout.LayoutParams.WRAP_CONTENT).apply { marginEnd = (8 * d).toInt() })
+                addView(button, android.widget.LinearLayout.LayoutParams(size, size))
+                note.setOnClickListener { finishPlacing(button) }
+            }
+        } else button
+        // Real screen coordinates (cutout mode below). The spot is the button's centre: its distance from the right edge
+        // in screen heights (the game scales its HUD by height) and its height fraction; see CompanionPrefs.
         val bounds: android.graphics.Rect = if (Build.VERSION.SDK_INT >= 30) {
             wm.currentWindowMetrics.bounds
         } else {
@@ -189,8 +214,13 @@ class CompanionService : AccessibilityService() {
             @Suppress("DEPRECATION") wm.defaultDisplay.getRealMetrics(dm)
             android.graphics.Rect(0, 0, dm.widthPixels, dm.heightPixels)
         }
+        val (rightOff, yFrac) = CompanionPrefs.position(this)
+        val cx = (bounds.width() - bounds.height() * rightOff).toInt()
+        val cy = (bounds.height() * yFrac).toInt()
+        root.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
+        val rootW = root.measuredWidth.coerceAtLeast(size)
         val lp = WindowManager.LayoutParams(
-            size, size,
+            WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             PixelFormat.TRANSLUCENT,
@@ -199,11 +229,44 @@ class CompanionService : AccessibilityService() {
             // Without this the window's origin is after the notch, which pushed the button off the right edge.
             if (Build.VERSION.SDK_INT >= 30) layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
             else if (Build.VERSION.SDK_INT >= 28) layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-            x = (bounds.width() - bounds.height() * RIGHT_OFFSET).toInt().minus(size / 2).coerceIn(0, bounds.width() - size)
-            y = (bounds.height() * CENTER_Y).toInt().minus(size / 2).coerceIn(0, bounds.height() - size)
+            x = (cx - size / 2 - (rootW - size)).coerceIn(0, (bounds.width() - rootW).coerceAtLeast(0))
+            y = (cy - size / 2).coerceIn(0, (bounds.height() - size).coerceAtLeast(0))
         }
-        runCatching { wm.addView(view, lp); bar = view; this.icon = icon; this.badge = badge }
+        if (placingMode) {
+            var sx = 0f; var sy = 0f; var ox = 0; var oy = 0; var moved = false
+            button.setOnTouchListener { _, e ->
+                when (e.actionMasked) {
+                    MotionEvent.ACTION_DOWN -> { sx = e.rawX; sy = e.rawY; ox = lp.x; oy = lp.y; moved = false; false }
+                    MotionEvent.ACTION_MOVE -> {
+                        if (kotlin.math.abs(e.rawX - sx) > 8 * d || kotlin.math.abs(e.rawY - sy) > 8 * d) moved = true
+                        if (moved) {
+                            lp.x = (ox + (e.rawX - sx)).toInt().coerceIn(0, (bounds.width() - rootW).coerceAtLeast(0))
+                            lp.y = (oy + (e.rawY - sy)).toInt().coerceIn(0, (bounds.height() - size).coerceAtLeast(0))
+                            runCatching { wm.updateViewLayout(root, lp) }
+                        }
+                        moved
+                    }
+                    else -> moved
+                }
+            }
+        }
+        runCatching { wm.addView(root, lp); bar = root; barPlacing = placingMode; this.icon = icon; this.badge = badge }
         if (fetching) startFetchAnimationOnly()
+    }
+
+    /** Saves where the button was left (its centre) and switches to the normal button. */
+    private fun finishPlacing(button: View) {
+        val loc = IntArray(2)
+        button.getLocationOnScreen(loc)
+        val wm = getSystemService(WINDOW_SERVICE) as WindowManager
+        val (w, h) = if (Build.VERSION.SDK_INT >= 30) wm.currentWindowMetrics.bounds.let { it.width() to it.height() }
+        else android.util.DisplayMetrics().also { @Suppress("DEPRECATION") wm.defaultDisplay.getRealMetrics(it) }.let { it.widthPixels to it.heightPixels }
+        val cx = loc[0] + button.width / 2f
+        val cy = loc[1] + button.height / 2f
+        CompanionPrefs.setPosition(this, (w - cx) / h, cy / h)
+        CompanionPrefs.setPlacing(this, false)
+        hideBar()
+        apply()
     }
 
     private fun startFetchAnimationOnly() { // the overlay was re-created (rotation) during a fetch
@@ -218,7 +281,7 @@ class CompanionService : AccessibilityService() {
         val v = bar ?: return
         pulse?.cancel(); pulse = null
         runCatching { (getSystemService(WINDOW_SERVICE) as WindowManager).removeView(v) }
-        bar = null; icon = null; badge = null
+        bar = null; icon = null; badge = null; barPlacing = false
     }
 
     // ---- notification (unchanged behaviour) ----------------------------------------------------------------------
@@ -276,13 +339,6 @@ class CompanionService : AccessibilityService() {
         private const val CHANNEL = "companion"
         private const val NOTIFICATION_ID = 7001
         private const val BUTTON_DP = 56
-        /**
-         * Centre of the button: the Shop/Build column, in the gap above the goblin counters. The game scales its HUD by
-         * screen height, so the distance from the right edge is a fraction of the height (not of the width), which keeps
-         * the button over the Build column on different aspect ratios.
-         */
-        private const val RIGHT_OFFSET = 0.195f
-        private const val CENTER_Y = 0.635f
         private const val DOUBLE_TAP_MS = 350L
         private const val FETCH_TIMEOUT_MS = 12_000L
         private const val SUCCESS_SHOW_MS = 1_200L

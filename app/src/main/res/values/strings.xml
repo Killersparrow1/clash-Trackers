@@ -427,4 +427,8 @@
     <string name="calendar_zoom_hint">Pinch or use + / − to zoom; zoom in for hours</string>
     <string name="companion_timeout">No answer from the import</string>
     <string name="companion_failed">Could not start the import</string>
+    <string name="companion_place_done">Drag the button above Build, then tap here</string>
+    <string name="companion_place">Choose button position</string>
+    <string name="companion_place_desc">Opens Clash of Clans and lets you drag the button where you want it. This is also asked once the first time the button appears.</string>
+    <string name="companion_not_installed">Clash of Clans is not installed</string>
 </resources>

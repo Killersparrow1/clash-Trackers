@@ -17,6 +17,16 @@ object CompanionPrefs {
     fun notification(c: Context) = p(c).getBoolean("notification", true)
     fun setNotification(c: Context, on: Boolean) = p(c).edit().putBoolean("notification", on).apply()
 
+    /** Where the user put the button: distance of its centre from the right edge (in screen heights) and its height fraction. */
+    fun hasPosition(c: Context) = p(c).contains("pos_y")
+    fun position(c: Context): Pair<Float, Float> = p(c).getFloat("pos_right", 0.195f) to p(c).getFloat("pos_y", 0.635f)
+    fun setPosition(c: Context, rightOffset: Float, y: Float) =
+        p(c).edit().putFloat("pos_right", rightOffset.coerceIn(0f, 1.5f)).putFloat("pos_y", y.coerceIn(0f, 1f)).apply()
+
+    /** Set from Settings ("Choose button position"): the next time the game is open the button can be dragged into place. */
+    fun placing(c: Context) = p(c).getBoolean("placing", false)
+    fun setPlacing(c: Context, on: Boolean) = p(c).edit().putBoolean("placing", on).apply()
+
     /** True when the user has switched the accessibility service on in system settings. */
     fun serviceEnabled(c: Context): Boolean {
         val flat = Settings.Secure.getString(c.contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES).orEmpty()
