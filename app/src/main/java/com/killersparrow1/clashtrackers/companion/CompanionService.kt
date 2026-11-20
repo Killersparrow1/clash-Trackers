@@ -67,7 +67,7 @@ class CompanionService : AccessibilityService() {
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
         if (event.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
-        val next = CompanionLogic.next(event.packageName?.toString(), session.active, packageName, keyboards())
+        val next = CompanionLogic.next(event.packageName?.toString(), session.active, packageName, keyboards(), event.className?.toString())
         if (next == session.active) return
         if (next) session.onGameEntered(now()) else session.onGameLeft(now())
         apply()

@@ -12,12 +12,16 @@ object CompanionLogic {
      * @param current whether the game is currently considered active
      * @param own this app's package
      * @param keyboards installed keyboard packages
+     * @param className class name the window reported: a real app screen reports its activity, while floating panels,
+     *   bubbles and dialogs (game boosters, side panels, screen recorders) report a framework view such as
+     *   android.widget.FrameLayout. Those do not mean the game was left.
      * @return the new "game active" state
      */
-    fun next(packageName: String?, current: Boolean, own: String, keyboards: Set<String>): Boolean {
+    fun next(packageName: String?, current: Boolean, own: String, keyboards: Set<String>, className: String? = null): Boolean {
         val pkg = packageName ?: return current
         if (pkg == GAME_PACKAGE) return true
         if (pkg == own || pkg in NEUTRAL || pkg in keyboards) return current
+        if (className != null && className.startsWith("android.")) return current
         return false
     }
 }

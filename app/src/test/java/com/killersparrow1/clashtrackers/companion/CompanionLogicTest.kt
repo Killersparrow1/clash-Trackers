@@ -21,5 +21,11 @@ class CompanionLogicTest {
         }
     }
 
+    @Test fun floatingPanelsDoNotCountAsLeavingTheGame() {
+        assertTrue(CompanionLogic.next("com.oplus.games", true, own, kb, "android.widget.FrameLayout"))
+        assertFalse(CompanionLogic.next("com.oplus.games", true, own, kb, "com.oplus.games.MainActivity"))
+        assertFalse(CompanionLogic.next("com.whatsapp", true, own, kb, "com.whatsapp.Main"))
+    }
+
     @Test fun nullPackageKeepsState() = assertTrue(CompanionLogic.next(null, true, own, kb))
 }
