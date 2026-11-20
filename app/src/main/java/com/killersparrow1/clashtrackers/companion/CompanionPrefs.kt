@@ -17,12 +17,6 @@ object CompanionPrefs {
     fun notification(c: Context) = p(c).getBoolean("notification", true)
     fun setNotification(c: Context, on: Boolean) = p(c).edit().putBoolean("notification", on).apply()
 
-    /** Centre of the button as fractions of the screen; the default sits above the Build button, under Shop (landscape). */
-    fun barPosition(c: Context): Pair<Float, Float> =
-        p(c).getFloat("bar_x", 0.92f) to p(c).getFloat("bar_y", 0.655f)
-    fun setBarPosition(c: Context, x: Float, y: Float) =
-        p(c).edit().putFloat("bar_x", x.coerceIn(0f, 1f)).putFloat("bar_y", y.coerceIn(0f, 1f)).apply()
-
     /** True when the user has switched the accessibility service on in system settings. */
     fun serviceEnabled(c: Context): Boolean {
         val flat = Settings.Secure.getString(c.contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES).orEmpty()

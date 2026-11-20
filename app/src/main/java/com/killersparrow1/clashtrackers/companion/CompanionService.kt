@@ -1,22 +1,27 @@
 package com.killersparrow1.clashtrackers.companion
 
 import android.accessibilityservice.AccessibilityService
+import android.animation.ObjectAnimator
+import android.animation.PropertyValuesHolder
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.PixelFormat
 import android.graphics.drawable.GradientDrawable
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.view.Gravity
-import android.view.MotionEvent
+import android.view.View
+import android.view.WindowInsets
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import android.view.inputmethod.InputMethodManager
-import android.view.View
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
@@ -26,21 +31,34 @@ import com.killersparrow1.clashtrackers.notify.Notifier
 import com.killersparrow1.clashtrackers.sync.SyncActivity
 
 /**
- * Clash Companion. Event driven (window changes only, no polling): when Clash of Clans comes to the front it shows a
- * small draggable "Paste JSON" bar and a quiet notification with the same action; both go away when another app is
- * in front. The accessibility overlay type needs no "draw over other apps" permission, and the service never reads
- * screen content. Importing itself is [SyncActivity] -> SyncRunner, the same path as the widget's Sync button.
+ * Clash Companion. Event driven (window changes and a few one-shot timers, no polling): while Clash of Clans is in
+ * front it offers a one-tap village import as a small golden button and as a quiet notification action.
+ *
+ * What this can and cannot know: accessibility only reports which app's window is in front. Clash of Clans draws
+ * everything itself in one window, so the home village, an attack and a menu all look the same here. The button
+ * therefore shows after [CompanionSession.START_DELAY_MS] in a game session and is hidden whenever another app is in
+ * front; it cannot hide itself during a battle. A double-tap hides it for the rest of the session.
+ *
+ * The overlay is a TYPE_ACCESSIBILITY_OVERLAY window (no "draw over other apps" permission), the service never reads
+ * screen content, and importing is [SyncActivity] -> SyncRunner, the same path as the widget's Sync button.
  */
 class CompanionService : AccessibilityService() {
 
     private val handler = Handler(Looper.getMainLooper())
-    private var gameActive = false
-    private var barDismissed = false
+    private val session = CompanionSession()
     private var bar: View? = null
+    private var icon: ImageView? = null
     private var badge: TextView? = null
+    private var pulse: ObjectAnimator? = null
+    private var fetching = false
+    private var lastTapAt = 0L
     private var status: String? = null
-    private var lastResult: Boolean? = null
-    private val clearStatus = Runnable { status = null; lastResult = null; showBadge(); postNotification() }
+
+    private val applyLater = Runnable { apply() }
+    private val fetchTimeout = Runnable { report(false, getString(R.string.companion_timeout)) }
+    private val clearBadge = Runnable { badge?.visibility = View.GONE; status = null; postNotification() }
+
+    private fun now() = SystemClock.elapsedRealtime()
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -49,10 +67,9 @@ class CompanionService : AccessibilityService() {
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
         if (event.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
-        val next = CompanionLogic.next(event.packageName?.toString(), gameActive, packageName, keyboards())
-        if (next == gameActive) return
-        gameActive = next
-        if (!next) barDismissed = false // the ✕ lasts until the game is left; coming back shows the bar again
+        val next = CompanionLogic.next(event.packageName?.toString(), session.active, packageName, keyboards())
+        if (next == session.active) return
+        if (next) session.onGameEntered(now()) else session.onGameLeft(now())
         apply()
     }
 
@@ -60,21 +77,24 @@ class CompanionService : AccessibilityService() {
         (getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager).enabledInputMethodList.map { it.packageName }.toSet()
     }.getOrDefault(emptySet())
 
-    /** Brings the bar and notification in line with the game state and the settings. */
-    fun apply() {
-        val on = gameActive && CompanionPrefs.enabled(this)
-        if (on && CompanionPrefs.bar(this) && !barDismissed) showBar() else hideBar()
-        if (on && CompanionPrefs.notification(this)) postNotification() else cancelNotification()
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        if (bar != null) { hideBar(); apply() } // placed again for the new screen size
     }
 
-    /** Result of an import started from the bar or the notification. */
-    fun showResult(ok: Boolean, message: String) {
-        status = (if (ok) "✓ " else "✕ ") + message
-        lastResult = ok
-        showBadge()
-        postNotification()
-        handler.removeCallbacks(clearStatus)
-        handler.postDelayed(clearStatus, 5000)
+    /** Brings the button and notification in line with the game state, the session and the settings. */
+    fun apply() {
+        handler.removeCallbacks(applyLater)
+        val enabled = session.active && CompanionPrefs.enabled(this)
+        val t = now()
+        if (enabled && CompanionPrefs.bar(this) && session.canShow(t)) {
+            showBar()
+        } else {
+            hideBar()
+            // Not yet time: one timer for the remainder of the start delay (cancelled when the game leaves).
+            if (enabled && CompanionPrefs.bar(this) && session.pending()) handler.postDelayed(applyLater, session.waitMs(t))
+        }
+        if (enabled && CompanionPrefs.notification(this)) postNotification() else cancelNotification()
     }
 
     private fun pasteIntent() = Intent(this, SyncActivity::class.java)
@@ -82,33 +102,103 @@ class CompanionService : AccessibilityService() {
         .putExtra(SyncActivity.EXTRA_SOURCE, "companion")
         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_ANIMATION)
 
+    // ---- tap handling -------------------------------------------------------------------------------------------
+
+    private fun onTap() {
+        val t = now()
+        if (t - lastTapAt < DOUBLE_TAP_MS) { // double tap: hide for this session
+            lastTapAt = 0
+            session.dismiss()
+            apply()
+            return
+        }
+        lastTapAt = t
+        startFetch()
+    }
+
+    /** One fetch at a time; a second tap while one runs only counts towards a double tap. */
+    private fun startFetch() {
+        if (fetching) return
+        fetching = true
+        badge?.visibility = View.GONE
+        pulse?.cancel()
+        icon?.let { v ->
+            pulse = ObjectAnimator.ofPropertyValuesHolder(
+                v,
+                PropertyValuesHolder.ofFloat(View.ALPHA, 1f, 0.55f),
+                PropertyValuesHolder.ofFloat(View.SCALE_X, 1f, 0.9f),
+                PropertyValuesHolder.ofFloat(View.SCALE_Y, 1f, 0.9f),
+            ).apply { duration = 550; repeatMode = ObjectAnimator.REVERSE; repeatCount = ObjectAnimator.INFINITE; start() }
+        }
+        handler.postDelayed(fetchTimeout, FETCH_TIMEOUT_MS)
+        runCatching { startActivity(pasteIntent()) }.onFailure { report(false, getString(R.string.companion_failed)) }
+    }
+
+    private fun stopLoading() {
+        fetching = false
+        handler.removeCallbacks(fetchTimeout)
+        pulse?.cancel(); pulse = null
+        icon?.apply { alpha = 1f; scaleX = 1f; scaleY = 1f }
+    }
+
+    /** Result of an import started from the button or the notification. */
+    fun showResult(ok: Boolean, message: String) {
+        stopLoading()
+        status = (if (ok) "✓ " else "✕ ") + message
+        postNotification()
+        handler.removeCallbacks(clearBadge)
+        val b = badge
+        if (b != null) {
+            b.text = if (ok) "✓" else "✕"
+            (b.background as? GradientDrawable)?.setColor(if (ok) 0xFF2E9E4F.toInt() else 0xFFD13B3B.toInt())
+            b.visibility = View.VISIBLE
+        }
+        if (ok) {
+            session.markUsed()
+            handler.postDelayed({ apply(); clearBadge.run() }, SUCCESS_SHOW_MS) // green check, then gone for the session
+        } else {
+            handler.postDelayed(clearBadge, FAIL_SHOW_MS) // stays available for another try
+        }
+    }
+
+    // ---- overlay ------------------------------------------------------------------------------------------------
+
     private fun showBar() {
         if (bar != null) return
         val wm = getSystemService(WINDOW_SERVICE) as WindowManager
-        val dm = resources.displayMetrics
-        val d = dm.density
-        val size = (56 * d).toInt()
-        // The app's own gold game-style button (same drawable family as the widget's Sync button) with its refresh arrow.
+        val d = resources.displayMetrics.density
+        val size = (BUTTON_DP * d).toInt()
         val icon = ImageView(this).apply {
-            setImageResource(R.drawable.ic_sync)
+            setImageResource(R.drawable.companion_import)
             scaleType = ImageView.ScaleType.FIT_CENTER
-            setPadding((13 * d).toInt(), (11 * d).toInt(), (13 * d).toInt(), (15 * d).toInt())
+            contentDescription = getString(R.string.companion_paste)
         }
         val badge = TextView(this).apply {
-            textSize = 11f
+            textSize = 12f
             setTextColor(Color.WHITE)
             gravity = Gravity.CENTER
             visibility = View.GONE
             background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(Color.GRAY); setStroke((1.5f * d).toInt(), Color.WHITE) }
         }
         val view = FrameLayout(this).apply {
-            setBackgroundResource(R.drawable.btn_sync_clash)
-            elevation = 6 * d
-            contentDescription = getString(R.string.companion_paste)
             addView(icon, FrameLayout.LayoutParams(size, size))
-            addView(badge, FrameLayout.LayoutParams((20 * d).toInt(), (20 * d).toInt(), Gravity.TOP or Gravity.END))
+            addView(badge, FrameLayout.LayoutParams((22 * d).toInt(), (22 * d).toInt(), Gravity.TOP or Gravity.END))
+            setOnClickListener { onTap() }
         }
-        this.badge = badge
+        // Right side, EDGE_DP from the right edge of the usable screen, in the gap above the Build button's cluster
+        // (below Shop, above the goblin builder counters), measured as fractions of the usable height.
+        val bounds: android.graphics.Rect
+        var left = 0; var top = 0; var right = 0; var bottom = 0
+        if (Build.VERSION.SDK_INT >= 30) {
+            val m = wm.currentWindowMetrics
+            bounds = m.bounds
+            val ins = m.windowInsets.getInsetsIgnoringVisibility(WindowInsets.Type.systemBars() or WindowInsets.Type.displayCutout())
+            left = ins.left; top = ins.top; right = ins.right; bottom = ins.bottom
+        } else {
+            val dm = resources.displayMetrics
+            bounds = android.graphics.Rect(0, 0, dm.widthPixels, dm.heightPixels)
+        }
+        val usableH = bounds.height() - top - bottom
         val lp = WindowManager.LayoutParams(
             size, size,
             WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
@@ -116,64 +206,32 @@ class CompanionService : AccessibilityService() {
             PixelFormat.TRANSLUCENT,
         ).apply {
             gravity = Gravity.TOP or Gravity.START
-            // Default: just above the Build button, under Shop; drag to fine-tune, the spot is remembered.
-            val (fx, fy) = CompanionPrefs.barPosition(this@CompanionService)
-            x = (dm.widthPixels * fx - size / 2f).toInt()
-            y = (dm.heightPixels * fy - size / 2f).toInt()
+            x = bounds.right - right - (EDGE_DP * d).toInt() - size
+            y = bounds.top + top + (usableH * CENTER_Y).toInt() - size / 2
         }
-        view.setOnClickListener { startActivity(pasteIntent()) }
-        // One handler for tap, drag and long-press. (A framework long-click listener keeps running while a drag is
-        // consumed here, which hid the button mid-drag, so the long-press is timed by hand and cancelled by movement.)
-        var sx = 0f; var sy = 0f; var ox = 0; var oy = 0; var moved = false
-        val longPress = Runnable { if (!moved) { barDismissed = true; hideBar() } }
-        view.setOnTouchListener { v, e ->
-            when (e.actionMasked) {
-                MotionEvent.ACTION_DOWN -> {
-                    sx = e.rawX; sy = e.rawY; ox = lp.x; oy = lp.y; moved = false
-                    handler.postDelayed(longPress, 700)
-                }
-                MotionEvent.ACTION_MOVE -> {
-                    if (kotlin.math.abs(e.rawX - sx) > 10 * d || kotlin.math.abs(e.rawY - sy) > 10 * d) {
-                        moved = true
-                        handler.removeCallbacks(longPress)
-                    }
-                    if (moved) {
-                        lp.x = (ox + (e.rawX - sx)).toInt().coerceIn(0, dm.widthPixels - size)
-                        lp.y = (oy + (e.rawY - sy)).toInt().coerceIn(0, dm.heightPixels - size)
-                        runCatching { wm.updateViewLayout(view, lp) }
-                    }
-                }
-                MotionEvent.ACTION_UP -> {
-                    handler.removeCallbacks(longPress)
-                    if (moved) CompanionPrefs.setBarPosition(this, (lp.x + size / 2f) / dm.widthPixels, (lp.y + size / 2f) / dm.heightPixels)
-                    else v.performClick()
-                }
-                MotionEvent.ACTION_CANCEL -> handler.removeCallbacks(longPress)
-            }
-            true
-        }
-        runCatching { wm.addView(view, lp); bar = view }
-        showBadge()
+        runCatching { wm.addView(view, lp); bar = view; this.icon = icon; this.badge = badge }
+        if (fetching) startFetchAnimationOnly()
     }
 
-    /** Small ✓ (green) or ✕ (red) on the button after an import, so the result is visible without leaving the game. */
-    private fun showBadge() {
-        val b = badge ?: return
-        val r = lastResult
-        if (r == null) { b.visibility = View.GONE; return }
-        b.text = if (r) "✓" else "✕"
-        (b.background as? GradientDrawable)?.setColor(if (r) 0xFF2E9E4F.toInt() else 0xFFD13B3B.toInt())
-        b.visibility = View.VISIBLE
+    private fun startFetchAnimationOnly() { // the overlay was re-created (rotation) during a fetch
+        val v = icon ?: return
+        pulse?.cancel()
+        pulse = ObjectAnimator.ofPropertyValuesHolder(
+            v, PropertyValuesHolder.ofFloat(View.ALPHA, 1f, 0.55f),
+        ).apply { duration = 550; repeatMode = ObjectAnimator.REVERSE; repeatCount = ObjectAnimator.INFINITE; start() }
     }
 
     private fun hideBar() {
         val v = bar ?: return
+        pulse?.cancel(); pulse = null
         runCatching { (getSystemService(WINDOW_SERVICE) as WindowManager).removeView(v) }
-        bar = null; badge = null
+        bar = null; icon = null; badge = null
     }
 
+    // ---- notification (unchanged behaviour) ----------------------------------------------------------------------
+
     private fun postNotification() {
-        if (!Notifier.allowed(this) || !gameActive || !CompanionPrefs.enabled(this) || !CompanionPrefs.notification(this)) return
+        if (!Notifier.allowed(this) || !session.active || !CompanionPrefs.enabled(this) || !CompanionPrefs.notification(this)) return
         val nm = getSystemService(NotificationManager::class.java) ?: return
         if (nm.getNotificationChannel(CHANNEL) == null) {
             nm.createNotificationChannel(
@@ -199,7 +257,10 @@ class CompanionService : AccessibilityService() {
         getSystemService(NotificationManager::class.java)?.cancel(NOTIFICATION_ID)
     }
 
-    override fun onInterrupt() {}
+    override fun onInterrupt() {
+        // Another accessibility feature took over: drop any in-flight state and the overlay; the next event restores it.
+        stopLoading(); hideBar()
+    }
 
     override fun onUnbind(intent: Intent?): Boolean {
         cleanup()
@@ -213,14 +274,23 @@ class CompanionService : AccessibilityService() {
 
     private fun cleanup() {
         handler.removeCallbacksAndMessages(null)
-        hideBar(); cancelNotification()
-        gameActive = false
+        stopLoading(); hideBar(); cancelNotification()
+        session.onGameLeft(now())
         if (instance === this) instance = null
     }
 
     companion object {
         private const val CHANNEL = "companion"
         private const val NOTIFICATION_ID = 7001
+        private const val BUTTON_DP = 56
+        private const val EDGE_DP = 18
+        /** Vertical centre of the button as a fraction of the usable height: between Shop and the Build cluster's counters. */
+        private const val CENTER_Y = 0.642f
+        private const val DOUBLE_TAP_MS = 350L
+        private const val FETCH_TIMEOUT_MS = 12_000L
+        private const val SUCCESS_SHOW_MS = 1_200L
+        private const val FAIL_SHOW_MS = 2_500L
+
         @Volatile var instance: CompanionService? = null
             private set
 

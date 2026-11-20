@@ -47,7 +47,8 @@ class SyncActivity : ComponentActivity() {
         val now = System.currentTimeMillis()
         val last = prefs.getLong("last_open", 0L)
         prefs.edit().putLong("last_open", now).apply()
-        if (now - last in 0 until REPEAT_GUARD_MS) {
+        // The companion button/notification has its own one-at-a-time guard and must always get an answer.
+        if (source != "companion" && now - last in 0 until REPEAT_GUARD_MS) {
             log(false, "Ignored a repeated Sync screen launch (${now - last} ms after the last)")
             started = true
             finishQuietly()
