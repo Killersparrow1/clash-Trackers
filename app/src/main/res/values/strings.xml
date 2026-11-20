@@ -415,7 +415,7 @@
     <string name="companion_enable">Clash Companion</string>
     <string name="companion_enable_desc">While Clash of Clans is open, show a Paste JSON bar and notification that import your copied village without opening this app.</string>
     <string name="companion_bar">Floating import button</string>
-    <string name="companion_bar_hint">A golden button above the Build button, shown a few seconds after the game opens. Tap to import the copied village (it stays after an import), double-tap to hide it until you reopen the game. It cannot tell a battle from the home village, so double-tap it away if it is in the way.</string>
+    <string name="companion_bar_hint">A golden button above the Build button, shown a few seconds after the game opens. Tap to import the copied village, drag it wherever you like (it remembers the spot), double-tap to hide it until you reopen the game.</string>
     <string name="companion_notification">Paste JSON notification</string>
     <string name="companion_access_on">Accessibility service: on</string>
     <string name="companion_access_off">Accessibility service: off. Needed to know when the game is open.</string>
@@ -427,8 +427,8 @@
     <string name="calendar_zoom_hint">Pinch or use + / − to zoom; zoom in for hours</string>
     <string name="companion_timeout">No answer from the import</string>
     <string name="companion_failed">Could not start the import</string>
-    <string name="companion_place_done">Drag the button above Build, then tap here</string>
-    <string name="companion_place">Choose button position</string>
-    <string name="companion_place_desc">Opens Clash of Clans and lets you drag the button where you want it. This is also asked once the first time the button appears.</string>
-    <string name="companion_not_installed">Clash of Clans is not installed</string>
+    <string name="perm_accessibility">Clash Companion (accessibility)</string>
+    <string name="perm_accessibility_why">Lets the import button appear while Clash of Clans is open. It only sees which app is in front, never what is on screen. If the switch is greyed out, open App info, tap the three dots and choose Allow restricted settings.</string>
+    <string name="perm_install">Install unknown apps</string>
+    <string name="perm_install_why">Needed to install app updates from inside the app.</string>
 </resources>

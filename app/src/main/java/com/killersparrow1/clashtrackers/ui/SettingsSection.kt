@@ -182,16 +182,6 @@ fun SettingsSection(
                 SwitchRow(stringResource(R.string.companion_notification), cNotif) { on ->
                     cNotif = on; CompanionPrefs.setNotification(context, on); CompanionService.refresh()
                 }
-                if (cBar) {
-                    OutlinedButton(onClick = {
-                        CompanionPrefs.setPlacing(context, true)
-                        CompanionService.refresh()
-                        val launch = context.packageManager.getLaunchIntentForPackage("com.supercell.clashofclans")
-                        if (launch != null) context.startActivity(launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-                        else android.widget.Toast.makeText(context, R.string.companion_not_installed, android.widget.Toast.LENGTH_LONG).show()
-                    }) { Text(stringResource(R.string.companion_place)) }
-                    Text(stringResource(R.string.companion_place_desc), style = MaterialTheme.typography.bodySmall)
-                }
                 Text(
                     stringResource(if (serviceOn) R.string.companion_access_on else R.string.companion_access_off),
                     style = MaterialTheme.typography.bodyMedium,
