@@ -199,7 +199,7 @@ class CompanionService : AccessibilityService() {
             // Without this the window's origin is after the notch, which pushed the button off the right edge.
             if (Build.VERSION.SDK_INT >= 30) layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
             else if (Build.VERSION.SDK_INT >= 28) layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-            x = (bounds.width() * CENTER_X).toInt().minus(size / 2).coerceIn(0, bounds.width() - size)
+            x = (bounds.width() - bounds.height() * RIGHT_OFFSET).toInt().minus(size / 2).coerceIn(0, bounds.width() - size)
             y = (bounds.height() * CENTER_Y).toInt().minus(size / 2).coerceIn(0, bounds.height() - size)
         }
         runCatching { wm.addView(view, lp); bar = view; this.icon = icon; this.badge = badge }
@@ -276,8 +276,12 @@ class CompanionService : AccessibilityService() {
         private const val CHANNEL = "companion"
         private const val NOTIFICATION_ID = 7001
         private const val BUTTON_DP = 56
-        /** Centre of the button as fractions of the screen: the Shop/Build column, in the gap above the goblin counters. */
-        private const val CENTER_X = 0.912f
+        /**
+         * Centre of the button: the Shop/Build column, in the gap above the goblin counters. The game scales its HUD by
+         * screen height, so the distance from the right edge is a fraction of the height (not of the width), which keeps
+         * the button over the Build column on different aspect ratios.
+         */
+        private const val RIGHT_OFFSET = 0.195f
         private const val CENTER_Y = 0.635f
         private const val DOUBLE_TAP_MS = 350L
         private const val FETCH_TIMEOUT_MS = 12_000L
