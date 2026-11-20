@@ -13,6 +13,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -138,7 +139,15 @@ fun PermissionPrompt() {
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text(stringResource(need.title), style = MaterialTheme.typography.titleSmall)
                         Text(stringResource(need.why), style = MaterialTheme.typography.bodySmall)
-                        OutlinedButton(onClick = { fix(need) }) { Text(stringResource(R.string.perm_fix)) }
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedButton(onClick = { fix(need) }) { Text(stringResource(R.string.perm_fix)) }
+                            // The accessibility switch can be greyed out until "Allow restricted settings" is chosen in App info.
+                            if (need == Need.ACCESSIBILITY) {
+                                OutlinedButton(onClick = {
+                                    open(context, Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}")))
+                                }) { Text(stringResource(R.string.perm_app_info)) }
+                            }
+                        }
                     }
                 }
             }

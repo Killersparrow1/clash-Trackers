@@ -383,6 +383,7 @@
     <string name="perm_title">Allow what the app needs</string>
     <string name="perm_intro">Some settings are off, so timers and alerts may be late or stop. Android only lets you switch these on yourself.</string>
     <string name="perm_fix">Open setting</string>
+    <string name="perm_app_info">App info</string>
     <string name="perm_later">Later</string>
     <string name="perm_notifications">Notifications</string>
     <string name="perm_notifications_why">Needed to tell you when an upgrade finishes.</string>
