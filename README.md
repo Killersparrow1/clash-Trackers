@@ -83,6 +83,12 @@ Built with **Material 3 Expressive**, the Clash typeface, a deterministic boost 
 - A **Road to max widget** shows the same numbers on the home screen.
 - Bedtime level up and the Timers calendar include the Builder Base (builders, Battle Machine / Copter, Star Laboratory).
 
+### How Road to max is calculated
+- **Time and resources left** (the cards): for every item you own, the app adds up the cost and time of each level from your current level to the highest level your Town Hall allows (ClashKing's game data). Missing buildings start from level 0, and troops and spells you have not unlocked start at level 1, which is free. Heroes are included; Builder Base items, equipment and helpers are not.
+- **Builder time**: the building and hero work is shared evenly between your builders, but it never drops below the time the hero with the most work left needs, because a hero is upgraded one level after another. Laboratory and pet time are separate.
+- **Percentage done**: counted in **levels**, not time or cost. For each group (Buildings, Walls, Heroes, Lab, Pets) it is the sum of the levels you have divided by the sum of the levels you could have at your Town Hall, kept between 0 and 100%. Copies you do not have count as level 0, and if the export lists more copies than your Town Hall allows, the lowest extra ones are ignored. The overall figure is the plain average of the five groups, so every group weighs the same however many items it has.
+- **Not counted**: potions, helpers, events and the Gold Pass, and loot you do not yet have in storage.
+
 ### Clash tab
 - **Live event schedule** with countdowns in your local time: raid weekend, season end, Clan Games, Clan War League signup and wars, league reset.
 - **Sources**: raid weekend and season end come from the [ClashKing API](https://api.clashk.ing/swagger/index.html). Everything else (ClashKing has no endpoint for it) is worked out from the game's usual UTC schedule, and `events.json` in this repository can override any event.
