@@ -87,6 +87,8 @@ android {
     }
     buildFeatures {
         compose = true
+        // The dev build's package name is written into a string (resValue "app_package") for the shortcuts.
+        resValues = true
     }
 }
 
