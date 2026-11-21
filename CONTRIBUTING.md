@@ -4,13 +4,17 @@ Thanks for helping out. Bug reports, new game IDs and small fixes are all welcom
 
 - **Bugs:** use the [bug report template](https://github.com/Kuswaa/clash-timers/issues/new/choose) and include the crash report from the app if there is one.
 - **Larger changes:** open an issue first, so we can agree on the approach before you spend time on it.
-- **Tests:** run `./gradlew :app:testDebugUnitTest` before opening a pull request, and add tests for changes to the parser or the timer engine.
+- **Tests:** run `./gradlew :app:testDebugUnitTest` before opening a pull request, and add tests for changes to the parser, the timer engine, event alerts or the Companion's decision logic.
 
 A few rules keep the project working:
 
 - **Never commit a real village export.** It contains your player tag. Test data goes in `app/src/test/resources/fixtures`, with the tag replaced by `#TEST000`.
+- **Test with the dev build.** Every build that is not on `main` is `com.killersparrow1.clashtrackers.dev` ("Clash Trackers Dev") and installs next to the real app. Do not hard-code the package name: use `context.packageName`, `${applicationId}` in the manifest, or the `app_package` string (see `res/xml/shortcuts.xml`).
 - **Keep R8 off.** Code shrinking caused a start-up crash on Android 10 that the build checks didn't catch.
 - **Widget layouts** can only use classes that RemoteViews allows. Anything else, even a plain `View`, stops the whole widget from loading.
+- **The accessibility service stays minimal.** Clash Companion (`companion/`) may only listen for window-state changes (`companion_accessibility.xml`: no content retrieval, no gestures). Never read, store or send what is on screen, and keep it event driven: no polling, no wake locks. Its overlay is a `TYPE_ACCESSIBILITY_OVERLAY` window, so the app needs no "draw over other apps" permission. Put decisions in plain Kotlin (`CompanionLogic`, `CompanionSession`) and unit test them.
+- **Audio and other raw files.** Sounds live in `app/src/main/res/raw/` (lowercase letters, digits and underscores). A sound looked up by name at run time (the title easter egg) must also be listed in `clashtimer_keep.xml`. A notification channel's sound is fixed once created, so a new sound needs a new channel id.
+- **Upload to `dev`, not `main`.** Pull requests and GitHub web uploads go to `dev`; `main` only receives merges from it.
 - **Network use stays small and visible.** The app uses the internet only for GitHub updates and ClashKing data (game data, pictures, event dates). Never send the player tag, village data or anything personal, and keep a cached copy so the app still works offline.
 
 ## Adding a language

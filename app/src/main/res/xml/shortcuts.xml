@@ -8,7 +8,7 @@
         android:shortcutLongLabel="@string/shortcut_sync_long">
         <intent
             android:action="android.intent.action.MAIN"
-            android:targetPackage="com.killersparrow1.clashtrackers"
+            android:targetPackage="@string/app_package"
             android:targetClass="com.killersparrow1.clashtrackers.sync.SyncActivity" />
     </shortcut>
     <shortcut

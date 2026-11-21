@@ -68,6 +68,7 @@ Built with **Material 3 Expressive**, the Clash typeface, a deterministic boost 
 - **Sync on open**: copy your village in Clash of Clans (**Settings > Data Export > Copy**) and open the app. Only a real village export is used, and each export once.
 - **Multiple accounts**: every export carries a player tag, so each tag becomes its own account with a switcher, rename and delete. Different widgets can show different accounts.
 - **Gold Pass** (set once a month) for the things the export cannot tell, such as a job's full length for its progress bar.
+- **Calendar view**: a switch next to *Village upgrades* turns the cards into a timeline of every builder, lab and pet slot, with what Bedtime level up would start next after each running upgrade (up to 12 per slot, 3 weeks ahead). Pinch, or use **+ / −**, to zoom; zoomed in, hour labels appear.
 - **Open game** button and launcher shortcuts for Sync and Open game.
 
 ### Boosts and potions
@@ -76,10 +77,11 @@ Built with **Material 3 Expressive**, the Clash typeface, a deterministic boost 
 - Hammer Jam and Builder Base Bonanza reductions are already in the exported times.
 - A time-segment simulation handles boost start, expiry and overlap without drift; state survives reboots.
 
-### Plan tab
+### Progress tab
 - **Road to max**: time and Gold / Elixir / Dark Elixir still needed to max your Town Hall (buildings, defences, traps, heroes, lab, pets and an optional walls total). An estimate from your export plus ClashKing's game data; potions, helpers, events and the Gold Pass are not counted.
 - **Bedtime level up**: set when you sleep and it lists what to start in each free builder, lab, pet, Builder Base builder or Star Laboratory slot so upgrades run through the night and finish after you wake.
 - A **Road to max widget** shows the same numbers on the home screen.
+- Bedtime level up and the Timers calendar include the Builder Base (builders, Battle Machine / Copter, Star Laboratory).
 
 ### Clash tab
 - **Live event schedule** with countdowns in your local time: raid weekend, season end, Clan Games, Clan War League signup and wars, league reset.
@@ -99,16 +101,21 @@ Built with **Material 3 Expressive**, the Clash typeface, a deterministic boost 
 - A picker asks which account each widget should show.
 
 ### Interface
-- **Four tabs**: Timers, Plan, Clash and Settings (sub-tabs: Plan has Road to max and Bedtime level up; Clash has Events; Settings has Settings, Personalization and Support), with swipe to switch.
+- **Four tabs**: Timers, Progress, Clash and Settings (sub-tabs: Progress has Road to max and Bedtime level up; Clash has Events; Settings has Settings, Personalization and Support), with swipe to switch.
 - **Six app looks** in **Settings > Personalization > App look**: Material You (follows your phone), Material light and Material dark (always light or always dark, whatever the phone is set to), and the fixed Clean, Classic and Game palettes. Widgets have their own theme.
 - Material You colour on Android 12+, a themed launcher icon on Android 13+, a navigation rail on tablets and a two-column Timers screen on wide displays.
-- Spring-based tab swiping, a header that slides with the tabs, and a floating pill tab bar that hides while you scroll down and returns on scrolling up (all of it off with the phone's "Remove animations" setting).
+- Spring-based tab swiping, a header that slides with the tabs, and a floating pill tab bar (switch it off in Personalization for a docked bar) that hides while you scroll down and returns on scrolling up (all of it off with the phone's "Remove animations" setting).
 - A subtle wiggle and light haptic feedback when you press cards.
 - Lilita One for headings and numbers; filter chips that get out of the way as you scroll.
 - **Languages**: English and Russian, chosen in **Settings > Language**. New text is added in English first. See [Adding a language](CONTRIBUTING.md#adding-a-language).
 
+### Clash Companion (optional)
+- **In-game import button**: while Clash of Clans is open, a small golden button offers a one-tap import of the village you copied (**Settings > Data Export > Copy**). It is a normal import, so the main app never opens. Tap to import, drag to move it (the spot is remembered), double-tap to hide it until you reopen the game. A green or red mark shows the result.
+- A matching **Paste JSON** notification action is shown while the game is open.
+- It needs the **Clash Companion accessibility service** (switch it on from the permission popup or **Settings > Import assistant**). The service only receives "which app is in front" events: it cannot read the screen, and nothing is sent anywhere. Android cannot tell the home village from a battle, so the button also shows in battles; double-tap to get rid of it. Sideloaded installs on Android 13+ may first need **App info > ⋮ > Allow restricted settings**.
+
 ### Notifications
-- Finish alerts when a builder, the lab or a pet is free, with the Clash of Clans sound; a Clock Tower ready alert; an optional idle reminder (off by default).
+- **Event alerts**: when Clan Games, Raid Weekend, CWL signup or wars start, and 1 hour, 6 hours or 1 day before they end (season end and league reset: before they happen). Choose the events and the lead time in **Settings > Event alerts**; a test button plays the sound.- Finish alerts when a builder, the lab or a pet is free, with the Clash of Clans sound; a Clock Tower ready alert; an optional idle reminder (off by default).
 - A switch makes alerts follow Do Not Disturb (default) or ring through it like an alarm.
 
 ### Updates, support and diagnostics
@@ -201,6 +208,7 @@ cd clash-Trackers
 | `POST_NOTIFICATIONS` | Finish, Clock Tower and idle alerts. |
 | `RECEIVE_BOOT_COMPLETED` | Reschedules alarms after a reboot. |
 | `REQUEST_INSTALL_PACKAGES` | Hands a downloaded update to Android's installer. |
+| Accessibility service (user-enabled, not a manifest permission) | Clash Companion only: learns when Clash of Clans is in front. Window-change events only; it never reads screen content. |
 
 ---
 
@@ -229,4 +237,4 @@ This material is unofficial and is not endorsed by Supercell. For more informati
 - **Production:** merging into `main` runs the same build, then the **release** job waits for approval (Actions > the run > **Review deployments** > `production`). Not approving means no release.
 - **After approval** it takes the next version from the newest `CT` tag (`CT2.3` to `CT2.4`, ... `CT2.9` to `CT3.0`), tags the built commit and publishes a GitHub Release with `ClashTrackers-CT2.4.apk` and generated notes.
 - **One-time setup:** Settings > **Environments** > New environment `production` > **Required reviewers**, add yourself, before merging. Also enable Settings > Actions > General > **Allow GitHub Actions to create and approve pull requests** for the weekly game data pull request.
-- Dev and release builds share one version rule, so installing either over the other always works.
+- Dev and release builds share one version rule. Builds from any branch except `main` use the package `com.killersparrow1.clashtrackers.dev` and the name **Clash Trackers Dev**, so they install **next to** the released app with their own data, widgets and permissions. Dev builds do not check for updates. Locally: `./gradlew assembleDebug -PdevBuild=true`.

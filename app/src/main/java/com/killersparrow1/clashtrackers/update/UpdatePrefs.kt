@@ -9,7 +9,8 @@ object UpdatePrefs {
 
     private fun p(c: Context) = c.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
-    fun autoCheck(c: Context) = p(c).getBoolean("auto", true)
+    /** A dev build (package ...clashtrackers.dev) never checks for or announces releases: those are a different app. */
+    fun autoCheck(c: Context) = c.packageName == "com.killersparrow1.clashtrackers" && p(c).getBoolean("auto", true)
     fun setAutoCheck(c: Context, on: Boolean) = p(c).edit().putBoolean("auto", on).apply()
 
     /** True at most every 12 hours; marks the check as done. */

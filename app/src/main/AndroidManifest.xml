@@ -28,7 +28,7 @@
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:localeConfig="@xml/locales_config"
-        android:label="@string/app_name"
+        android:label="${appLabel}"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.ClashTimer">
@@ -52,7 +52,7 @@
             android:exported="true"
             android:icon="@mipmap/ic_launcher"
             android:roundIcon="@mipmap/ic_launcher_round"
-            android:label="@string/app_name"
+            android:label="${appLabel}"
             android:targetActivity=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -68,7 +68,7 @@
             android:exported="true"
             android:icon="@mipmap/ic_launcher_colour"
             android:roundIcon="@mipmap/ic_launcher_colour_round"
-            android:label="@string/app_name"
+            android:label="${appLabel}"
             android:targetActivity=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -92,7 +92,7 @@
             android:excludeFromRecents="true"
             android:label="Clash Trackers crash"
             android:process=":crash"
-            android:taskAffinity="com.killersparrow1.clashtrackers.crash"
+            android:taskAffinity="${applicationId}.crash"
             android:theme="@style/Theme.ClashTimer" />
 
         <!-- Launched by the widget's Sync button: reads the clipboard once focused, then finishes. -->

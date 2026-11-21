@@ -6,6 +6,17 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ## [Unreleased]
 
+### Added
+
+- Clash Companion: a draggable golden import button and a Paste JSON notification while Clash of Clans is open (accessibility service, window events only), with the permission popup now also asking for the accessibility service and Install unknown apps.
+- Event alerts for Clan Games, Raid Weekend, CWL, season end and league reset, with per-event switches, a lead time and a custom sound.
+- Timers calendar view (pinch or +/− zoom, hour labels, up to 12 suggested upgrades per slot) and Builder Base in Bedtime level up and the calendar.
+- Dev builds use their own package (`.dev`, "Clash Trackers Dev") so they install next to the released app.
+
+### Changed
+
+- The Plan tab is now **Progress**.
+
 ### Changed
 
 - Navigation motion: tabs now move on a spring and the page coming in scales from 0.96 to 1.0 as it settles; the page you are on plus one each side stay loaded, so swiping or jumping several tabs never shows a blank page. The header title (and the Open game button) slide and fade the same way the tabs moved, switching when the page passes the middle of a swipe.
