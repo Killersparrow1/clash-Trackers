@@ -365,7 +365,7 @@
     <string name="road_buildings">Buildings</string>
     <string name="road_defences">Defences</string>
     <string name="road_crafted">Crafted Defenses</string>
-    <string name="road_levels_left">%1$d levels left. Tap to see every item.</string>
+    <string name="road_levels_left">%1$d levels left</string>
     <string name="road_heroes">Heroes</string>
     <string name="road_builders">Builders (buildings and heroes)</string>
     <string name="road_builders_work">Split across %1$d builders (%2$s of work in total)</string>
