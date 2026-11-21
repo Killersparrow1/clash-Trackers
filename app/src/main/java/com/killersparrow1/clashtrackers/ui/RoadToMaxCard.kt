@@ -157,9 +157,12 @@ private fun CategoryCard(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
         shape = MaterialTheme.shapes.large,
     ) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(
+            Modifier.fillMaxWidth().then(if (items.isNotEmpty()) Modifier.clickable { open = !open } else Modifier).padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
             Row(
-                Modifier.fillMaxWidth().then(if (items.isNotEmpty()) Modifier.clickable { open = !open } else Modifier),
+                Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 BuildingImage(buildingId, 40.dp)
