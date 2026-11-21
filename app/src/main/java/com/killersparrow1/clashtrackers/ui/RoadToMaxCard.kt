@@ -217,7 +217,6 @@ private fun ItemGrid(items: List<RoadItem>) {
         Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
-        maxItemsInEachRow = 5,
     ) {
         for (item in sorted) {
             val picture = remember(item.id, item.lowest) {
