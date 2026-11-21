@@ -213,18 +213,23 @@ private fun ItemGrid(items: List<RoadItem>) {
     val context = LocalContext.current
     val density = LocalDensity.current
     val sorted = remember(items) { items.sortedWith(compareByDescending<RoadItem> { it.levelsLeft }.thenBy { it.id }) }
+    androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxWidth()) {
+    // As many tiles per row as fit at least 58 dp wide, then widened a little so the row has no leftover gap.
+    val gap = 8.dp
+    val columns = ((maxWidth + gap) / (58.dp + gap)).toInt().coerceAtLeast(1)
+    val tile = (maxWidth - gap * (columns - 1)) / columns
     FlowRow(
         Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(gap),
+        verticalArrangement = Arrangement.spacedBy(gap),
     ) {
         for (item in sorted) {
-            val picture = remember(item.id, item.lowest) {
-                WidgetIcons.get(context).bitmapForLevel(item.id, item.lowest.coerceAtLeast(1), with(density) { 56.dp.roundToPx() })?.asImageBitmap()
+            val picture = remember(item.id, item.lowest, tile) {
+                WidgetIcons.get(context).bitmapForLevel(item.id, item.lowest.coerceAtLeast(1), with(density) { tile.roundToPx() })?.asImageBitmap()
             }
             val edge = if (item.maxed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
             Box(
-                Modifier.size(58.dp).border(1.5.dp, edge, RoundedCornerShape(12.dp))
+                Modifier.size(tile).border(1.5.dp, edge, RoundedCornerShape(12.dp))
                     .background(MaterialTheme.colorScheme.surfaceContainerHighest, RoundedCornerShape(12.dp)),
             ) {
                 if (picture != null) Image(picture, contentDescription = null, modifier = Modifier.fillMaxSize().padding(4.dp))
@@ -249,6 +254,7 @@ private fun ItemGrid(items: List<RoadItem>) {
                 )
             }
         }
+    }
     }
 }
 
