@@ -155,6 +155,27 @@ fun DeveloperOptionsScreen(selectedTag: String?, log: SyncLog, onClose: () -> Un
                     }
                 }
 
+                CollapsibleCard("Notification sound check", "dev_sound") {
+                    var blocked by remember { mutableStateOf(false) }
+                    Text(
+                        "Send posts a real event alert through the alert channel, so it plays at your notification volume. " +
+                            "Play previews the sound file directly at full media volume.",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton(onClick = { blocked = !com.killersparrow1.clashtrackers.notify.EventAlerts.test(context) }) { Text("Send test alert") }
+                        OutlinedButton(onClick = {
+                            runCatching {
+                                android.media.MediaPlayer.create(context, R.raw.event_sound)?.apply {
+                                    setOnCompletionListener { it.release() }
+                                    start()
+                                }
+                            }
+                        }) { Text("Play sound") }
+                    }
+                    if (blocked) Text(stringResource(R.string.ev_settings_blocked), style = MaterialTheme.typography.bodySmall)
+                }
+
                 Button(onClick = onClose, modifier = Modifier.fillMaxWidth()) { Text("Hide developer options") }
             }
         }

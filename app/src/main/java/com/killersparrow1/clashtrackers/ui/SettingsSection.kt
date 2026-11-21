@@ -163,7 +163,6 @@ fun SettingsSection(
         SectionCard(stringResource(R.string.ev_settings_title)) {
             var evOn by remember { mutableStateOf(EventAlerts.enabled(context)) }
             var lead by remember { mutableStateOf(EventAlerts.leadSec(context)) }
-            var testBlocked by remember { mutableStateOf(false) }
             SwitchRow(stringResource(R.string.ev_settings_enable), evOn) { on -> evOn = on; EventAlerts.setEnabled(context, on) }
             Text(stringResource(R.string.ev_settings_desc), style = MaterialTheme.typography.bodyMedium)
             if (evOn) {
@@ -183,8 +182,6 @@ fun SettingsSection(
                         )
                     }
                 }
-                OutlinedButton(onClick = { testBlocked = !EventAlerts.test(context) }) { Text(stringResource(R.string.ev_settings_test)) }
-                if (testBlocked) Text(stringResource(R.string.ev_settings_blocked), style = MaterialTheme.typography.bodySmall)
             }
         }
         SectionCard(stringResource(R.string.companion_section)) {
