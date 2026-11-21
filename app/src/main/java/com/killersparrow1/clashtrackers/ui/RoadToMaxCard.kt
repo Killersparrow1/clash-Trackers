@@ -104,6 +104,11 @@ internal fun RoadToMaxCard(export: VillageExport?, builders: Int, modifier: Modi
             done = road.levels.defences.done,
             seconds = road.defences.seconds / n, remaining = road.defences, dayUnit = dayUnit, items = items('d'),
         )
+        if (road.items.any { it.group == 'c' }) CategoryCard(
+            title = stringResource(R.string.road_crafted), buildingId = 1000097,
+            done = road.levels.crafted.done,
+            seconds = road.crafted.seconds / n, remaining = road.crafted, dayUnit = dayUnit, items = items('c'),
+        )
         CategoryCard(
             title = stringResource(R.string.road_walls), buildingId = 1000010,
             done = road.levels.walls.done,
@@ -224,6 +229,14 @@ private fun ItemGrid(items: List<RoadItem>) {
                     .background(MaterialTheme.colorScheme.surfaceContainerHighest, RoundedCornerShape(12.dp)),
             ) {
                 if (picture != null) Image(picture, contentDescription = null, modifier = Modifier.fillMaxSize().padding(4.dp))
+                // Crafted Defense modules share their defense's picture, so the module's initials tell them apart.
+                if (item.group == 'c') item.name?.let { n ->
+                    Text(
+                        n.split(' ', '-').mapNotNull { it.firstOrNull() }.take(3).joinToString(""),
+                        style = MaterialTheme.typography.labelSmall,
+                        modifier = Modifier.align(Alignment.TopEnd).padding(end = 4.dp, top = 2.dp),
+                    )
+                }
                 if (item.count > 1) Text(
                     "×${item.count}", style = MaterialTheme.typography.labelSmall,
                     modifier = Modifier.align(Alignment.TopStart).padding(start = 4.dp, top = 2.dp),

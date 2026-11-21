@@ -131,4 +131,20 @@ class RoadToMaxTest {
         assertEquals(1, cannon.lowest)
         assertEquals('b', r.items.single { it.id == 5 }.group)
     }
+
+    @Test fun craftedModulesCountOnlyWithACraftingStation() {
+        val d = MaxData.fromJson(
+            """{"maxTh":3,"items":{
+              "1000097":{"k":"b","c":"d","n":null,"l":[[0,0,0,1]]},
+              "9":{"k":"b","c":"c","n":null,"l":[[0,0,0,1],[100,10,0,2],[200,20,0,3]]}
+            }}""",
+        )
+        val without = RoadToMaxCalc.compute(d, export(3, mapOf(1000097 to listOf(0))).copy(ownedLevels = mapOf(7 to listOf(1))))
+        assertEquals(0, without?.items?.count { it.group == 'c' } ?: 0)
+        val with = RoadToMaxCalc.compute(d, export(3, mapOf(1000097 to listOf(1), 9 to listOf(1))))!!
+        assertEquals(100L + 200L, with.crafted.seconds)
+        assertEquals(LevelShare(1, 3), with.levels.crafted)
+        assertEquals('c', with.items.single { it.id == 9 }.group)
+        assertEquals(300L, with.builderWork.seconds)
+    }
 }

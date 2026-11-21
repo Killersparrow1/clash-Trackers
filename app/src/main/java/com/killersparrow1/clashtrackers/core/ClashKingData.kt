@@ -158,6 +158,23 @@ object ClashKingData {
             }, "traps")
         }
 
+        // Crafted Defenses: the Crafting Station's seasonal defenses have upgradable modules. Each module is an item of its
+        // own (kind b, category c) in the building step format; the picture is its defense's. Keep in step with gen_max_data_ck.cjs.
+        root.objects("buildings").firstOrNull { it.long("_id") == 1000097L }?.let { station ->
+            for (defense in station.objects("seasonal_defenses")) {
+                for (m in defense.objects("modules")) {
+                    val levels = m.objects("levels")
+                    val name = m.text("name") ?: continue
+                    if (levels.isEmpty()) continue
+                    items[m.long("_id")] = Out(
+                        "b", "c", null,
+                        levels.map { l -> listOf(l.long("build_time"), l.long("build_cost"), resource(m), th(l.intOrNull("required_townhall"))) },
+                        name, "buildings/seasonal-defense/${clean(defense.text("name") ?: "")}/level_1.webp",
+                    )
+                }
+            }
+        }
+
         // Researched or levelled things: the cost and time on a level are for going to the next one.
         for ((group, kind, category) in LEVELLED) {
             for (o in root.objects(group)) {

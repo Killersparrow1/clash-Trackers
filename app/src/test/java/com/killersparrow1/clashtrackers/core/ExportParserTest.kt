@@ -209,4 +209,16 @@ class ExportParserTest {
             .forEach { (a, b) -> assertEquals(a.key, b.key); assertEquals(3600L, extra(a, b)) }
         assertEquals(0L, extra(export1.petJob!!, export2.petJob!!))
     }
+
+    @Test fun craftingStationModulesAreOwnedLevels() {
+        val text = """
+            {"tag":"#X","timestamp":100,
+             "buildings":[{"data":1000001,"lvl":16,"cnt":1},
+               {"data":1000097,"types":[{"data":103000011,"modules":[{"data":102000033,"lvl":2},{"data":102000034,"lvl":1,"timer":500}]}]}]}
+        """.trimIndent()
+        val e = (ExportParser.parse(text) as ParseResult.Success).export
+        assertEquals(listOf(2), e.ownedLevels[102000033])
+        assertEquals(listOf(2), e.ownedLevels[102000034]) // being upgraded counts as the next level
+        assertTrue(e.ownedLevels.containsKey(1000097))
+    }
 }

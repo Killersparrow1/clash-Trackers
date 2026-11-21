@@ -142,6 +142,15 @@ object ExportParser {
                 repeat(copies) { list += level }
             }
         }
+        // Crafting Station modules: buildings > types > modules, each with its own id and level.
+        for (station in root.array("buildings").objects()) {
+            for (type in station.array("types").objects()) {
+                for (m in type.array("modules").objects()) {
+                    val id = m.int("data") ?: continue
+                    owned.getOrPut(id) { mutableListOf() } += (m.int("lvl") ?: 0) + if (m.long("timer") != null) 1 else 0
+                }
+            }
+        }
         return owned
     }
 

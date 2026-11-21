@@ -90,6 +90,20 @@ for (const o of data.traps) {
   add(o, 'b', 'p', o.levels.map(l => [l.build_time || 0, l.build_cost || 0, res(o, o.name), l.required_townhall]), 'traps');
 }
 
+// Crafted Defenses: the Crafting Station's seasonal defenses have upgradable modules (hitpoints and so on). Each module is
+// an item of its own (kind b, category c) with the same step format as a building; the picture is its defense's.
+{
+  const station = data.buildings.find(b => b._id === 1000097);
+  for (const d of (station && station.seasonal_defenses) || []) {
+    for (const m of d.modules || []) {
+      if (!Array.isArray(m.levels) || !m.levels.length) continue;
+      const steps = m.levels.map(l => [l.build_time || 0, l.build_cost || 0, res(m, m.name), l.required_townhall]);
+      for (const st of steps) if (typeof st[3] !== 'number') { warnings.push(`${m.name}: no Town Hall requirement in ClashKing data, assumed Town Hall ${MAX_TH}`); st[3] = MAX_TH; }
+      items[m._id] = { k: 'b', c: 'c', n: null, l: steps, nm: m.name, i: `buildings/seasonal-defense/${clean(d.name)}/level_1.webp` };
+    }
+  }
+}
+
 // Things researched or levelled with "cost to go to the next level" on each level.
 function nextLevelSteps(o) {
   const L = o.levels;
