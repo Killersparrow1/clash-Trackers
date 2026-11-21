@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -72,7 +73,16 @@ internal fun EventsPage(now: Long) {
                 ),
                 shape = MaterialTheme.shapes.extraLarge,
             ) {
-                Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                androidx.compose.foundation.layout.Row(
+                    Modifier.fillMaxWidth().padding(20.dp),
+                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                androidx.compose.foundation.Image(
+                    androidx.compose.ui.res.painterResource(eventIcon(e.id)), contentDescription = null,
+                    modifier = Modifier.size(56.dp),
+                )
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(name, style = MaterialTheme.typography.titleMedium)
                     Text(
                         when {
@@ -87,6 +97,7 @@ internal fun EventsPage(now: Long) {
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+                }
                 }
             }
         }
@@ -163,6 +174,16 @@ internal fun EventsAutoRefresh() {
         ClashKingDatesStore.refreshIfDue(context)
         com.killersparrow1.clashtrackers.notify.EventAlerts.schedule(context) // new dates can move an alert
     }
+}
+
+/** The picture for an event card. Events that came from the downloaded list (not one of ours) get the trophy medal. */
+internal fun eventIcon(id: String): Int = when (id) {
+    GameEvents.CLAN_GAMES -> R.drawable.ev_clan_games
+    GameEvents.RAID_WEEKEND -> R.drawable.ev_raid
+    GameEvents.CWL_SIGNUP -> R.drawable.ev_cwl_signup
+    GameEvents.CWL_WARS -> R.drawable.ev_cwl_wars
+    GameEvents.LEAGUE_RESET -> R.drawable.ev_league
+    else -> R.drawable.ev_season
 }
 
 internal fun eventName(id: String): Int = when (id) {
