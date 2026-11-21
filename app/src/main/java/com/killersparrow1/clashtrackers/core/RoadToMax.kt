@@ -80,7 +80,7 @@ data class RoadTotals(
 /** Everything left to max the current Town Hall, split the way the card shows it. */
 data class RoadToMax(
     val townHall: Int,
-    /** Buildings, defenses, traps and guardians (builders). */
+    /** Buildings other than defences: army, resource and helper buildings and the guardians (builders). */
     val buildings: RoadTotals,
     val heroes: RoadTotals,
     /** Troops, spells and siege machines (laboratory). */
@@ -91,9 +91,13 @@ data class RoadToMax(
     val levels: RoadLevels = RoadLevels(),
     /** Time the hero with the most work left needs. A hero is upgraded one level after another, so more builders cannot beat it. */
     val longestHeroSeconds: Long = 0,
+    /** Defences and traps (builders); a group of their own, as in ClashKing. */
+    val defences: RoadTotals = RoadTotals(),
+    /** Every item with the levels you have, for the lists that open under each card. */
+    val items: List<RoadItem> = emptyList(),
 ) {
-    /** Everything a builder does: buildings plus heroes. */
-    val builderWork: RoadTotals get() = buildings + heroes
+    /** Everything a builder does: buildings, defences and heroes. */
+    val builderWork: RoadTotals get() = buildings + defences + heroes
 
     /** Builder time when the work is shared across [builders], but never less than the longest single hero. */
     fun builderSeconds(builders: Int): Long =
@@ -105,7 +109,7 @@ data class RoadToMax(
 
     /** The average of the groups' shares done, 0..1; null when there is nothing to do. */
     val overallDone: Double? get() = listOfNotNull(
-        levels.buildings.done, levels.walls.done, levels.heroes.done, levels.lab.done, levels.pets.done,
+        levels.buildings.done, levels.defences.done, levels.walls.done, levels.heroes.done, levels.lab.done, levels.pets.done,
     ).takeIf { it.isNotEmpty() }?.average()
 }
 
@@ -116,7 +120,19 @@ data class RoadLevels(
     val lab: LevelShare = LevelShare(),
     val pets: LevelShare = LevelShare(),
     val walls: LevelShare = LevelShare(),
+    val defences: LevelShare = LevelShare(),
 )
+
+/**
+ * One item (all copies of it) for the lists under the cards: [group] is b buildings, d defences and traps, w walls,
+ * h heroes, l laboratory, p pets; [levels] are the copies' levels, best first, with copies you do not have as 0.
+ */
+class RoadItem(val id: Int, val group: Char, val levels: List<Int>, val maxLevel: Int) {
+    val count: Int get() = levels.size
+    val lowest: Int get() = levels.minOrNull() ?: 0
+    val levelsLeft: Int get() = levels.sumOf { (maxLevel - it).coerceAtLeast(0) }
+    val maxed: Boolean get() = levelsLeft == 0
+}
 
 /** The sum of the levels you have and the sum of the levels you could have at this Town Hall. */
 data class LevelShare(val have: Long = 0, val max: Long = 0) {
@@ -132,6 +148,7 @@ object RoadToMaxCalc {
         val townHall = export.townHallLevel?.coerceIn(1, data.maxTownHall.coerceAtLeast(1)) ?: return null
         if (data.items.isEmpty() || export.ownedLevels.isEmpty()) return null
         var buildings = RoadTotals(); var heroes = RoadTotals(); var lab = RoadTotals(); var pets = RoadTotals(); var walls = RoadTotals()
+        var defences = RoadTotals(); var lDefences = LevelShare(); val rows = mutableListOf<RoadItem>()
         var lBuildings = LevelShare(); var lHeroes = LevelShare(); var lLab = LevelShare(); var lPets = LevelShare(); var lWalls = LevelShare()
         var longestHero = 0L
         for ((id, item) in data.items) {
@@ -146,6 +163,7 @@ object RoadToMaxCalc {
             val missingLevel = if (item.kind == 'l') 1 else 0
             // For the share done, a copy or a troop you do not have yet counts as level 0.
             val ownedSum = owned.sumOf { it.toLong() }
+            val shown = owned.toList() + List((count - owned.size).coerceAtLeast(0)) { 0 }
             while (owned.size < count) owned += missingLevel
             var total = RoadTotals()
             for (level in owned) {
@@ -154,7 +172,10 @@ object RoadToMaxCalc {
                 if (item.kind == 'h') longestHero = maxOf(longestHero, chain)
             }
             val share = LevelShare(ownedSum, owned.size.toLong() * maxLevel)
-            when (item.kind) {
+            val group = if (item.kind == 'b' && item.category == 'd') 'd' else item.kind
+            rows += RoadItem(id, group, shown, maxLevel)
+            when (group) {
+                'd' -> { defences += total; lDefences += share }
                 'b' -> { buildings += total; lBuildings += share }
                 'h' -> { heroes += total; lHeroes += share }
                 'l' -> { lab += total; lLab += share }
@@ -162,6 +183,6 @@ object RoadToMaxCalc {
                 'w' -> { walls += total; lWalls += share }
             }
         }
-        return RoadToMax(townHall, buildings, heroes, lab, pets, walls, RoadLevels(lBuildings, lHeroes, lLab, lPets, lWalls), longestHero)
+        return RoadToMax(townHall, buildings, heroes, lab, pets, walls, RoadLevels(lBuildings, lHeroes, lLab, lPets, lWalls, lDefences), longestHero, defences, rows)
     }
 }

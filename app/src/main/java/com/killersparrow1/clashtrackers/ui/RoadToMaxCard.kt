@@ -3,6 +3,20 @@
 package com.killersparrow1.clashtrackers.ui
 
 import androidx.annotation.DrawableRes
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import com.killersparrow1.clashtrackers.core.RoadItem
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -79,30 +93,36 @@ internal fun RoadToMaxCard(export: VillageExport?, builders: Int, modifier: Modi
             }
         }
 
+        fun items(group: Char) = road.items.filter { it.group == group }
         CategoryCard(
             title = stringResource(R.string.road_buildings), buildingId = 1000015,
             done = road.levels.buildings.done,
-            seconds = road.buildings.seconds / n, remaining = road.buildings, dayUnit = dayUnit,
+            seconds = road.buildings.seconds / n, remaining = road.buildings, dayUnit = dayUnit, items = items('b'),
+        )
+        CategoryCard(
+            title = stringResource(R.string.road_defences), buildingId = 1000008,
+            done = road.levels.defences.done,
+            seconds = road.defences.seconds / n, remaining = road.defences, dayUnit = dayUnit, items = items('d'),
         )
         CategoryCard(
             title = stringResource(R.string.road_walls), buildingId = 1000010,
             done = road.levels.walls.done,
-            seconds = null, remaining = road.walls, dayUnit = dayUnit,
+            seconds = null, remaining = road.walls, dayUnit = dayUnit, items = items('w'),
         )
         CategoryCard(
             title = stringResource(R.string.road_heroes), buildingId = 1000071,
             done = road.levels.heroes.done,
-            seconds = road.heroSeconds(n), remaining = road.heroes, dayUnit = dayUnit,
+            seconds = road.heroSeconds(n), remaining = road.heroes, dayUnit = dayUnit, items = items('h'),
         )
         CategoryCard(
             title = stringResource(R.string.road_lab), buildingId = 1000007,
             done = road.levels.lab.done,
-            seconds = road.lab.seconds, remaining = road.lab, dayUnit = dayUnit,
+            seconds = road.lab.seconds, remaining = road.lab, dayUnit = dayUnit, items = items('l'),
         )
         CategoryCard(
             title = stringResource(R.string.road_pets), buildingId = 1000068,
             done = road.levels.pets.done,
-            seconds = road.pets.seconds, remaining = road.pets, dayUnit = dayUnit,
+            seconds = road.pets.seconds, remaining = road.pets, dayUnit = dayUnit, items = items('p'),
         )
 
         Text(
@@ -123,19 +143,33 @@ private fun CategoryCard(
     seconds: Long?,
     remaining: RoadTotals,
     dayUnit: String,
+    /** Every item of the group; tapping the card opens them as a grid of pictures with their levels. */
+    items: List<RoadItem> = emptyList(),
 ) {
+    var open by rememberSaveable(title) { mutableStateOf(false) }
     Card(
         modifier = Modifier.fillMaxWidth().wiggleOnTap(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
         shape = MaterialTheme.shapes.large,
     ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(
+                Modifier.fillMaxWidth().then(if (items.isNotEmpty()) Modifier.clickable { open = !open } else Modifier),
+                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
                 BuildingImage(buildingId, 40.dp)
                 Text(title, style = MaterialTheme.typography.titleMediumEmphasized, modifier = Modifier.weight(1f))
                 Text(percentText(done), style = MaterialTheme.typography.titleMedium)
+                if (items.isNotEmpty()) Text(if (open) "▴" else "▾", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             ProgressLine(done, large = false, showPercent = false)
+            if (items.isNotEmpty()) {
+                val left = items.sumOf { it.levelsLeft }
+                Text(
+                    stringResource(R.string.road_levels_left, left),
+                    style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(stringResource(R.string.road_time), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.width(48.dp))
                 Text(
@@ -161,6 +195,46 @@ private fun CategoryCard(
                         Text("—", style = MaterialTheme.typography.titleSmall)
                     }
                 }
+            }
+            AnimatedVisibility(open && items.isNotEmpty()) { ItemGrid(items) }
+        }
+    }
+}
+
+/** The group's items as pictures: the level you have (the lowest copy), "×N" when there are several copies. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ItemGrid(items: List<RoadItem>) {
+    val context = LocalContext.current
+    val density = LocalDensity.current
+    val sorted = remember(items) { items.sortedWith(compareByDescending<RoadItem> { it.levelsLeft }.thenBy { it.id }) }
+    FlowRow(
+        Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        maxItemsInEachRow = 5,
+    ) {
+        for (item in sorted) {
+            val picture = remember(item.id, item.lowest) {
+                WidgetIcons.get(context).bitmapForLevel(item.id, item.lowest.coerceAtLeast(1), with(density) { 56.dp.roundToPx() })?.asImageBitmap()
+            }
+            val edge = if (item.maxed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+            Box(
+                Modifier.size(58.dp).border(1.5.dp, edge, RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surfaceContainerHighest, RoundedCornerShape(12.dp)),
+            ) {
+                if (picture != null) Image(picture, contentDescription = null, modifier = Modifier.fillMaxSize().padding(4.dp))
+                if (item.count > 1) Text(
+                    "×${item.count}", style = MaterialTheme.typography.labelSmall,
+                    modifier = Modifier.align(Alignment.TopStart).padding(start = 4.dp, top = 2.dp),
+                )
+                Text(
+                    item.lowest.toString(), style = MaterialTheme.typography.labelMedium,
+                    color = if (item.maxed) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.align(Alignment.BottomEnd).padding(3.dp)
+                        .background(if (item.maxed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerLow, RoundedCornerShape(6.dp))
+                        .padding(horizontal = 5.dp, vertical = 1.dp),
+                )
             }
         }
     }

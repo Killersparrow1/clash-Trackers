@@ -111,4 +111,24 @@ class RoadToMaxTest {
         assertEquals(700L, r.builderSeconds(2))    // 1400 / 2
         assertEquals(300L, r.heroSeconds(5))
     }
+
+    @Test fun defencesAreTheirOwnGroupAndItemsKeepTheirLevels() {
+        val d = MaxData.fromJson(
+            """{"maxTh":3,"items":{
+              "1":{"k":"b","c":"d","n":[0,0,2,2],"l":[[100,10,0,1],[200,20,0,2],[400,40,0,3]]},
+              "5":{"k":"b","c":"r","n":[0,1,1,1],"l":[[10,1,0,1],[20,2,0,2],[40,4,0,3]]}
+            }}""",
+        )
+        val r = RoadToMaxCalc.compute(d, export(3, mapOf(1 to listOf(3, 1), 5 to listOf(3))))!!
+        assertEquals(200L + 400L, r.defences.seconds) // the second cannon: level 1 -> 3
+        assertEquals(0L, r.buildings.seconds)
+        assertEquals(LevelShare(4, 6), r.levels.defences)
+        assertEquals(LevelShare(3, 3), r.levels.buildings)
+        val cannon = r.items.single { it.id == 1 }
+        assertEquals('d', cannon.group)
+        assertEquals(listOf(3, 1), cannon.levels)
+        assertEquals(2, cannon.levelsLeft)
+        assertEquals(1, cannon.lowest)
+        assertEquals('b', r.items.single { it.id == 5 }.group)
+    }
 }
