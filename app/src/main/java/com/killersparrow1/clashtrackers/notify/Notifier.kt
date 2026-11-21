@@ -130,6 +130,21 @@ object Notifier {
         return true
     }
 
+    /** Developer sound check: one sample notification on the given channel (ids 7201+ keep them from replacing each other). */
+    fun test(context: Context, channel: String, title: String, id: Int): Boolean {
+        if (!allowed(context)) return false
+        ensureChannel(context)
+        val n = NotificationCompat.Builder(context, channel)
+            .setSmallIcon(R.drawable.ic_stat_timer)
+            .setContentTitle(title)
+            .setContentText("Sound check")
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+            .setContentIntent(openIntent(context))
+            .build()
+        return try { NotificationManagerCompat.from(context).notify(id, n); true } catch (e: SecurityException) { false }
+    }
+
     /** Tapping a notification opens Clash of Clans if it's installed, otherwise this app. */
     private fun openIntent(context: Context): PendingIntent {
         val intent = context.packageManager.getLaunchIntentForPackage(CLASH_PACKAGE)
