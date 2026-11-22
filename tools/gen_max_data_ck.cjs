@@ -54,6 +54,7 @@ function iconPath(group, o, levels, bb = false) {
     case 'buildings': return `buildings/${village}/${c}/level_${levels}.webp`;
     case 'traps': return `traps/${village}/${c}/level_${levels}.webp`;
     case 'spells': return `spells/${c}.webp`;
+    case 'equipment': return `equipment/${c}.webp`;
     default: return `${group}/${c}/icon.webp`; // troops, heroes, pets, guardians
   }
 }
@@ -123,6 +124,21 @@ for (const [group, kind, cat] of [['troops', 'l', 'a'], ['spells', 'l', 'a'], ['
     if (!o.levels.some(l => (l.upgrade_cost || 0) > 0)) continue;
     add(o, kind, cat, nextLevelSteps(o), group);
   }
+}
+
+// Hero equipment: no timer, paid in up to three ores. A step is [0, shiny ore, 6, Town Hall, glowy ore, starry ore]
+// (the last two only when used); like troops, a level holds the cost to the next one.
+for (const o of data.equipment || []) {
+  const L = o.levels;
+  if (!Array.isArray(L) || !L.length) continue;
+  const steps = [[0, 0, 6, L[0].required_townhall]]; // level 1 is unlocked, not bought
+  for (let i = 0; i < L.length - 1; i++) {
+    const c = L[i].upgrade_cost || {};
+    const step = [0, c.shiny_ore || 0, 6, L[i + 1].required_townhall];
+    if (c.glowy_ore || c.starry_ore) step.push(c.glowy_ore || 0, c.starry_ore || 0);
+    steps.push(step);
+  }
+  add(o, 'e', 'a', steps, 'equipment');
 }
 
 // Builder Base (kinds in capitals so the home village code never mixes them up): B buildings and traps, M the Battle

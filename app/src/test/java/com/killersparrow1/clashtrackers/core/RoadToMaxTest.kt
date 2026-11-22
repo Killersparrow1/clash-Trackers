@@ -136,6 +136,25 @@ class RoadToMaxTest {
         assertEquals(WorkShare(110, 60), t.work.traps)
     }
 
+    @Test fun laboratoryItemsSplitAndEquipmentIsPaidInOre() {
+        val d = MaxData.fromJson("""{"maxTh":3,"items":{
+          "4000000":{"k":"l","c":"a","n":null,"l":[[0,0,1,1],[100,10,1,1],[200,20,1,2]]},
+          "4000051":{"k":"l","c":"a","n":null,"l":[[0,0,2,1],[50,5,2,1]]},
+          "26000000":{"k":"l","c":"a","n":null,"l":[[0,0,1,1],[60,6,1,1],[70,7,1,3]]},
+          "90000000":{"k":"e","c":"a","n":null,"l":[[0,0,6,1],[0,120,6,1,30,5],[0,200,6,2]]}
+        }}""")
+        val e = export(3, mapOf(4000000 to listOf(1), 4000051 to listOf(1), 26000000 to listOf(2), 90000000 to listOf(1)))
+        val r = RoadToMaxCalc.compute(d, e)!!
+        assertEquals(RoadTotals(seconds = 300, elixir = 30), r.troops)
+        assertEquals(RoadTotals(seconds = 50, darkElixir = 5), r.siege)
+        assertEquals(RoadTotals(seconds = 70, elixir = 7), r.spells)
+        assertEquals(RoadTotals(seconds = 420, elixir = 37, darkElixir = 5), r.lab)
+        // Equipment: ore, no timer; level 1 -> 3 costs 120 shiny + 30 glowy + 5 starry, then 200 shiny.
+        assertEquals(RoadTotals(shinyOre = 320, glowyOre = 30, starryOre = 5), r.equipment)
+        assertEquals(LevelShare(1, 3), r.levels.equipment)
+        assertEquals(1.0 / 3, r.work.equipment.done!!, 1e-9)
+    }
+
     @Test fun groupsWithNothingToDoHaveNoShare() {
         assertEquals(null, LevelShare().done)
         assertEquals(0.5, LevelShare(50, 100).done!!, 1e-9)

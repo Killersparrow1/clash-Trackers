@@ -64,6 +64,7 @@ object ClashKingData {
         "buildings" -> "buildings/${if (builderBase) "builder-base" else "home-village"}/${clean(name)}/level_$levels.webp"
         "traps" -> "traps/${if (builderBase) "builder-base" else "home-village"}/${clean(name)}/level_$levels.webp"
         "spells" -> "spells/${clean(name)}.webp"
+        "equipment" -> "equipment/${clean(name)}.webp"
         else -> "$group/${clean(name)}/icon.webp"
     }
 
@@ -190,6 +191,22 @@ object ClashKingData {
                 }
                 add(o, kind, category, steps, group)
             }
+        }
+
+        // Hero equipment: no timer, paid in up to three ores. A step is [0, shiny ore, 6, Town Hall, glowy ore, starry ore]
+        // (the last two only when used); a level holds the cost to the next one.
+        for (o in root.objects("equipment")) {
+            val levels = o.objects("levels")
+            if (levels.isEmpty()) continue
+            val steps = ArrayList<List<Long>>()
+            steps += listOf(0L, 0L, 6L, th(levels[0].intOrNull("required_townhall"))) // level 1 is unlocked, not bought
+            for (i in 0 until levels.size - 1) {
+                val cost = (levels[i]["upgrade_cost"] as? JsonObject) ?: JsonObject(emptyMap())
+                val step = mutableListOf(0L, cost.long("shiny_ore"), 6L, th(levels[i + 1].intOrNull("required_townhall")))
+                if (cost.long("glowy_ore") > 0 || cost.long("starry_ore") > 0) { step += cost.long("glowy_ore"); step += cost.long("starry_ore") }
+                steps += step
+            }
+            add(o, "e", "a", steps, "equipment")
         }
 
         // Builder Base (kinds in capitals): B buildings and traps, M Battle Machine and Battle Copter, S Star Laboratory

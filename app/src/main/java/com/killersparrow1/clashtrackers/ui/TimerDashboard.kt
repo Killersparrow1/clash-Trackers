@@ -10,6 +10,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
+import com.killersparrow1.clashtrackers.data.MaxDataStore
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
@@ -205,7 +206,7 @@ fun TimerDashboard(
                     }
                 }
                 if (!calendar) items(timers, key = { it.row.jobKey ?: "${it.category}_${it.row.name}" }) { timer ->
-                    TimerCard(timer)
+                    TimerCard(timer, model.townHall)
                 }
             }
         }
@@ -511,7 +512,7 @@ private fun SyncCard(last: SyncLogEntry?, busy: Boolean, onSync: () -> Unit) {
 }
 
 @Composable
-private fun TimerCard(timer: DashboardTimer) {
+private fun TimerCard(timer: DashboardTimer, townHall: Int?) {
     val row = timer.row
     Card(
         modifier = Modifier.fillMaxWidth().wiggleOnTap(),
@@ -546,6 +547,26 @@ private fun TimerCard(timer: DashboardTimer) {
                     )
                 }
                 Text(row.label.replace(" → ", " ➛ "), style = MaterialTheme.typography.titleLargeEmphasized)
+            }
+            // The highest level this item can reach at your Town Hall, from the game data (home village items only).
+            val maxData = remember(MaxDataStore.version) { MaxDataStore.get(context) }
+            val maxLevel = remember(row.iconIds, row.iconLevel, townHall, maxData) {
+                val level = row.iconLevel
+                val th = townHall
+                if (level == null || th == null || timer.category == TimerFilter.BUILDER_BASE) null
+                else row.iconIds.firstNotNullOfOrNull { maxData.items[it] }
+                    ?.let { item -> item.steps.indexOfLast { it.townHall <= th } + 1 }
+                    ?.takeIf { it > 0 }
+            }
+            if (maxLevel != null && row.iconLevel != null) {
+                Text(
+                    stringResource(
+                        if (row.iconLevel >= maxLevel) R.string.timer_reaches_max else R.string.timer_max_level,
+                        row.iconLevel, maxLevel, townHall ?: 0,
+                    ),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
             BasicText(
                 if (row.kind == RowKind.RUNNING) Countdown.text(row.remaining, stringResource(R.string.time_day_short)) else row.staticStatus,

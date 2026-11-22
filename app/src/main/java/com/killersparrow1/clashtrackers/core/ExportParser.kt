@@ -132,7 +132,7 @@ object ExportParser {
     private fun upgradingLevels(root: JsonObject): Map<Int, List<Int>> {
         val out = HashMap<Int, MutableList<Int>>()
         for (section in listOf(
-            "buildings", "traps", "guardians", "units", "spells", "siege_machines", "heroes", "pets",
+            "buildings", "traps", "guardians", "units", "spells", "siege_machines", "heroes", "pets", "equipment",
             "buildings2", "traps2", "units2", "heroes2",
         )) {
             for (e in root.array(section).objects()) {
@@ -156,7 +156,7 @@ object ExportParser {
     private fun ownedLevels(root: JsonObject): Map<Int, List<Int>> {
         val owned = HashMap<Int, MutableList<Int>>()
         for (section in listOf(
-            "buildings", "traps", "guardians", "units", "spells", "siege_machines", "heroes", "pets",
+            "buildings", "traps", "guardians", "units", "spells", "siege_machines", "heroes", "pets", "equipment",
             "buildings2", "traps2", "units2", "heroes2",
         )) {
             for (e in root.array(section).objects()) {

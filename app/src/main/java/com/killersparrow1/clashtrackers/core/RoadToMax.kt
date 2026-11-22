@@ -11,7 +11,11 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.long
 
 /** What it takes to get to level N of an item: time, cost and the resource the cost is paid in. */
-data class MaxStep(val seconds: Long, val cost: Long, val resource: Int, val townHall: Int)
+data class MaxStep(
+    val seconds: Long, val cost: Long, val resource: Int, val townHall: Int,
+    /** Hero equipment levels are paid in up to three ores: [cost] is the shiny ore (resource 6), these are the other two. */
+    val glowyOre: Long = 0, val starryOre: Long = 0,
+)
 
 /**
  * One upgradeable item from the bundled `max_data.json`.
@@ -41,7 +45,10 @@ class MaxData(val maxTownHall: Int, val items: Map<Int, MaxItem>) {
                 val counts = (o["n"] as? JsonArray)?.map { it.jsonPrimitive.int }
                 val steps = o["l"]!!.jsonArray.map {
                     val a = it.jsonArray
-                    MaxStep(a[0].jsonPrimitive.long, a[1].jsonPrimitive.long, a[2].jsonPrimitive.int, a[3].jsonPrimitive.int)
+                    MaxStep(
+                        a[0].jsonPrimitive.long, a[1].jsonPrimitive.long, a[2].jsonPrimitive.int, a[3].jsonPrimitive.int,
+                        a.getOrNull(4)?.jsonPrimitive?.long ?: 0, a.getOrNull(5)?.jsonPrimitive?.long ?: 0,
+                    )
                 }
                 id.toInt() to MaxItem(
                     o["k"]!!.jsonPrimitive.content.single(), counts, steps,
@@ -63,9 +70,14 @@ data class RoadTotals(
     val darkElixir: Long = 0,
     /** Walls can be paid in either Gold or Elixir. */
     val goldOrElixir: Long = 0,
+    /** Hero equipment is paid in ore. */
+    val shinyOre: Long = 0,
+    val glowyOre: Long = 0,
+    val starryOre: Long = 0,
 ) {
     operator fun plus(o: RoadTotals) = RoadTotals(
         seconds + o.seconds, gold + o.gold, elixir + o.elixir, darkElixir + o.darkElixir, goldOrElixir + o.goldOrElixir,
+        shinyOre + o.shinyOre, glowyOre + o.glowyOre, starryOre + o.starryOre,
     )
 
     fun add(step: MaxStep) = RoadTotals(
@@ -74,6 +86,9 @@ data class RoadTotals(
         elixir + if (step.resource == 1) step.cost else 0,
         darkElixir + if (step.resource == 2) step.cost else 0,
         goldOrElixir + if (step.resource == 3) step.cost else 0,
+        shinyOre + if (step.resource == 6) step.cost else 0,
+        glowyOre + step.glowyOre,
+        starryOre + step.starryOre,
     )
 }
 
@@ -101,6 +116,11 @@ data class RoadToMax(
     val items: List<RoadItem> = emptyList(),
     /** Shares of the work done, weighted by upgrade time (walls, which take no time, by cost): what the percentages show. */
     val work: RoadWork = RoadWork(),
+    /** The laboratory's items split the way ClashKing shows them (their sum is [lab]), and hero equipment (ore, no timer). */
+    val troops: RoadTotals = RoadTotals(),
+    val spells: RoadTotals = RoadTotals(),
+    val siege: RoadTotals = RoadTotals(),
+    val equipment: RoadTotals = RoadTotals(),
 ) {
     /** Everything a builder does: buildings, defences and heroes. */
     val builderWork: RoadTotals get() = buildings + defences + crafted + traps + heroes
@@ -137,11 +157,17 @@ data class RoadWork(
     val defences: WorkShare = WorkShare(),
     val crafted: WorkShare = WorkShare(),
     val traps: WorkShare = WorkShare(),
+    val troops: WorkShare = WorkShare(),
+    val spells: WorkShare = WorkShare(),
+    val siege: WorkShare = WorkShare(),
+    val equipment: WorkShare = WorkShare(),
     /** Heroes by time, for the overall figure (the heroes card itself counts levels, as ClashKing does). */
     val heroTime: WorkShare = WorkShare(),
+    /** The laboratory by time, for the overall figure (its cards count levels). */
+    val labTime: WorkShare = WorkShare(),
 ) {
     /** Everything measured in time (all groups but walls) taken together. */
-    val overall: Double? get() = (buildings + heroTime + lab + pets + defences + crafted + traps).done
+    val overall: Double? get() = (buildings + heroTime + labTime + pets + defences + crafted + traps).done
 }
 
 /** Levels owned against levels at the Town Hall limit, per group: what "done" is measured by (not owned counts as 0). */
@@ -154,11 +180,15 @@ data class RoadLevels(
     val defences: LevelShare = LevelShare(),
     val crafted: LevelShare = LevelShare(),
     val traps: LevelShare = LevelShare(),
+    val troops: LevelShare = LevelShare(),
+    val spells: LevelShare = LevelShare(),
+    val siege: LevelShare = LevelShare(),
+    val equipment: LevelShare = LevelShare(),
 )
 
 /**
  * One item (all copies of it) for the lists under the cards: [group] is b buildings, d defences and traps, w walls,
- * h heroes, l laboratory, p pets, c crafted defense modules; [levels] are the copies' levels, best first, with copies you do not have as 0.
+ * h heroes, l troops, x spells, m siege machines, e hero equipment, t traps, p pets, c crafted defense modules; [levels] are the copies' levels, best first, with copies you do not have as 0.
  */
 class RoadItem(val id: Int, val group: Char, val levels: List<Int>, val maxLevel: Int, val name: String? = null) {
     val count: Int get() = levels.size
@@ -177,6 +207,8 @@ data class LevelShare(val have: Long = 0, val max: Long = 0) {
 
 object RoadToMaxCalc {
     private const val CRAFTING_STATION = 1000097
+    /** The Workshop's machines: the laboratory item ids that are siege machines, not troops. */
+    private val SIEGE_MACHINES = setOf(4000051, 4000052, 4000062, 4000075, 4000087, 4000091, 4000092, 4000135, 4000188)
     /** Null when the export has no Town Hall, no owned items, or the bundled data is empty. */
     fun compute(data: MaxData, export: VillageExport): RoadToMax? {
         val townHall = export.townHallLevel?.coerceIn(1, data.maxTownHall.coerceAtLeast(1)) ?: return null
@@ -187,8 +219,11 @@ object RoadToMaxCalc {
         var longestHero = 0L
         var wB = WorkShare(); var wH = WorkShare(); var wL = WorkShare(); var wP = WorkShare(); var wW = WorkShare(); var wD = WorkShare(); var wC = WorkShare(); var wT = WorkShare(); var wHT = WorkShare()
         var traps = RoadTotals(); var lTraps = LevelShare()
+        var troops = RoadTotals(); var spells = RoadTotals(); var siege = RoadTotals(); var equipment = RoadTotals()
+        var lTroops = LevelShare(); var lSpells = LevelShare(); var lSiege = LevelShare(); var lEquip = LevelShare()
+        var wLT = WorkShare(); var wTroops = WorkShare(); var wSpells = WorkShare(); var wSiege = WorkShare(); var wEquip = WorkShare()
         for ((id, item) in data.items) {
-            if (item.kind !in "bhlpw") continue // Builder Base items (capital letters) are planned in Bedtime level up only
+            if (item.kind !in "bhlpwe") continue // Builder Base items (capital letters) are planned in Bedtime level up only
             val maxLevel = item.steps.indexOfLast { it.townHall <= townHall } + 1
             if (maxLevel == 0) continue
             // Crafting Station modules only count once the Crafting Station is in the village.
@@ -201,9 +236,9 @@ object RoadToMaxCalc {
             for (real in export.upgradingLevels[id].orEmpty()) { val at = base.indexOf(real + 1); if (at >= 0) base[at] = real }
             val owned = base.sortedDescending().take(count).toMutableList()
             // Missing copies: unbuilt buildings start from nothing; troops and spells are unlocked at level 1 (free).
-            val missingLevel = if (item.kind == 'l') 1 else 0
+            val missingLevel = if (item.kind == 'l' || item.kind == 'e') 1 else 0
             // For the share done, a copy or a troop you do not have yet counts as level 0.
-            val ownedSum = owned.sumOf { it.toLong() }
+            val ownedSum = owned.sumOf { it.coerceAtMost(maxLevel).toLong() } // levels above this Town Hall's cap are not counted
             val shown = owned.toList() + List((count - owned.size).coerceAtLeast(0)) { 0 }
             while (owned.size < count) owned += missingLevel
             var total = RoadTotals()
@@ -214,18 +249,22 @@ object RoadToMaxCalc {
             }
             val share = LevelShare(ownedSum, owned.size.toLong() * maxLevel)
             // Work for the time share: every step of every copy, and what is left of it. Walls have no timer, so they count resources.
-            fun weight(st: MaxStep) = if (item.kind == 'w') st.cost else st.seconds
-            fun levelWeight(st: MaxStep) = if (item.kind == 'h') 1L else weight(st)
+            fun weight(st: MaxStep) = if (item.kind == 'w' || item.kind == 'e') st.cost else st.seconds
+            fun levelWeight(st: MaxStep) = if (item.kind == 'h' || item.kind == 'l' || item.kind == 'e') 1L else weight(st)
             var full = 0L; var fullLv = 0L
             for (i in missingLevel until maxLevel) { full += weight(item.steps[i]); fullLv += levelWeight(item.steps[i]) }
             full *= count; fullLv *= count
             var left = 0L; var leftLv = 0L
             for (level in owned) for (i in level until maxLevel) { left += weight(item.steps[i]); leftLv += levelWeight(item.steps[i]) }
-            val work = WorkShare(fullLv, leftLv.coerceAtMost(fullLv))
+            // Heroes, troops, spells, siege machines and equipment show the levels done (an item you do not have counts as level 0), as ClashKing does.
+            val work = if (item.kind == 'h' || item.kind == 'l' || item.kind == 'e') WorkShare(share.max, share.max - share.have) else WorkShare(fullLv, leftLv.coerceAtMost(fullLv))
             val timeWork = WorkShare(full, left.coerceAtMost(full))
             // Traps (ids from 12,000,000) are a group of their own, as in ClashKing.
             val group = if (item.kind == 'b' && item.category in "dc") item.category
-                else if (item.kind == 'b' && item.category == 'p' && id >= 12_000_000) 't' else item.kind
+                else if (item.kind == 'b' && item.category == 'p' && id >= 12_000_000) 't'
+                else if (item.kind == 'l' && id >= 26_000_000) 'x' // spells
+                else if (item.kind == 'l' && id in SIEGE_MACHINES) 'm'
+                else item.kind
             rows += RoadItem(id, group, shown, maxLevel, item.name)
             when (group) {
                 'c' -> { crafted += total; lCrafted += share; wC += work }
@@ -233,11 +272,16 @@ object RoadToMaxCalc {
                 'b' -> { buildings += total; lBuildings += share; wB += work }
                 'h' -> { heroes += total; lHeroes += share; wH += work; wHT += timeWork }
                 't' -> { traps += total; lTraps += share; wT += work }
-                'l' -> { lab += total; lLab += share; wL += work }
+                'l' -> { lab += total; lLab += share; wL += work; wLT += timeWork; troops += total; lTroops += share; wTroops += work }
+                'x' -> { lab += total; lLab += share; wL += work; wLT += timeWork; spells += total; lSpells += share; wSpells += work }
+                'm' -> { lab += total; lLab += share; wL += work; wLT += timeWork; siege += total; lSiege += share; wSiege += work }
+                'e' -> { equipment += total; lEquip += share; wEquip += work }
                 'p' -> { pets += total; lPets += share; wP += work }
                 'w' -> { walls += total; lWalls += share; wW += work }
             }
         }
-        return RoadToMax(townHall, buildings, heroes, lab, pets, walls, RoadLevels(lBuildings, lHeroes, lLab, lPets, lWalls, lDefences, lCrafted, lTraps), longestHero, defences, crafted, traps, rows, RoadWork(wB, wH, wL, wP, wW, wD, wC, wT, wHT))
+        return RoadToMax(townHall, buildings, heroes, lab, pets, walls, RoadLevels(lBuildings, lHeroes, lLab, lPets, lWalls, lDefences, lCrafted, lTraps, lTroops, lSpells, lSiege, lEquip),
+            longestHero, defences, crafted, traps, rows, RoadWork(wB, wH, wL, wP, wW, wD, wC, wT, wTroops, wSpells, wSiege, wEquip, wHT, wLT),
+            troops = troops, spells = spells, siege = siege, equipment = equipment)
     }
 }

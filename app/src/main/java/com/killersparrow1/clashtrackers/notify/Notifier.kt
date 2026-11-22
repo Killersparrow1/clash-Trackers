@@ -20,15 +20,17 @@ import com.killersparrow1.clashtrackers.core.FinishNotice
 /** "Builder free: Inferno Tower" / "Lab free" / "Pet house free". */
 object Notifier {
     /** Plays on the alarm volume and breaks through Do Not Disturb (the original channel, kept for existing users). */
-    const val CHANNEL_ID = "finished_v2"
+    const val CHANNEL_ID = "finished_v4"
     /** Plays on the notification volume and is silenced by Do Not Disturb. */
-    const val CHANNEL_QUIET = "finished_v3"
+    const val CHANNEL_QUIET = "finished_v5"
     /** Clock Tower ready: its own sound, one channel per Do Not Disturb choice (a channel's sound can't change once created). */
-    const val CHANNEL_CLOCK = "clocktower_v1"
-    const val CHANNEL_CLOCK_QUIET = "clocktower_v1_quiet"
+    const val CHANNEL_CLOCK = "clocktower_v2"
+    const val CHANNEL_CLOCK_QUIET = "clocktower_v2_quiet"
     private const val PREFS = "notif_prefs"
     private const val KEY_RESPECT_DND = "respect_dnd"
     private const val OLD_CHANNEL_ID = "finished"
+    /** Channels made for earlier sound files: a channel keeps the sound it was created with, so a new file needs a new id. */
+    private val RETIRED = listOf("finished_v2", "finished_v3", "clocktower_v1", "clocktower_v1_quiet")
     private const val CLASH_PACKAGE = "com.supercell.clashofclans"
 
     /** Whether finish alerts follow Do Not Disturb (default yes, so they stay quiet overnight). */
@@ -42,6 +44,7 @@ object Notifier {
     fun ensureChannel(context: Context) {
         val nm = context.getSystemService(NotificationManager::class.java) ?: return
         nm.deleteNotificationChannel(OLD_CHANNEL_ID)
+        RETIRED.forEach { nm.deleteNotificationChannel(it) }
         if (nm.getNotificationChannel(CHANNEL_QUIET) == null) {
             val quiet = AudioAttributes.Builder()
                 .setUsage(AudioAttributes.USAGE_NOTIFICATION)

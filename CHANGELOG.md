@@ -8,6 +8,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ### Added
 
+- Timer cards show the highest level the item can reach at your Town Hall. Road to max has a search box, a details sheet for every item, and separate cards for Troops, Spells, Siege Machines and hero Equipment (ore costs).
 - Road to max: Defences and Crafted Defenses cards, tap a card to open every item with its level, and event cards in Clash now have the game's pictures. Notification sounds can be checked one by one in developer options, and the event alert sound is louder.
 - Clash Companion: a draggable golden import button and a Paste JSON notification while Clash of Clans is open (accessibility service, window events only), with the permission popup now also asking for the accessibility service and Install unknown apps.
 - Event alerts for Clan Games, Raid Weekend, CWL, season end and league reset, with per-event switches, a lead time and a custom sound.
