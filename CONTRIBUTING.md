@@ -2,7 +2,7 @@
 
 Thanks for helping out. Bug reports, new game IDs and small fixes are all welcome.
 
-- **Bugs:** use the [bug report template](https://github.com/Kuswaa/clash-timers/issues/new/choose) and include the crash report from the app if there is one.
+- **Bugs:** use the [bug report template](https://github.com/Killersparrow1/clash-Trackers/issues/new/choose) and include the crash report from the app if there is one.
 - **Larger changes:** open an issue first, so we can agree on the approach before you spend time on it.
 - **Tests:** run `./gradlew :app:testDebugUnitTest` before opening a pull request, and add tests for changes to the parser, the timer engine, event alerts or the Companion's decision logic.
 
@@ -13,7 +13,10 @@ A few rules keep the project working:
 - **Keep R8 off.** Code shrinking caused a start-up crash on Android 10 that the build checks didn't catch.
 - **Widget layouts** can only use classes that RemoteViews allows. Anything else, even a plain `View`, stops the whole widget from loading.
 - **The accessibility service stays minimal.** Clash Companion (`companion/`) may only listen for window-state changes (`companion_accessibility.xml`: no content retrieval, no gestures). Never read, store or send what is on screen, and keep it event driven: no polling, no wake locks. Its overlay is a `TYPE_ACCESSIBILITY_OVERLAY` window, so the app needs no "draw over other apps" permission. Put decisions in plain Kotlin (`CompanionLogic`, `CompanionSession`) and unit test them.
-- **Audio and other raw files.** Sounds live in `app/src/main/res/raw/` (lowercase letters, digits and underscores). A sound looked up by name at run time (the title easter egg) must also be listed in `clashtimer_keep.xml`. A notification channel's sound is fixed once created, so a new sound needs a new channel id.
+- **Audio and other raw files.** Sounds live in `app/src/main/res/raw/` (lowercase letters, digits and underscores). A sound looked up by name at run time (the title easter egg) must also be listed in `clashtimer_keep.xml`. A notification channel's sound is fixed once created, so a changed sound file needs a new channel id (`events_v4`, `finished_v4`, `clocktower_v2` ...): bump the id in `notify/` and add the old one to the list of channels the app deletes. Check a sound with **Developer options** (tap the Settings tab 11 times): it can send a test notification on every channel and play each file. Keep a little headroom (peaks around -1.5 dB) so it does not distort.
+- **Game data converters stay identical.** `tools/gen_max_data_ck.cjs` and `core/ClashKingData.kt` must produce the same `max_data.json`; change both, regenerate `app/src/main/assets/max_data.json` with the script and check that unrelated items did not change. A step is `[seconds, cost, resource, townHall]`; hero equipment adds the glowy and starry ore as two more numbers.
+- **Road to max rules.** The groups and the percentages are described in the README ("How Road to max is calculated"); change that text with the code. Buildings, defences, crafted defenses, traps and pets are weighted by upgrade time; heroes, troops, spells, siege machines and equipment by levels. An upgrade in progress is not done. Siege machines are told apart from troops by a list of ids in `RoadToMaxCalc`, so add new ones there. Put the logic in `core/RoadToMax.kt` and cover it in `RoadToMaxTest`; compare any change with a real village in ClashKing, using a copy of the export that never goes into the repository.
+- **Pictures.** Items need a picture under `app/src/main/assets/icons/<id>.webp` (about 128 px) or the app only shows them after the pictures are downloaded. Crafted Defense modules and hero equipment are bundled.
 - **Upload to `dev`, not `main`.** Pull requests and GitHub web uploads go to `dev`; `main` only receives merges from it.
 - **Network use stays small and visible.** The app uses the internet only for GitHub updates and ClashKing data (game data, pictures, event dates). Never send the player tag, village data or anything personal, and keep a cached copy so the app still works offline.
 

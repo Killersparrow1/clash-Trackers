@@ -69,6 +69,7 @@ Built with **Material 3 Expressive**, the Clash typeface, a deterministic boost 
 - **Multiple accounts**: every export carries a player tag, so each tag becomes its own account with a switcher, rename and delete. Different widgets can show different accounts.
 - **Gold Pass** (set once a month) for the things the export cannot tell, such as a job's full length for its progress bar.
 - **Calendar view**: a switch next to *Village upgrades* turns the cards into a timeline of every builder, lab and pet slot, with what Bedtime level up would start next after each running upgrade (up to 12 per slot, 3 weeks ahead). Pinch, or use **+ / −**, to zoom; zoomed in, hour labels appear.
+- **Max level on every card**: a line such as "Level 21 of 21 at Town Hall 16" shows the highest level the item can reach at your Town Hall, and when this upgrade gets it there.
 - **Open game** button and launcher shortcuts for Sync and Open game.
 
 ### Boosts and potions
@@ -78,21 +79,22 @@ Built with **Material 3 Expressive**, the Clash typeface, a deterministic boost 
 - A time-segment simulation handles boost start, expiry and overlap without drift; state survives reboots.
 
 ### Progress tab
-- **Road to max**: time and Gold / Elixir / Dark Elixir still needed to max your Town Hall (buildings, defences, traps, heroes, lab, pets and an optional walls total). An estimate from your export plus ClashKing's game data; potions, helpers, events and the Gold Pass are not counted.
+- **Road to max**: time and resources still needed to max your Town Hall, with a card for **Buildings, Defences, Crafted Defenses, Traps, Walls, Heroes, Troops, Spells, Siege Machines, Equipment and Pets**. Tap a card to open a grid of every item with its level, tap an item for its details (levels of each copy, time and cost left), or use the search box to find an item by name. An estimate from your export plus ClashKing's game data; potions, helpers, events and the Gold Pass are not counted.
 - **Bedtime level up**: set when you sleep and it lists what to start in each free builder, lab, pet, Builder Base builder or Star Laboratory slot so upgrades run through the night and finish after you wake.
 - A **Road to max widget** shows the same numbers on the home screen.
 - Bedtime level up and the Timers calendar include the Builder Base (builders, Battle Machine / Copter, Star Laboratory).
 
 ### How Road to max is calculated
-- **Time and resources left** (the cards): for every item you own, the app adds up the cost and time of each level from your current level to the highest level your Town Hall allows (ClashKing's game data). Missing buildings start from level 0, and troops and spells you have not unlocked start at level 1, which is free. Heroes are included; Builder Base items, equipment and helpers are not.
-- **Builder time**: the building and hero work is shared evenly between your builders, but it never drops below the time the hero with the most work left needs, because a hero is upgraded one level after another. Laboratory and pet time are separate.
+- **Time and resources left** (the cards): for every item you own, the app adds up the cost and time of each level from your current level to the highest level your Town Hall allows (ClashKing's game data). Missing buildings start from level 0, and troops and spells you have not unlocked start at level 1, which is free. Heroes, spells, siege machines and hero equipment (paid in shiny, glowy and starry ore, with no timer) are included; Builder Base items and helpers are not. Crafted Defenses (the Crafting Station's modules) only count if you own a Crafting Station, and may change or go away as the game does.
+- **Builder time**: the building and hero work is shared evenly between your builders, but it never drops below the time the hero with the most work left needs, because a hero is upgraded one level after another. Laboratory (troops, spells and siege machines together) and pet time are separate.
 - **Percentage done**: for each group (Buildings, Defences, Crafted Defenses, Traps, Pets) it is the upgrade time already done divided by the total upgrade time up to your Town Hall's maximum, so a 20-day level counts for far more than a 2-hour one (this is how ClashKing does it too). **Heroes, Troops, Spells, Siege Machines and Equipment** show the share of levels done (an item you do not have counts as level 0), and Walls, which have no timer, the share of their cost. Equipment is paid in ore and has no timer. The overall figure is the time done across all the timed groups together (walls left out), so a big group counts for more than a small one. Tap a card to see every item, tap an item for its details, or search for an item by name above the cards.
 - **Upgrades in progress** are not counted as done: the item keeps its current level and the whole next level is still left, as in ClashKing. Copies you do not have count as not started, and if the export lists more copies than your Town Hall allows, the lowest extra ones are ignored.
-- **Levels left**: each card also shows how many levels are still to do (a plain count), and tapping a card opens every item with its level.
+- **Levels left**: each card also shows how many levels are still to do (a plain count).
+- **Matching ClashKing**: with the same village data the levels left and time left of Buildings, Traps, Crafted Defenses, Heroes and Troops match ClashKing's. Small differences remain in Defences and Equipment, and the Town Hall's own levels are not counted.
 - **Not counted**: potions, helpers, events and the Gold Pass, and loot you do not yet have in storage.
 
 ### Clash tab
-- **Live event schedule** with countdowns in your local time: raid weekend, season end, Clan Games, Clan War League signup and wars, league reset.
+- **Live event schedule** (each event has its own picture) with countdowns in your local time: raid weekend, season end, Clan Games, Clan War League signup and wars, league reset.
 - **Sources**: raid weekend and season end come from the [ClashKing API](https://api.clashk.ing/swagger/index.html). Everything else (ClashKing has no endpoint for it) is worked out from the game's usual UTC schedule, and `events.json` in this repository can override any event.
 - **Always instant**: the last good schedule is stored on the phone and shown the moment the tab opens. It refreshes in the background about every 6 hours, or on demand with the refresh button, and shows when it last synced. A failed refresh never throws the cache away.
 
@@ -123,7 +125,8 @@ Built with **Material 3 Expressive**, the Clash typeface, a deterministic boost 
 - It needs the **Clash Companion accessibility service** (switch it on from the permission popup or **Settings > Import assistant**). The service only receives "which app is in front" events: it cannot read the screen, and nothing is sent anywhere. Android cannot tell the home village from a battle, so the button also shows in battles; double-tap to get rid of it. Sideloaded installs on Android 13+ may first need **App info > ⋮ > Allow restricted settings**.
 
 ### Notifications
-- **Event alerts**: when Clan Games, Raid Weekend, CWL signup or wars start, and 1 hour, 6 hours or 1 day before they end (season end and league reset: before they happen). Choose the events and the lead time in **Settings > Event alerts**; a test button plays the sound.- Finish alerts when a builder, the lab or a pet is free, with the Clash of Clans sound; a Clock Tower ready alert; an optional idle reminder (off by default).
+- **Event alerts**: when Clan Games, Raid Weekend, CWL signup or wars start, and 1 hour, 6 hours or 1 day before they end (season end and league reset: before they happen). Choose the events and the lead time in **Settings > Event alerts**; the event sound is a bundled file you can replace. Finish alerts when a builder, the lab or a pet is free, with the Clash of Clans sound; a Clock Tower ready alert; an optional idle reminder (off by default).
+- **Developer options** (tap the Settings tab 11 times) has a sound check: send a real test notification on each channel or play each sound file, including the title-screen easter eggs.
 - A switch makes alerts follow Do Not Disturb (default) or ring through it like an alarm.
 
 ### Updates, support and diagnostics
