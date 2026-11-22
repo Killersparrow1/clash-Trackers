@@ -100,6 +100,19 @@ class RoadToMaxTest {
         assertTrue(r.overallDone!! in 0.0..1.0)
     }
 
+    @Test fun percentagesAreWeightedByUpgradeTime() {
+        // Two cannons need (100 + 200) s each = 600 s. One at level 1, one unbuilt: 500 s left, so 100/600 done
+        // (by levels it would be 1 of 4 = 25%: the long steps weigh more than the short ones).
+        val r = RoadToMaxCalc.compute(data, export(2, mapOf(1 to listOf(1))))!!
+        assertEquals(WorkShare(600, 500), r.work.buildings)
+        assertEquals(100.0 / 600, r.work.buildings.done!!, 1e-9)
+        // Walls have no timer: weighted by what they cost (10 walls x 300), ten at level 1 leave 2000 of 3000.
+        val w = RoadToMaxCalc.compute(data, export(2, mapOf(4 to List(10) { 1 }, 1 to listOf(2, 2))))!!
+        assertEquals(WorkShare(3000, 2000), w.work.walls)
+        // The overall figure is the time done across the timed groups only (walls left out): 600 + 1000 + 30 s in total.
+        assertEquals(100.0 / 1630, r.overallDone!!, 1e-9)
+    }
+
     @Test fun groupsWithNothingToDoHaveNoShare() {
         assertEquals(null, LevelShare().done)
         assertEquals(0.5, LevelShare(50, 100).done!!, 1e-9)

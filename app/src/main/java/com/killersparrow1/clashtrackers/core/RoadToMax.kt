@@ -97,6 +97,8 @@ data class RoadToMax(
     val crafted: RoadTotals = RoadTotals(),
     /** Every item with the levels you have, for the lists that open under each card. */
     val items: List<RoadItem> = emptyList(),
+    /** Shares of the work done, weighted by upgrade time (walls, which take no time, by cost): what the percentages show. */
+    val work: RoadWork = RoadWork(),
 ) {
     /** Everything a builder does: buildings, defences and heroes. */
     val builderWork: RoadTotals get() = buildings + defences + crafted + heroes
@@ -109,10 +111,32 @@ data class RoadToMax(
     fun heroSeconds(builders: Int): Long =
         maxOf(heroes.seconds / builders.coerceAtLeast(1), longestHeroSeconds)
 
-    /** The average of the groups' shares done, 0..1; null when there is nothing to do. */
-    val overallDone: Double? get() = listOfNotNull(
-        levels.buildings.done, levels.defences.done, levels.crafted.done, levels.walls.done, levels.heroes.done, levels.lab.done, levels.pets.done,
-    ).takeIf { it.isNotEmpty() }?.average()
+    /**
+     * Share of the upgrade time already done across every group that has upgrade time (walls take none and are left out),
+     * 0..1; null when there is nothing to do. Long upgrades count for more than short ones, as in ClashKing.
+     */
+    val overallDone: Double? get() = work.overall
+}
+
+/** The work done and left in one group: upgrade seconds, or for walls (no timer) resources. */
+data class WorkShare(val total: Long = 0, val left: Long = 0) {
+    operator fun plus(o: WorkShare) = WorkShare(total + o.total, left + o.left)
+
+    /** 0..1, or null when the group has no work at this Town Hall. */
+    val done: Double? get() = if (total > 0) ((total - left).toDouble() / total).coerceIn(0.0, 1.0) else null
+}
+
+data class RoadWork(
+    val buildings: WorkShare = WorkShare(),
+    val heroes: WorkShare = WorkShare(),
+    val lab: WorkShare = WorkShare(),
+    val pets: WorkShare = WorkShare(),
+    val walls: WorkShare = WorkShare(),
+    val defences: WorkShare = WorkShare(),
+    val crafted: WorkShare = WorkShare(),
+) {
+    /** Everything measured in time (all groups but walls) taken together. */
+    val overall: Double? get() = (buildings + heroes + lab + pets + defences + crafted).done
 }
 
 /** Levels owned against levels at the Town Hall limit, per group: what "done" is measured by (not owned counts as 0). */
@@ -155,6 +179,7 @@ object RoadToMaxCalc {
         var defences = RoadTotals(); var lDefences = LevelShare(); var crafted = RoadTotals(); var lCrafted = LevelShare(); val rows = mutableListOf<RoadItem>()
         var lBuildings = LevelShare(); var lHeroes = LevelShare(); var lLab = LevelShare(); var lPets = LevelShare(); var lWalls = LevelShare()
         var longestHero = 0L
+        var wB = WorkShare(); var wH = WorkShare(); var wL = WorkShare(); var wP = WorkShare(); var wW = WorkShare(); var wD = WorkShare(); var wC = WorkShare()
         for ((id, item) in data.items) {
             if (item.kind !in "bhlpw") continue // Builder Base items (capital letters) are planned in Bedtime level up only
             val maxLevel = item.steps.indexOfLast { it.townHall <= townHall } + 1
@@ -178,18 +203,26 @@ object RoadToMaxCalc {
                 if (item.kind == 'h') longestHero = maxOf(longestHero, chain)
             }
             val share = LevelShare(ownedSum, owned.size.toLong() * maxLevel)
+            // Work for the time share: every step of every copy, and what is left of it. Walls have no timer, so they count resources.
+            fun weight(st: MaxStep) = if (item.kind == 'w') st.cost else st.seconds
+            var full = 0L
+            for (i in missingLevel until maxLevel) full += weight(item.steps[i])
+            full *= count
+            var left = 0L
+            for (level in owned) for (i in level until maxLevel) left += weight(item.steps[i])
+            val work = WorkShare(full, left.coerceAtMost(full))
             val group = if (item.kind == 'b' && item.category in "dc") item.category else item.kind
             rows += RoadItem(id, group, shown, maxLevel, item.name)
             when (group) {
-                'c' -> { crafted += total; lCrafted += share }
-                'd' -> { defences += total; lDefences += share }
-                'b' -> { buildings += total; lBuildings += share }
-                'h' -> { heroes += total; lHeroes += share }
-                'l' -> { lab += total; lLab += share }
-                'p' -> { pets += total; lPets += share }
-                'w' -> { walls += total; lWalls += share }
+                'c' -> { crafted += total; lCrafted += share; wC += work }
+                'd' -> { defences += total; lDefences += share; wD += work }
+                'b' -> { buildings += total; lBuildings += share; wB += work }
+                'h' -> { heroes += total; lHeroes += share; wH += work }
+                'l' -> { lab += total; lLab += share; wL += work }
+                'p' -> { pets += total; lPets += share; wP += work }
+                'w' -> { walls += total; lWalls += share; wW += work }
             }
         }
-        return RoadToMax(townHall, buildings, heroes, lab, pets, walls, RoadLevels(lBuildings, lHeroes, lLab, lPets, lWalls, lDefences, lCrafted), longestHero, defences, crafted, rows)
+        return RoadToMax(townHall, buildings, heroes, lab, pets, walls, RoadLevels(lBuildings, lHeroes, lLab, lPets, lWalls, lDefences, lCrafted), longestHero, defences, crafted, rows, RoadWork(wB, wH, wL, wP, wW, wD, wC))
     }
 }

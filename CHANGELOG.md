@@ -8,6 +8,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ### Added
 
+- Road to max: Defences and Crafted Defenses cards, tap a card to open every item with its level, and event cards in Clash now have the game's pictures. Notification sounds can be checked one by one in developer options, and the event alert sound is louder.
 - Clash Companion: a draggable golden import button and a Paste JSON notification while Clash of Clans is open (accessibility service, window events only), with the permission popup now also asking for the accessibility service and Install unknown apps.
 - Event alerts for Clan Games, Raid Weekend, CWL, season end and league reset, with per-event switches, a lead time and a custom sound.
 - Timers calendar view (pinch or +/− zoom, hour labels, up to 12 suggested upgrades per slot) and Builder Base in Bedtime level up and the calendar.
@@ -15,6 +16,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ### Changed
 
+- Road to max percentages are now weighted by upgrade time (walls by cost) instead of counting levels, and the overall figure is the time done across the timed groups, so they line up with ClashKing.
 - The Plan tab is now **Progress**.
 
 ### Changed

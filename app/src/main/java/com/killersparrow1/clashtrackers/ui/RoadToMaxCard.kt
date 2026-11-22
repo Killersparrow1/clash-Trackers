@@ -96,37 +96,37 @@ internal fun RoadToMaxCard(export: VillageExport?, builders: Int, modifier: Modi
         fun items(group: Char) = road.items.filter { it.group == group }
         CategoryCard(
             title = stringResource(R.string.road_buildings), buildingId = 1000015,
-            done = road.levels.buildings.done,
+            done = road.work.buildings.done,
             seconds = road.buildings.seconds / n, remaining = road.buildings, dayUnit = dayUnit, items = items('b'),
         )
         CategoryCard(
             title = stringResource(R.string.road_defences), buildingId = 1000008,
-            done = road.levels.defences.done,
+            done = road.work.defences.done,
             seconds = road.defences.seconds / n, remaining = road.defences, dayUnit = dayUnit, items = items('d'),
         )
         if (road.items.any { it.group == 'c' }) CategoryCard(
             title = stringResource(R.string.road_crafted), buildingId = 1000097,
-            done = road.levels.crafted.done,
+            done = road.work.crafted.done,
             seconds = road.crafted.seconds / n, remaining = road.crafted, dayUnit = dayUnit, items = items('c'),
         )
         CategoryCard(
             title = stringResource(R.string.road_walls), buildingId = 1000010,
-            done = road.levels.walls.done,
+            done = road.work.walls.done,
             seconds = null, remaining = road.walls, dayUnit = dayUnit, items = items('w'),
         )
         CategoryCard(
             title = stringResource(R.string.road_heroes), buildingId = 1000071,
-            done = road.levels.heroes.done,
+            done = road.work.heroes.done,
             seconds = road.heroSeconds(n), remaining = road.heroes, dayUnit = dayUnit, items = items('h'),
         )
         CategoryCard(
             title = stringResource(R.string.road_lab), buildingId = 1000007,
-            done = road.levels.lab.done,
+            done = road.work.lab.done,
             seconds = road.lab.seconds, remaining = road.lab, dayUnit = dayUnit, items = items('l'),
         )
         CategoryCard(
             title = stringResource(R.string.road_pets), buildingId = 1000068,
-            done = road.levels.pets.done,
+            done = road.work.pets.done,
             seconds = road.pets.seconds, remaining = road.pets, dayUnit = dayUnit, items = items('p'),
         )
 
