@@ -262,12 +262,7 @@ private fun CategoryCard(
                     }
                     if (remaining.shinyOre + remaining.glowyOre + remaining.starryOre > 0) {
                         // Hero equipment is paid in ore, which has no picture here.
-                        Text(
-                            listOf(
-                                R.string.ore_shiny to remaining.shinyOre, R.string.ore_glowy to remaining.glowyOre, R.string.ore_starry to remaining.starryOre,
-                            ).filter { it.second > 0 }.joinToString("  ") { "${stringResource(it.first)} ${compact(it.second)}" },
-                            style = MaterialTheme.typography.titleSmall,
-                        )
+                        Text(oreText(remaining), style = MaterialTheme.typography.titleSmall)
                     } else if (remaining.gold + remaining.elixir + remaining.darkElixir + remaining.goldOrElixir == 0L) {
                         Text("—", style = MaterialTheme.typography.titleSmall)
                     }
@@ -458,12 +453,18 @@ private fun ItemSheet(item: RoadItem, data: MaxData, townHall: Int, dayUnit: Str
                 CostChip(R.drawable.road_elixir, left.elixir)
                 CostChip(R.drawable.road_dark_elixir, left.darkElixir)
                 if (left.goldOrElixir > 0) Text(compact(left.goldOrElixir), style = MaterialTheme.typography.titleSmall)
-                if (left.shinyOre + left.glowyOre + left.starryOre > 0) Text(
-                    listOf(R.string.ore_shiny to left.shinyOre, R.string.ore_glowy to left.glowyOre, R.string.ore_starry to left.starryOre)
-                        .filter { it.second > 0 }.joinToString("  ") { "${stringResource(it.first)} ${compact(it.second)}" },
-                    style = MaterialTheme.typography.titleSmall,
-                )
+                if (left.shinyOre + left.glowyOre + left.starryOre > 0) Text(oreText(left), style = MaterialTheme.typography.titleSmall)
             }
         }
     }
+}
+
+/** "Shiny 1.3M  Glowy 93.1K  Starry 8.3K": hero equipment is paid in ore, which has no picture here. */
+@Composable
+private fun oreText(t: RoadTotals): String {
+    val shiny = stringResource(R.string.ore_shiny)
+    val glowy = stringResource(R.string.ore_glowy)
+    val starry = stringResource(R.string.ore_starry)
+    return listOf(shiny to t.shinyOre, glowy to t.glowyOre, starry to t.starryOre)
+        .filter { it.second > 0 }.joinToString("  ") { "${it.first} ${compact(it.second)}" }
 }
