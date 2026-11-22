@@ -16,7 +16,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ### Changed
 
-- Road to max percentages are now weighted by upgrade time (walls by cost) instead of counting levels, and the overall figure is the time done across the timed groups, so they line up with ClashKing.
+- Road to max percentages are now weighted by upgrade time (walls by cost) instead of counting levels (heroes still show levels done, as ClashKing does), Traps are their own card, upgrades in progress are not counted as done, and the overall figure is the time done across the timed groups, so they line up with ClashKing.
 - The Plan tab is now **Progress**.
 
 ### Changed

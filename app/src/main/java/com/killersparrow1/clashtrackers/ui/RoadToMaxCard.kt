@@ -109,6 +109,11 @@ internal fun RoadToMaxCard(export: VillageExport?, builders: Int, modifier: Modi
             done = road.work.crafted.done,
             seconds = road.crafted.seconds / n, remaining = road.crafted, dayUnit = dayUnit, items = items('c'),
         )
+        if (road.items.any { it.group == 't' }) CategoryCard(
+            title = stringResource(R.string.road_traps), buildingId = 12000002,
+            done = road.work.traps.done,
+            seconds = road.traps.seconds / n, remaining = road.traps, dayUnit = dayUnit, items = items('t'),
+        )
         CategoryCard(
             title = stringResource(R.string.road_walls), buildingId = 1000010,
             done = road.work.walls.done,

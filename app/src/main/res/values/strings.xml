@@ -365,6 +365,7 @@
     <string name="road_buildings">Buildings</string>
     <string name="road_defences">Defences</string>
     <string name="road_crafted">Crafted Defenses</string>
+    <string name="road_traps">Traps</string>
     <string name="road_levels_left">%1$d levels left</string>
     <string name="road_heroes">Heroes</string>
     <string name="road_builders">Builders (buildings and heroes)</string>

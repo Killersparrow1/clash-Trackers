@@ -113,6 +113,29 @@ class RoadToMaxTest {
         assertEquals(100.0 / 1630, r.overallDone!!, 1e-9)
     }
 
+    @Test fun anUpgradeInProgressIsNotDoneYet() {
+        // The export says level 1 with a timer, which ownedLevels reports as 2; Road to max keeps it at level 1 with the next level still to do.
+        val e = export(2, mapOf(1 to listOf(2, 2))).copy(upgradingLevels = mapOf(1 to listOf(1)))
+        val r = RoadToMaxCalc.compute(data, e)!!
+        assertEquals(200L, r.buildings.seconds)
+        assertEquals(LevelShare(3, 4), r.levels.buildings)
+    }
+
+    @Test fun heroesShowLevelsDoneAndTrapsAreTheirOwnGroup() {
+        val h = RoadToMaxCalc.compute(data, export(2, mapOf(3 to listOf(1), 1 to listOf(2, 2))))!!
+        // King: 1 of 2 levels done on the card; by time (10 of 30 s) for the overall figure.
+        assertEquals(WorkShare(2, 1), h.work.heroes)
+        assertEquals(WorkShare(30, 20), h.work.heroTime)
+        val withTraps = MaxData.fromJson("""{"maxTh":3,"items":{
+          "1":{"k":"b","n":[0,0,2,2],"l":[[100,10,0,1],[200,20,0,2]]},
+          "12000000":{"k":"b","c":"p","n":null,"l":[[50,5,0,1],[60,6,0,2]]}
+        }}""")
+        val t = RoadToMaxCalc.compute(withTraps, export(2, mapOf(1 to listOf(2, 2), 12000000 to listOf(1))))!!
+        assertEquals(60L, t.traps.seconds)
+        assertEquals(0L, t.buildings.seconds)
+        assertEquals(WorkShare(110, 60), t.work.traps)
+    }
+
     @Test fun groupsWithNothingToDoHaveNoShare() {
         assertEquals(null, LevelShare().done)
         assertEquals(0.5, LevelShare(50, 100).done!!, 1e-9)
