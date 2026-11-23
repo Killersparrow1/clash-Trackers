@@ -24,6 +24,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import com.killersparrow1.clashtrackers.core.RoadItem
+import com.killersparrow1.clashtrackers.core.RoadToMax
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -41,6 +42,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.produceState
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -69,7 +73,11 @@ import java.util.Locale
 internal fun RoadToMaxCard(export: VillageExport?, builders: Int, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val data = remember(MaxDataStore.version) { MaxDataStore.get(context) }
-    val road = remember(export, data) { export?.let { RoadToMaxCalc.compute(data, it) } } ?: return
+    // The calculation walks every item of the game data, so it runs off the main thread instead of stalling a swipe to this page.
+    val roadState by produceState<RoadToMax?>(null, export, data) {
+        value = export?.let { e -> withContext(Dispatchers.Default) { RoadToMaxCalc.compute(data, e) } }
+    }
+    val road = roadState ?: return
     val dayUnit = stringResource(R.string.time_day_short)
     val n = builders.coerceAtLeast(1)
     val timed = road.builderWork + road.lab + road.pets

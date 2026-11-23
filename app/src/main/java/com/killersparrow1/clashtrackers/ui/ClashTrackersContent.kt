@@ -130,6 +130,17 @@ fun ClashTrackersContent(
     // One pager holds every page, so swiping follows the finger and tabs and sub-tabs share the same motion.
     val pager = androidx.compose.foundation.pager.rememberPagerState { Page.entries.size }
     val pagerFade = remember { Animatable(1f) }
+    // The clock ticks every second and rebuilds the model; each tick would recompose every page that is on screen or next to it.
+    // While a swipe or a slide is running the pages keep the last model and time, and catch up the moment it stops.
+    val tabsMoving = pager.isScrollInProgress
+    var pageModel by remember { mutableStateOf(model) }
+    var pageNow by remember { mutableStateOf(now) }
+    LaunchedEffect(model, now, tabsMoving) {
+        if (!tabsMoving) {
+            pageModel = model
+            pageNow = now
+        }
+    }
     val destination = Page.entries[pager.currentPage].dest
     val reduced = rememberReducedMotion()
     // Tabs move on a spring (a short tween when the phone has animations removed).
@@ -260,13 +271,13 @@ fun ClashTrackersContent(
                             CompositionLocalProvider(LocalTopInset provides (if (pageHasTabs) SubTabsHeight else 0.dp)) {
                             when (Page.entries[index]) {
                                 Page.TIMERS -> TimerDashboard(
-                                    model = model,
+                                    model = pageModel,
                                     lastSync = log.lastResult,
                                     activeBoostState = state.activeBoosts,
                                     eventSettings = state.eventSettings,
                                     accounts = accounts,
                                     selectedTag = selectedTag,
-                                    now = now,
+                                    now = pageNow,
                                     busy = busy,
                                     export = state.export,
                                     onSync = onSync,
@@ -281,12 +292,12 @@ fun ClashTrackersContent(
                                     onDeleteAccount = onDeleteAccount,
                                     wide = wide,
                                 )
-                                Page.PLAN_ROAD -> PlanPage(state.export, model, now, 0)
-                                Page.PLAN_BEDTIME -> PlanPage(state.export, model, now, 1)
-                                Page.CLASH_EVENTS -> EventsPage(now)
-                                Page.SETTINGS -> SettingsPage(0, settings, state.export, now, onSettingsChange, selectedTag, state, model, log, timesCount)
-                                Page.PERSONALIZATION -> SettingsPage(1, settings, state.export, now, onSettingsChange, selectedTag, state, model, log, timesCount)
-                                Page.SUPPORT -> SettingsPage(2, settings, state.export, now, onSettingsChange, selectedTag, state, model, log, timesCount)
+                                Page.PLAN_ROAD -> PlanPage(state.export, pageModel, pageNow, 0)
+                                Page.PLAN_BEDTIME -> PlanPage(state.export, pageModel, pageNow, 1)
+                                Page.CLASH_EVENTS -> EventsPage(pageNow)
+                                Page.SETTINGS -> SettingsPage(0, settings, state.export, pageNow, onSettingsChange, selectedTag, state, pageModel, log, timesCount)
+                                Page.PERSONALIZATION -> SettingsPage(1, settings, state.export, pageNow, onSettingsChange, selectedTag, state, pageModel, log, timesCount)
+                                Page.SUPPORT -> SettingsPage(2, settings, state.export, pageNow, onSettingsChange, selectedTag, state, pageModel, log, timesCount)
                             }
                             }
                             }
