@@ -126,6 +126,7 @@ Built with **Material 3 Expressive**, the Clash typeface, a deterministic boost 
 
 ### Notifications
 - **Event alerts**: when Clan Games, Raid Weekend, CWL signup or wars start, and 1 hour, 6 hours or 1 day before they end (season end and league reset: before they happen). Choose the events and the lead time in **Settings > Event alerts**; the event sound is a bundled file you can replace. Finish alerts when a builder, the lab or a pet is free, with the Clash of Clans sound; a Clock Tower ready alert; an optional idle reminder (off by default).
+- **Separate villages**: in **Settings > Notifications** the Town Hall village and the Builder Base have their own alert switches. Turn Builder Base off (builders, Star Laboratory, Clock Tower) and you still get Town Hall alerts, or the other way round.
 - **Developer options** (tap the Settings tab 11 times) has a sound check: send a real test notification on each channel or play each sound file, including the title-screen easter eggs.
 - A switch makes alerts follow Do Not Disturb (default) or ring through it like an alarm.
 

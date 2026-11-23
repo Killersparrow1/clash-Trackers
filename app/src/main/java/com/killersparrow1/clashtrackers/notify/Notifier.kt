@@ -28,6 +28,8 @@ object Notifier {
     const val CHANNEL_CLOCK_QUIET = "clocktower_v2_quiet"
     private const val PREFS = "notif_prefs"
     private const val KEY_RESPECT_DND = "respect_dnd"
+    private const val KEY_HOME = "alerts_home"
+    private const val KEY_BUILDER_BASE = "alerts_builder_base"
     private const val OLD_CHANNEL_ID = "finished"
     /** Channels made for earlier sound files: a channel keeps the sound it was created with, so a new file needs a new id. */
     private val RETIRED = listOf("finished_v2", "finished_v3", "clocktower_v1", "clocktower_v1_quiet")
@@ -39,6 +41,21 @@ object Notifier {
 
     fun setRespectDnd(context: Context, on: Boolean) {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(KEY_RESPECT_DND, on).apply()
+    }
+
+    /** Finish alerts for the home village (default on) and for the Builder Base (default on), switched separately. */
+    fun homeAlerts(context: Context): Boolean =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(KEY_HOME, true)
+
+    fun builderBaseAlerts(context: Context): Boolean =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(KEY_BUILDER_BASE, true)
+
+    fun setHomeAlerts(context: Context, on: Boolean) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(KEY_HOME, on).apply()
+    }
+
+    fun setBuilderBaseAlerts(context: Context, on: Boolean) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(KEY_BUILDER_BASE, on).apply()
     }
 
     fun ensureChannel(context: Context) {

@@ -244,6 +244,17 @@ fun SettingsSection(
                 }
             }
             Text(stringResource(R.string.settings_alert_desc), style = MaterialTheme.typography.bodyMedium)
+            var homeOn by remember { mutableStateOf(Notifier.homeAlerts(context)) }
+            SwitchRow(stringResource(R.string.settings_alerts_home), homeOn) { on ->
+                homeOn = on
+                Notifier.setHomeAlerts(context, on)
+            }
+            var bbOn by remember { mutableStateOf(Notifier.builderBaseAlerts(context)) }
+            SwitchRow(stringResource(R.string.settings_alerts_bb), bbOn) { on ->
+                bbOn = on
+                Notifier.setBuilderBaseAlerts(context, on)
+            }
+            Text(stringResource(R.string.settings_alerts_village_desc), style = MaterialTheme.typography.bodySmall)
             var respectDnd by remember { mutableStateOf(Notifier.respectDnd(context)) }
             SwitchRow(stringResource(R.string.settings_follow_dnd), respectDnd) { on ->
                 respectDnd = on

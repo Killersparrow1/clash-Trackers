@@ -69,4 +69,20 @@ class BuilderBaseTest {
         val n = FinishNotices.notice(export3.bbBuilderJobs.single(), names)
         assertEquals("Builder Base builder free: Double Cannon", n.title)
     }
+
+    @Test fun builderBaseAlertsCanBeSwitchedOffWithoutLosingHomeAlerts() {
+        val state = AppState(exportJson = SampleExports.text("export_3.json"))
+        val late = export3.timestamp + 90_808L + 60 // just after the Builder Base builder finishes
+        val all = FinishNotices.check(state, AppSettings(), names, late)
+        assertTrue(all.notices.any { it.title.startsWith("Builder Base builder free") })
+
+        val homeOnly = FinishNotices.check(state, AppSettings(), names, late, builderBaseAlerts = false)
+        assertTrue(homeOnly.notices.none { it.title.startsWith("Builder Base") })
+        assertEquals(all.notices.size - 1, homeOnly.notices.size)
+        // Switched off is still "announced": turning it on later does not replay the old finish.
+        assertEquals(all.notified, homeOnly.notified)
+
+        val bbOnly = FinishNotices.check(state, AppSettings(), names, late, homeAlerts = false)
+        assertTrue(bbOnly.notices.all { it.title.startsWith("Builder Base") })
+    }
 }
