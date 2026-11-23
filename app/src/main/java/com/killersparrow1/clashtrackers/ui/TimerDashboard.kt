@@ -24,6 +24,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -130,19 +133,12 @@ fun TimerDashboard(
     }
     val showFilters = filtersVisible || atTop
 
-    Column(modifier.fillMaxSize().nestedScroll(scrollConnection)) {
-        // The account switcher and the filter chips fade and collapse together; the app title stays put.
-        AnimatedVisibility(
-            visible = accounts.isNotEmpty() && showFilters,
-            enter = fadeIn() + expandVertically(),
-            exit = fadeOut() + shrinkVertically(),
-        ) {
-          Column {
-            if (accounts.isNotEmpty()) {
-                AccountSwitcherBar(accounts, selectedTag, onSelectAccount, onRenameAccount, onDeleteAccount)
-            }
-          }
-        }
+    // The account switcher floats over the top of the list and hides with transform and opacity only, so the list is never
+    // re-measured while you scroll; the list leaves room for it in its own top padding.
+    val hasBar = accounts.isNotEmpty()
+    val barHide by androidx.compose.animation.core.animateFloatAsState(if (showFilters) 0f else 1f, label = "accountBarHide")
+    Box(modifier.fillMaxSize().nestedScroll(scrollConnection)) {
+      CompositionLocalProvider(LocalTopInset provides (LocalTopInset.current + if (hasBar) AccountBarHeight else 0.dp)) {
         LazyVerticalGrid(
             columns = GridCells.Fixed(if (wide) 2 else 1),
             state = gridState,
@@ -210,9 +206,25 @@ fun TimerDashboard(
                 }
             }
         }
+      }
+      if (hasBar) {
+        Box(
+            Modifier.align(Alignment.TopStart).fillMaxWidth().height(AccountBarHeight)
+                .graphicsLayer {
+                    translationY = -AccountBarHeight.toPx() * barHide
+                    alpha = 1f - barHide
+                }
+                .background(MaterialTheme.colorScheme.background),
+        ) {
+            AccountSwitcherBar(accounts, selectedTag, onSelectAccount, onRenameAccount, onDeleteAccount)
+        }
+      }
     }
     if (showHelp) HelpDialog(onDismiss = { showHelp = false })
 }
+
+/** Height of the floating account switcher: a 32 dp chip with 8 dp above and below. */
+private val AccountBarHeight = 48.dp
 
 /**
  * Round picture of an account's Town Hall at its level, like a profile photo.
