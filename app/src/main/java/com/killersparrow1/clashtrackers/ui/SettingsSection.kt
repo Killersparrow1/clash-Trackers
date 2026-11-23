@@ -60,6 +60,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -247,27 +248,22 @@ fun SettingsSection(
             var homeOn by remember { mutableStateOf(Notifier.homeAlerts(context)) }
             var bbOn by remember { mutableStateOf(Notifier.builderBaseAlerts(context)) }
             Text(stringResource(R.string.settings_alerts_villages), style = MaterialTheme.typography.titleSmall)
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(
-                    selected = homeOn,
-                    onClick = {
-                        homeOn = !homeOn
-                        Notifier.setHomeAlerts(context, homeOn)
-                    },
-                    label = { Text((if (homeOn) "\u2713 " else "") + stringResource(R.string.settings_alerts_home)) },
-                    modifier = Modifier.heightIn(min = 48.dp),
-                )
-                FilterChip(
-                    selected = bbOn,
-                    onClick = {
-                        bbOn = !bbOn
-                        Notifier.setBuilderBaseAlerts(context, bbOn)
-                    },
-                    label = { Text((if (bbOn) "\u2713 " else "") + stringResource(R.string.settings_alerts_bb)) },
-                    modifier = Modifier.heightIn(min = 48.dp),
-                )
+            CheckRow(
+                title = stringResource(R.string.settings_alerts_home),
+                detail = stringResource(R.string.settings_alerts_home_desc),
+                checked = homeOn,
+            ) { on ->
+                homeOn = on
+                Notifier.setHomeAlerts(context, on)
             }
-            Text(stringResource(R.string.settings_alerts_village_desc), style = MaterialTheme.typography.bodySmall)
+            CheckRow(
+                title = stringResource(R.string.settings_alerts_bb),
+                detail = stringResource(R.string.settings_alerts_bb_desc),
+                checked = bbOn,
+            ) { on ->
+                bbOn = on
+                Notifier.setBuilderBaseAlerts(context, on)
+            }
             var respectDnd by remember { mutableStateOf(Notifier.respectDnd(context)) }
             SwitchRow(stringResource(R.string.settings_follow_dnd), respectDnd) { on ->
                 respectDnd = on
@@ -439,6 +435,27 @@ private fun SettingRow(title: String, value: String, description: String? = null
         modifier = Modifier.fillMaxWidth().clickable(role = Role.Button, onClickLabel = stringResource(R.string.edit_title, title), onClick = onClick),
         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
     )
+}
+
+/** A tick-box option on a rounded tile: the whole tile toggles, the box only shows the state. */
+@Composable
+private fun CheckRow(title: String, detail: String, checked: Boolean, onChange: (Boolean) -> Unit) {
+    val tile = if (checked) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerHighest
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp)
+            .clip(androidx.compose.foundation.shape.RoundedCornerShape(20.dp))
+            .background(tile)
+            .toggleable(value = checked, role = Role.Checkbox, onValueChange = onChange)
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+    ) {
+        androidx.compose.material3.Checkbox(checked = checked, onCheckedChange = null)
+        Column(Modifier.weight(1f)) {
+            Text(title, style = MaterialTheme.typography.titleSmall)
+            Text(detail, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
 }
 
 @Composable

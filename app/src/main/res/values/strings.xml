@@ -278,8 +278,9 @@
     <string name="notif_channel_quiet_desc">Tells you when an upgrade finishes. Stays quiet during Do Not Disturb and uses the notification volume.</string>
     <string name="settings_alerts_home">Town Hall village</string>
     <string name="settings_alerts_bb">Builder Base</string>
-    <string name="settings_alerts_villages">Alert me about</string>
-    <string name="settings_alerts_village_desc">Tick the villages you want alerts for. The Builder Base covers its builders, the Star Laboratory and the Clock Tower. Idle reminders are for the Town Hall village.</string>
+    <string name="settings_alerts_villages">Choose which villages to alert you about</string>
+    <string name="settings_alerts_home_desc">Builders, laboratory, pet house and idle reminders</string>
+    <string name="settings_alerts_bb_desc">Builders, Star Laboratory and Clock Tower</string>
     <string name="settings_follow_dnd">Follow Do Not Disturb</string>
     <string name="settings_follow_dnd_desc">On: alerts stay quiet while Do Not Disturb is on and use your notification volume. Off: they sound like an alarm, even during Do Not Disturb.</string>
     <string name="widget_style_minimal">Minimal</string>
