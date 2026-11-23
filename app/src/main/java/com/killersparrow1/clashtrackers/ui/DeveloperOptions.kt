@@ -155,6 +155,50 @@ fun DeveloperOptionsScreen(selectedTag: String?, log: SyncLog, onClose: () -> Un
                     }
                 }
 
+                CollapsibleCard("Notification sound check", "dev_sound") {
+                    var blocked by remember { mutableStateOf(false) }
+                    Text(
+                        "Send posts a real notification on that channel, so it plays at the volume and Do Not Disturb rules of that channel. " +
+                            "Play previews the sound file itself at media volume.",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    fun play(res: Int) {
+                        runCatching {
+                            android.media.MediaPlayer.create(context, res)?.apply {
+                                setOnCompletionListener { it.release() }
+                                start()
+                            }
+                        }
+                    }
+                    fun raw(name: String) = context.resources.getIdentifier(name, "raw", context.packageName)
+                    val n = com.killersparrow1.clashtrackers.notify.Notifier
+                    // (label, channel to send on or null, sound file)
+                    val rows = listOf(
+                        Triple("Event alert (Clan Games, Raid, CWL, season)", "events", "event_sound"),
+                        Triple("Upgrade finished: notification volume", n.CHANNEL_QUIET, "finish_sound"),
+                        Triple("Upgrade finished: alarm volume, passes Do Not Disturb", n.CHANNEL_ID, "finish_sound"),
+                        Triple("Clock Tower ready: notification volume", n.CHANNEL_CLOCK_QUIET, "clock_tower_ready"),
+                        Triple("Clock Tower ready: alarm volume, passes Do Not Disturb", n.CHANNEL_CLOCK, "clock_tower_ready"),
+                    )
+                    rows.forEachIndexed { i, (label, channel, file) ->
+                        Text(label, style = MaterialTheme.typography.bodyMedium)
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedButton(onClick = {
+                                blocked = !(if (channel == "events") com.killersparrow1.clashtrackers.notify.EventAlerts.test(context)
+                                else n.test(context, channel, label, 7201 + i))
+                            }) { Text("Send") }
+                            OutlinedButton(onClick = { play(raw(file)) }) { Text("Play file") }
+                        }
+                    }
+                    Text("Title screen easter eggs (play only)", style = MaterialTheme.typography.bodyMedium)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        listOf("title_easter_egg", "title_easter_egg1", "title_easter_egg2", "title_easter_egg3")
+                            .filter { raw(it) != 0 }
+                            .forEachIndexed { i, f -> OutlinedButton(onClick = { play(raw(f)) }) { Text("${i + 1}") } }
+                    }
+                    if (blocked) Text(stringResource(R.string.ev_settings_blocked), style = MaterialTheme.typography.bodySmall)
+                }
+
                 Button(onClick = onClose, modifier = Modifier.fillMaxWidth()) { Text("Hide developer options") }
             }
         }

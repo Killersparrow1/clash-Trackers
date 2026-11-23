@@ -127,7 +127,7 @@ internal class FloatingBarState(
 internal fun rememberFloatingBarState(pager: PagerState): FloatingBarState {
     val density = LocalDensity.current
     val state = remember(pager, density) {
-        with(density) { FloatingBarState(pager, 16.dp.toPx(), 40.dp.toPx(), 24.dp.toPx()) }
+        with(density) { FloatingBarState(pager, 12.dp.toPx(), 20.dp.toPx(), 24.dp.toPx()) }
     }
     // A tab change, by swipe or by tap, shows the bar at once.
     LaunchedEffect(state, pager) {

@@ -25,7 +25,14 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.killersparrow1.clashtrackers"
+        // CI passes -PdevBuild=true for every build that is not on main. That build installs next to the real app
+        // (package ...clashtrackers.dev, labelled "Clash Trackers Dev"), with its own data, widgets and permissions,
+        // so a test build never touches the released app. Releases (main) keep the plain package name.
+        val devBuild = findProperty("devBuild") == "true"
+        applicationId = "com.killersparrow1.clashtrackers" + if (devBuild) ".dev" else ""
+        manifestPlaceholders["appLabel"] = if (devBuild) "Clash Trackers Dev" else "@string/app_name"
+        // The launcher shortcuts name their target package from this (res/xml/shortcuts.xml).
+        resValue("string", "app_package", applicationId!!)
         minSdk = 26
         targetSdk = 37
         // GitHub Actions passes the next release number (-PappVersionName=2.4 -PappVersionCode=204, from the
@@ -80,6 +87,8 @@ android {
     }
     buildFeatures {
         compose = true
+        // The dev build's package name is written into a string (resValue "app_package") for the shortcuts.
+        resValues = true
     }
 }
 

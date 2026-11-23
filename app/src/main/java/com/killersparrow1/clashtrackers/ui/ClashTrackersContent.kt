@@ -39,6 +39,7 @@ import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.launch
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.animation.core.Spring
@@ -83,13 +84,19 @@ private enum class Page(val dest: Destination, @StringRes val labelRes: Int?) {
 private val SubTabsHeight = 48.dp
 
 /**
- * Slides to [target]. A far page is reached with a single slide: the pager first jumps next to it, then slides the last
- * page, instead of sweeping past every page in between.
+ * Slides to [target]. A neighbouring page slides on [spec]. A far page does not sweep past (or flash through) the pages in
+ * between: the pager fades out, jumps, and fades back in.
  */
-private suspend fun PagerState.goTo(target: Int, spec: AnimationSpec<Float>) {
+private suspend fun PagerState.goTo(target: Int, spec: AnimationSpec<Float>, fade: Animatable<Float, AnimationVector1D>) {
     val from = currentPage
-    if (kotlin.math.abs(target - from) > 1) scrollToPage(if (target > from) target - 1 else target + 1)
-    animateScrollToPage(target, animationSpec = spec)
+    if (target == from) return
+    if (kotlin.math.abs(target - from) > 1) {
+        fade.animateTo(0f, tween(90))
+        scrollToPage(target)
+        fade.animateTo(1f, tween(160))
+    } else {
+        animateScrollToPage(target, animationSpec = spec)
+    }
 }
 
 private fun Destination.firstPage(): Int = Page.entries.indexOfFirst { it.dest == this }
@@ -122,6 +129,18 @@ fun ClashTrackersContent(
     val tapScope = androidx.compose.runtime.rememberCoroutineScope()
     // One pager holds every page, so swiping follows the finger and tabs and sub-tabs share the same motion.
     val pager = androidx.compose.foundation.pager.rememberPagerState { Page.entries.size }
+    val pagerFade = remember { Animatable(1f) }
+    // The clock ticks every second and rebuilds the model; each tick would recompose every page that is on screen or next to it.
+    // While a swipe or a slide is running the pages keep the last model and time, and catch up the moment it stops.
+    val tabsMoving = pager.isScrollInProgress
+    var pageModel by remember { mutableStateOf(model) }
+    var pageNow by remember { mutableStateOf(now) }
+    LaunchedEffect(model, now, tabsMoving) {
+        if (!tabsMoving) {
+            pageModel = model
+            pageNow = now
+        }
+    }
     val destination = Page.entries[pager.currentPage].dest
     val reduced = rememberReducedMotion()
     // Tabs move on a spring (a short tween when the phone has animations removed).
@@ -142,7 +161,7 @@ fun ClashTrackersContent(
     // Tap the Settings tab 11 times within 4 seconds to open the hidden developer options.
     fun navigate(entry: Destination) {
         barState.show()
-        if (entry != destination) tapScope.launch { pager.goTo(entry.firstPage(), pageSpring) }
+        if (entry != destination) tapScope.launch { pager.goTo(entry.firstPage(), pageSpring, pagerFade) }
         if (entry != Destination.SETTINGS || developerOpen) return
         val t = System.currentTimeMillis()
         supportTaps.add(t)
@@ -160,7 +179,7 @@ fun ClashTrackersContent(
             }
         }
     }
-    BackHandler(enabled = pager.currentPage != 0) { tapScope.launch { pager.goTo(0, pageSpring) } }
+    BackHandler(enabled = pager.currentPage != 0) { tapScope.launch { pager.goTo(0, pageSpring, pagerFade) } }
 
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val wide = maxWidth >= 600.dp
@@ -226,59 +245,39 @@ fun ClashTrackersContent(
                     }
                 }
                 Box(Modifier.weight(1f).fillMaxSize(), contentAlignment = Alignment.TopCenter) {
-                    CompositionLocalProvider(LocalBarInset provides ((if (floating) FloatingBar.ContentInset else 0.dp) + SubTabsHeight)) {
+                    CompositionLocalProvider(LocalBarInset provides (if (floating) FloatingBar.ContentInset else 0.dp)) {
                     Column(
                         Modifier.widthIn(max = 840.dp).fillMaxSize()
                             .then(if (!floating || reduced) Modifier else Modifier.nestedScroll(barState.connection)),
                     ) {
                         val siblings = Page.entries.filter { it.dest == destination }
-                        if (siblings.size > 1) {
-                            val first = destination.firstPage()
-                            androidx.compose.material3.PrimaryTabRow(
-                                selectedTabIndex = pager.currentPage - first,
-                                // Transform and opacity only: the row slides up under the app bar, the layout never changes.
-                                modifier = Modifier.graphicsLayer {
-                                    translationY = -SubTabsHeight.toPx() * subHide.value
-                                    alpha = 1f - subHide.value
-                                },
-                            ) {
-                                siblings.forEachIndexed { i, p ->
-                                    androidx.compose.material3.Tab(
-                                        selected = pager.currentPage == first + i,
-                                        onClick = { tapScope.launch { pager.goTo(first + i, pageSpring) } },
-                                        text = { Text(stringResource(p.labelRes!!)) },
-                                    )
-                                }
-                            }
-                        }
+                        // The pager always fills the space and never changes size. The sub-tab row floats over its top edge, and the
+                        // pages that have one leave room for it in their own padding, so nothing re-lays out while tabs change.
+                        Box(Modifier.weight(1f).fillMaxWidth()) {
                         androidx.compose.foundation.pager.HorizontalPager(
                             state = pager,
-                            modifier = Modifier.weight(1f).fillMaxWidth()
-                                // Always as tall as the page plus the sub-tab row, and slid up by the row's height as it hides:
-                                // the page uses the freed room without ever being re-measured while scrolling.
-                                .layout { m, c ->
-                                    val extra = SubTabsHeight.roundToPx()
-                                    val p = m.measure(c.copy(minHeight = c.maxHeight + extra, maxHeight = c.maxHeight + extra))
-                                    layout(p.width, c.maxHeight) { p.place(0, 0) }
-                                }
-                                .graphicsLayer { if (siblings.size > 1) translationY = -SubTabsHeight.toPx() * subHide.value },
+                            modifier = Modifier.fillMaxSize().graphicsLayer { alpha = pagerFade.value },
                             // The page you are on plus one each side stay composed, so a swipe or a skip never shows a blank page.
                             beyondViewportPageCount = 1,
                             flingBehavior = PagerDefaults.flingBehavior(
                                 state = pager,
+                                // Half a page is the default; a quarter makes a shorter swipe (or a lighter flick) change the tab.
+                                snapPositionalThreshold = 0.25f,
                                 snapAnimationSpec = spring(dampingRatio = 0.9f, stiffness = Spring.StiffnessMediumLow),
                             ),
                         ) { index ->
-                            Box(Modifier.fillMaxSize().pageScale(pager, index, enabled = !reduced)) {
+                            val pageHasTabs = Page.entries.count { it.dest == Page.entries[index].dest } > 1
+                            Box(Modifier.fillMaxSize()) {
+                            CompositionLocalProvider(LocalTopInset provides (if (pageHasTabs) SubTabsHeight else 0.dp)) {
                             when (Page.entries[index]) {
                                 Page.TIMERS -> TimerDashboard(
-                                    model = model,
+                                    model = pageModel,
                                     lastSync = log.lastResult,
                                     activeBoostState = state.activeBoosts,
                                     eventSettings = state.eventSettings,
                                     accounts = accounts,
                                     selectedTag = selectedTag,
-                                    now = now,
+                                    now = pageNow,
                                     busy = busy,
                                     export = state.export,
                                     onSync = onSync,
@@ -293,14 +292,42 @@ fun ClashTrackersContent(
                                     onDeleteAccount = onDeleteAccount,
                                     wide = wide,
                                 )
-                                Page.PLAN_ROAD -> PlanPage(state.export, model, now, 0)
-                                Page.PLAN_BEDTIME -> PlanPage(state.export, model, now, 1)
-                                Page.CLASH_EVENTS -> EventsPage(now)
-                                Page.SETTINGS -> SettingsPage(0, settings, state.export, now, onSettingsChange, selectedTag, state, model, log, timesCount)
-                                Page.PERSONALIZATION -> SettingsPage(1, settings, state.export, now, onSettingsChange, selectedTag, state, model, log, timesCount)
-                                Page.SUPPORT -> SettingsPage(2, settings, state.export, now, onSettingsChange, selectedTag, state, model, log, timesCount)
+                                Page.PLAN_ROAD -> PlanPage(state.export, pageModel, pageNow, 0)
+                                Page.PLAN_BEDTIME -> PlanPage(state.export, pageModel, pageNow, 1)
+                                Page.CLASH_EVENTS -> EventsPage(pageNow)
+                                Page.SETTINGS -> SettingsPage(0, settings, state.export, pageNow, onSettingsChange, selectedTag, state, pageModel, log, timesCount)
+                                Page.PERSONALIZATION -> SettingsPage(1, settings, state.export, pageNow, onSettingsChange, selectedTag, state, pageModel, log, timesCount)
+                                Page.SUPPORT -> SettingsPage(2, settings, state.export, pageNow, onSettingsChange, selectedTag, state, pageModel, log, timesCount)
                             }
                             }
+                            }
+                        }
+                        val rowAlpha by androidx.compose.animation.core.animateFloatAsState(
+                            if (siblings.size > 1) 1f else 0f, tween(if (reduced) 0 else 160), label = "subTabsAlpha",
+                        )
+                        // While the row fades out after leaving Plan or Settings it keeps the tabs it had (Timers and Clash have none).
+                        val rowTabs = remember { arrayOf(siblings) }
+                        if (siblings.size > 1) rowTabs[0] = siblings
+                        val tabs = rowTabs[0]
+                        if (tabs.size > 1 && (siblings.size > 1 || rowAlpha > 0f)) {
+                            val first = Page.entries.indexOf(tabs.first())
+                            androidx.compose.material3.PrimaryTabRow(
+                                selectedTabIndex = (pager.currentPage - first).coerceIn(0, tabs.size - 1),
+                                // Transform and opacity only: the row slides up under the app bar, the layout never changes.
+                                modifier = Modifier.align(Alignment.TopCenter).graphicsLayer {
+                                    translationY = -SubTabsHeight.toPx() * subHide.value
+                                    alpha = (1f - subHide.value) * rowAlpha
+                                },
+                            ) {
+                                tabs.forEachIndexed { i, p ->
+                                    androidx.compose.material3.Tab(
+                                        selected = pager.currentPage == first + i,
+                                        onClick = { tapScope.launch { pager.goTo(first + i, pageSpring, pagerFade) } },
+                                        text = { p.labelRes?.let { Text(stringResource(it)) } },
+                                    )
+                                }
+                            }
+                        }
                         }
                     }
                     }

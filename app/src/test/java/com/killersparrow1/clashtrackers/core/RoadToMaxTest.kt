@@ -100,6 +100,61 @@ class RoadToMaxTest {
         assertTrue(r.overallDone!! in 0.0..1.0)
     }
 
+    @Test fun percentagesAreWeightedByUpgradeTime() {
+        // Two cannons need (100 + 200) s each = 600 s. One at level 1, one unbuilt: 500 s left, so 100/600 done
+        // (by levels it would be 1 of 4 = 25%: the long steps weigh more than the short ones).
+        val r = RoadToMaxCalc.compute(data, export(2, mapOf(1 to listOf(1))))!!
+        assertEquals(WorkShare(600, 500), r.work.buildings)
+        assertEquals(100.0 / 600, r.work.buildings.done!!, 1e-9)
+        // Walls have no timer: weighted by what they cost (10 walls x 300), ten at level 1 leave 2000 of 3000.
+        val w = RoadToMaxCalc.compute(data, export(2, mapOf(4 to List(10) { 1 }, 1 to listOf(2, 2))))!!
+        assertEquals(WorkShare(3000, 2000), w.work.walls)
+        // The overall figure is the time done across the timed groups only (walls left out): 600 + 1000 + 30 s in total.
+        assertEquals(100.0 / 1630, r.overallDone!!, 1e-9)
+    }
+
+    @Test fun anUpgradeInProgressIsNotDoneYet() {
+        // The export says level 1 with a timer, which ownedLevels reports as 2; Road to max keeps it at level 1 with the next level still to do.
+        val e = export(2, mapOf(1 to listOf(2, 2))).copy(upgradingLevels = mapOf(1 to listOf(1)))
+        val r = RoadToMaxCalc.compute(data, e)!!
+        assertEquals(200L, r.buildings.seconds)
+        assertEquals(LevelShare(3, 4), r.levels.buildings)
+    }
+
+    @Test fun heroesShowLevelsDoneAndTrapsAreTheirOwnGroup() {
+        val h = RoadToMaxCalc.compute(data, export(2, mapOf(3 to listOf(1), 1 to listOf(2, 2))))!!
+        // King: 1 of 2 levels done on the card; by time (10 of 30 s) for the overall figure.
+        assertEquals(WorkShare(2, 1), h.work.heroes)
+        assertEquals(WorkShare(30, 20), h.work.heroTime)
+        val withTraps = MaxData.fromJson("""{"maxTh":3,"items":{
+          "1":{"k":"b","n":[0,0,2,2],"l":[[100,10,0,1],[200,20,0,2]]},
+          "12000000":{"k":"b","c":"p","n":null,"l":[[50,5,0,1],[60,6,0,2]]}
+        }}""")
+        val t = RoadToMaxCalc.compute(withTraps, export(2, mapOf(1 to listOf(2, 2), 12000000 to listOf(1))))!!
+        assertEquals(60L, t.traps.seconds)
+        assertEquals(0L, t.buildings.seconds)
+        assertEquals(WorkShare(110, 60), t.work.traps)
+    }
+
+    @Test fun laboratoryItemsSplitAndEquipmentIsPaidInOre() {
+        val d = MaxData.fromJson("""{"maxTh":3,"items":{
+          "4000000":{"k":"l","c":"a","n":null,"l":[[0,0,1,1],[100,10,1,1],[200,20,1,2]]},
+          "4000051":{"k":"l","c":"a","n":null,"l":[[0,0,2,1],[50,5,2,1]]},
+          "26000000":{"k":"l","c":"a","n":null,"l":[[0,0,1,1],[60,6,1,1],[70,7,1,3]]},
+          "90000000":{"k":"e","c":"a","n":null,"l":[[0,0,6,1],[0,120,6,1,30,5],[0,200,6,2]]}
+        }}""")
+        val e = export(3, mapOf(4000000 to listOf(1), 4000051 to listOf(1), 26000000 to listOf(2), 90000000 to listOf(1)))
+        val r = RoadToMaxCalc.compute(d, e)!!
+        assertEquals(RoadTotals(seconds = 300, elixir = 30), r.troops)
+        assertEquals(RoadTotals(seconds = 50, darkElixir = 5), r.siege)
+        assertEquals(RoadTotals(seconds = 70, elixir = 7), r.spells)
+        assertEquals(RoadTotals(seconds = 420, elixir = 37, darkElixir = 5), r.lab)
+        // Equipment: ore, no timer; level 1 -> 3 costs 120 shiny + 30 glowy + 5 starry, then 200 shiny.
+        assertEquals(RoadTotals(shinyOre = 320, glowyOre = 30, starryOre = 5), r.equipment)
+        assertEquals(LevelShare(1, 3), r.levels.equipment)
+        assertEquals(1.0 / 3, r.work.equipment.done!!, 1e-9)
+    }
+
     @Test fun groupsWithNothingToDoHaveNoShare() {
         assertEquals(null, LevelShare().done)
         assertEquals(0.5, LevelShare(50, 100).done!!, 1e-9)
@@ -110,5 +165,41 @@ class RoadToMaxTest {
         assertEquals(300L, r.builderSeconds(20))   // 1400 / 20 = 70, but the hero needs 300
         assertEquals(700L, r.builderSeconds(2))    // 1400 / 2
         assertEquals(300L, r.heroSeconds(5))
+    }
+
+    @Test fun defencesAreTheirOwnGroupAndItemsKeepTheirLevels() {
+        val d = MaxData.fromJson(
+            """{"maxTh":3,"items":{
+              "1":{"k":"b","c":"d","n":[0,0,2,2],"l":[[100,10,0,1],[200,20,0,2],[400,40,0,3]]},
+              "5":{"k":"b","c":"r","n":[0,1,1,1],"l":[[10,1,0,1],[20,2,0,2],[40,4,0,3]]}
+            }}""",
+        )
+        val r = RoadToMaxCalc.compute(d, export(3, mapOf(1 to listOf(3, 1), 5 to listOf(3))))!!
+        assertEquals(200L + 400L, r.defences.seconds) // the second cannon: level 1 -> 3
+        assertEquals(0L, r.buildings.seconds)
+        assertEquals(LevelShare(4, 6), r.levels.defences)
+        assertEquals(LevelShare(3, 3), r.levels.buildings)
+        val cannon = r.items.single { it.id == 1 }
+        assertEquals('d', cannon.group)
+        assertEquals(listOf(3, 1), cannon.levels)
+        assertEquals(2, cannon.levelsLeft)
+        assertEquals(1, cannon.lowest)
+        assertEquals('b', r.items.single { it.id == 5 }.group)
+    }
+
+    @Test fun craftedModulesCountOnlyWithACraftingStation() {
+        val d = MaxData.fromJson(
+            """{"maxTh":3,"items":{
+              "1000097":{"k":"b","c":"d","n":null,"l":[[0,0,0,1]]},
+              "9":{"k":"b","c":"c","n":null,"l":[[0,0,0,1],[100,10,0,2],[200,20,0,3]]}
+            }}""",
+        )
+        val without = RoadToMaxCalc.compute(d, export(3, mapOf(1000097 to listOf(0))).copy(ownedLevels = mapOf(7 to listOf(1))))
+        assertEquals(0, without?.items?.count { it.group == 'c' } ?: 0)
+        val with = RoadToMaxCalc.compute(d, export(3, mapOf(1000097 to listOf(1), 9 to listOf(1))))!!
+        assertEquals(100L + 200L, with.crafted.seconds)
+        assertEquals(LevelShare(1, 3), with.levels.crafted)
+        assertEquals('c', with.items.single { it.id == 9 }.group)
+        assertEquals(300L, with.builderWork.seconds)
     }
 }

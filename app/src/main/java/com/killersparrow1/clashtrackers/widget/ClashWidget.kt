@@ -174,7 +174,10 @@ object WidgetUpdater {
                     playerName = acctSettings.playerName,
                 )
                 try {
-                    val r = FinishNotices.check(state, settings, names, now, ctAlert, idleAfter)
+                    val r = FinishNotices.check(
+                        state, settings, names, now, ctAlert, idleAfter,
+                        homeAlerts = Notifier.homeAlerts(app), builderBaseAlerts = Notifier.builderBaseAlerts(app),
+                    )
                     val fresh = r.notices.filter { it.jobKey !in state.notified }
                     repo.updateAccountState(acct.tag) { st ->
                         st.copy(notified = r.notified)

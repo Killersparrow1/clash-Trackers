@@ -10,6 +10,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
+import com.killersparrow1.clashtrackers.data.MaxDataStore
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
@@ -23,6 +24,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -121,7 +125,7 @@ fun TimerDashboard(
                     // Direction change resets the distance, so a small wobble never toggles the filters.
                     if (travelled != 0f && (travelled > 0f) != (dy > 0f)) travelled = 0f
                     travelled += dy
-                    if (travelled < -24f) filtersVisible = false else if (travelled > 24f) filtersVisible = true
+                    if (travelled < -12f) filtersVisible = false else if (travelled > 12f) filtersVisible = true
                 }
                 return Offset.Zero
             }
@@ -129,19 +133,12 @@ fun TimerDashboard(
     }
     val showFilters = filtersVisible || atTop
 
-    Column(modifier.fillMaxSize().nestedScroll(scrollConnection)) {
-        // The account switcher and the filter chips fade and collapse together; the app title stays put.
-        AnimatedVisibility(
-            visible = accounts.isNotEmpty() && showFilters,
-            enter = fadeIn() + expandVertically(),
-            exit = fadeOut() + shrinkVertically(),
-        ) {
-          Column {
-            if (accounts.isNotEmpty()) {
-                AccountSwitcherBar(accounts, selectedTag, onSelectAccount, onRenameAccount, onDeleteAccount)
-            }
-          }
-        }
+    // The account switcher floats over the top of the list and hides with transform and opacity only, so the list is never
+    // re-measured while you scroll; the list leaves room for it in its own top padding.
+    val hasBar = accounts.isNotEmpty()
+    val barHide by androidx.compose.animation.core.animateFloatAsState(if (showFilters) 0f else 1f, label = "accountBarHide")
+    Box(modifier.fillMaxSize().nestedScroll(scrollConnection)) {
+      CompositionLocalProvider(LocalTopInset provides (LocalTopInset.current + if (hasBar) AccountBarHeight else 0.dp)) {
         LazyVerticalGrid(
             columns = GridCells.Fixed(if (wide) 2 else 1),
             state = gridState,
@@ -205,13 +202,29 @@ fun TimerDashboard(
                     }
                 }
                 if (!calendar) items(timers, key = { it.row.jobKey ?: "${it.category}_${it.row.name}" }) { timer ->
-                    TimerCard(timer)
+                    TimerCard(timer, model.townHall)
                 }
             }
         }
+      }
+      if (hasBar) {
+        Box(
+            Modifier.align(Alignment.TopStart).fillMaxWidth().height(AccountBarHeight)
+                .graphicsLayer {
+                    translationY = -AccountBarHeight.toPx() * barHide
+                    alpha = 1f - barHide
+                }
+                .background(MaterialTheme.colorScheme.background),
+        ) {
+            AccountSwitcherBar(accounts, selectedTag, onSelectAccount, onRenameAccount, onDeleteAccount)
+        }
+      }
     }
     if (showHelp) HelpDialog(onDismiss = { showHelp = false })
 }
+
+/** Height of the floating account switcher: a 32 dp chip with 8 dp above and below. */
+private val AccountBarHeight = 48.dp
 
 /**
  * Round picture of an account's Town Hall at its level, like a profile photo.
@@ -511,7 +524,7 @@ private fun SyncCard(last: SyncLogEntry?, busy: Boolean, onSync: () -> Unit) {
 }
 
 @Composable
-private fun TimerCard(timer: DashboardTimer) {
+private fun TimerCard(timer: DashboardTimer, townHall: Int?) {
     val row = timer.row
     Card(
         modifier = Modifier.fillMaxWidth().wiggleOnTap(),
@@ -546,6 +559,26 @@ private fun TimerCard(timer: DashboardTimer) {
                     )
                 }
                 Text(row.label.replace(" → ", " ➛ "), style = MaterialTheme.typography.titleLargeEmphasized)
+            }
+            // The highest level this item can reach at your Town Hall, from the game data (home village items only).
+            val maxData = remember(MaxDataStore.version) { MaxDataStore.get(context) }
+            val maxLevel = remember(row.iconIds, row.iconLevel, townHall, maxData) {
+                val level = row.iconLevel
+                val th = townHall
+                if (level == null || th == null || timer.category == TimerFilter.BUILDER_BASE) null
+                else row.iconIds.firstNotNullOfOrNull { maxData.items[it] }
+                    ?.let { item -> item.steps.indexOfLast { it.townHall <= th } + 1 }
+                    ?.takeIf { it > 0 }
+            }
+            if (maxLevel != null && row.iconLevel != null) {
+                Text(
+                    stringResource(
+                        if (row.iconLevel >= maxLevel) R.string.timer_reaches_max else R.string.timer_max_level,
+                        row.iconLevel, maxLevel, townHall ?: 0,
+                    ),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
             BasicText(
                 if (row.kind == RowKind.RUNNING) Countdown.text(row.remaining, stringResource(R.string.time_day_short)) else row.staticStatus,

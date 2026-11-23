@@ -54,6 +54,7 @@ function iconPath(group, o, levels, bb = false) {
     case 'buildings': return `buildings/${village}/${c}/level_${levels}.webp`;
     case 'traps': return `traps/${village}/${c}/level_${levels}.webp`;
     case 'spells': return `spells/${c}.webp`;
+    case 'equipment': return `equipment/${c}.webp`;
     default: return `${group}/${c}/icon.webp`; // troops, heroes, pets, guardians
   }
 }
@@ -90,6 +91,20 @@ for (const o of data.traps) {
   add(o, 'b', 'p', o.levels.map(l => [l.build_time || 0, l.build_cost || 0, res(o, o.name), l.required_townhall]), 'traps');
 }
 
+// Crafted Defenses: the Crafting Station's seasonal defenses have upgradable modules (hitpoints and so on). Each module is
+// an item of its own (kind b, category c) with the same step format as a building; the picture is its defense's.
+{
+  const station = data.buildings.find(b => b._id === 1000097);
+  for (const d of (station && station.seasonal_defenses) || []) {
+    for (const m of d.modules || []) {
+      if (!Array.isArray(m.levels) || !m.levels.length) continue;
+      const steps = m.levels.map(l => [l.build_time || 0, l.build_cost || 0, res(m, m.name), l.required_townhall]);
+      for (const st of steps) if (typeof st[3] !== 'number') { warnings.push(`${m.name}: no Town Hall requirement in ClashKing data, assumed Town Hall ${MAX_TH}`); st[3] = MAX_TH; }
+      items[m._id] = { k: 'b', c: 'c', n: null, l: steps, nm: m.name, i: `buildings/seasonal-defense/${clean(d.name)}/level_1.webp` };
+    }
+  }
+}
+
 // Things researched or levelled with "cost to go to the next level" on each level.
 function nextLevelSteps(o) {
   const L = o.levels;
@@ -109,6 +124,21 @@ for (const [group, kind, cat] of [['troops', 'l', 'a'], ['spells', 'l', 'a'], ['
     if (!o.levels.some(l => (l.upgrade_cost || 0) > 0)) continue;
     add(o, kind, cat, nextLevelSteps(o), group);
   }
+}
+
+// Hero equipment: no timer, paid in up to three ores. A step is [0, shiny ore, 6, Town Hall, glowy ore, starry ore]
+// (the last two only when used); like troops, a level holds the cost to the next one.
+for (const o of data.equipment || []) {
+  const L = o.levels;
+  if (!Array.isArray(L) || !L.length) continue;
+  const steps = [[0, 0, 6, L[0].required_townhall]]; // level 1 is unlocked, not bought
+  for (let i = 0; i < L.length - 1; i++) {
+    const c = L[i].upgrade_cost || {};
+    const step = [0, c.shiny_ore || 0, 6, L[i + 1].required_townhall];
+    if (c.glowy_ore || c.starry_ore) step.push(c.glowy_ore || 0, c.starry_ore || 0);
+    steps.push(step);
+  }
+  add(o, 'e', 'a', steps, 'equipment');
 }
 
 // Builder Base (kinds in capitals so the home village code never mixes them up): B buildings and traps, M the Battle

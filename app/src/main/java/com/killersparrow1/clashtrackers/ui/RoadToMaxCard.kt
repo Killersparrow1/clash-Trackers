@@ -3,6 +3,28 @@
 package com.killersparrow1.clashtrackers.ui
 
 import androidx.annotation.DrawableRes
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import com.killersparrow1.clashtrackers.core.RoadItem
+import com.killersparrow1.clashtrackers.core.RoadToMax
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,6 +42,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.produceState
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -30,6 +55,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.killersparrow1.clashtrackers.R
 import com.killersparrow1.clashtrackers.core.Countdown
+import com.killersparrow1.clashtrackers.core.MaxData
 import com.killersparrow1.clashtrackers.core.RoadToMaxCalc
 import com.killersparrow1.clashtrackers.core.RoadTotals
 import com.killersparrow1.clashtrackers.core.VillageExport
@@ -47,14 +73,48 @@ import java.util.Locale
 internal fun RoadToMaxCard(export: VillageExport?, builders: Int, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val data = remember(MaxDataStore.version) { MaxDataStore.get(context) }
-    val road = remember(export, data) { export?.let { RoadToMaxCalc.compute(data, it) } } ?: return
+    // The calculation walks every item of the game data, so it runs off the main thread instead of stalling a swipe to this page.
+    val roadState by produceState<RoadToMax?>(null, export, data) {
+        value = export?.let { e -> withContext(Dispatchers.Default) { RoadToMaxCalc.compute(data, e) } }
+    }
+    val road = roadState ?: return
     val dayUnit = stringResource(R.string.time_day_short)
     val n = builders.coerceAtLeast(1)
     val timed = road.builderWork + road.lab + road.pets
+    var query by rememberSaveable { mutableStateOf("") }
+    var selectedId by rememberSaveable { mutableStateOf<Int?>(null) }
+    val selected = selectedId?.let { id -> road.items.firstOrNull { it.id == id } }
 
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         CollapsibleCard(stringResource(R.string.road_title, road.townHall), "road_summary", alwaysOpen = true) {
             ProgressLine(road.overallDone, large = true)
+        }
+
+        OutlinedTextField(
+            value = query, onValueChange = { query = it },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            placeholder = { Text(stringResource(R.string.road_search_hint)) },
+            trailingIcon = { if (query.isNotEmpty()) Text("✕", modifier = Modifier.clickable { query = "" }.padding(12.dp)) },
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+            shape = MaterialTheme.shapes.extraLarge,
+        )
+        val q = query.trim()
+        if (q.isNotEmpty()) {
+            val found = road.items.filter { it.name?.contains(q, ignoreCase = true) == true }
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+                shape = MaterialTheme.shapes.large,
+            ) {
+                Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(
+                        if (found.isEmpty()) stringResource(R.string.road_search_none) else stringResource(R.string.road_search_results, found.size),
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                    if (found.isNotEmpty()) ItemGrid(found, onItem = { selectedId = it.id })
+                }
+            }
         }
 
         CollapsibleCard(stringResource(R.string.road_time_left), "road_time_left", alwaysOpen = true) {
@@ -79,31 +139,64 @@ internal fun RoadToMaxCard(export: VillageExport?, builders: Int, modifier: Modi
             }
         }
 
+        fun items(group: Char) = road.items.filter { it.group == group }
         CategoryCard(
             title = stringResource(R.string.road_buildings), buildingId = 1000015,
-            done = road.levels.buildings.done,
-            seconds = road.buildings.seconds / n, remaining = road.buildings, dayUnit = dayUnit,
+            done = road.work.buildings.done,
+            seconds = road.buildings.seconds / n, remaining = road.buildings, dayUnit = dayUnit, items = items('b'), onItem = { selectedId = it.id },
+        )
+        CategoryCard(
+            title = stringResource(R.string.road_defences), buildingId = 1000008,
+            done = road.work.defences.done,
+            seconds = road.defences.seconds / n, remaining = road.defences, dayUnit = dayUnit, items = items('d'), onItem = { selectedId = it.id },
+        )
+        if (road.items.any { it.group == 'c' }) CategoryCard(
+            title = stringResource(R.string.road_crafted), buildingId = 1000097,
+            done = road.work.crafted.done,
+            seconds = road.crafted.seconds / n, remaining = road.crafted, dayUnit = dayUnit, items = items('c'), onItem = { selectedId = it.id },
+        )
+        if (road.items.any { it.group == 't' }) CategoryCard(
+            title = stringResource(R.string.road_traps), buildingId = 12000002,
+            done = road.work.traps.done,
+            seconds = road.traps.seconds / n, remaining = road.traps, dayUnit = dayUnit, items = items('t'), onItem = { selectedId = it.id },
         )
         CategoryCard(
             title = stringResource(R.string.road_walls), buildingId = 1000010,
-            done = road.levels.walls.done,
-            seconds = null, remaining = road.walls, dayUnit = dayUnit,
+            done = road.work.walls.done,
+            seconds = null, remaining = road.walls, dayUnit = dayUnit, items = items('w'), onItem = { selectedId = it.id },
         )
         CategoryCard(
             title = stringResource(R.string.road_heroes), buildingId = 1000071,
-            done = road.levels.heroes.done,
-            seconds = road.heroSeconds(n), remaining = road.heroes, dayUnit = dayUnit,
+            done = road.work.heroes.done,
+            seconds = road.heroSeconds(n), remaining = road.heroes, dayUnit = dayUnit, items = items('h'), onItem = { selectedId = it.id },
         )
         CategoryCard(
-            title = stringResource(R.string.road_lab), buildingId = 1000007,
-            done = road.levels.lab.done,
-            seconds = road.lab.seconds, remaining = road.lab, dayUnit = dayUnit,
+            title = stringResource(R.string.road_troops), buildingId = 1000007,
+            done = road.work.troops.done,
+            seconds = road.troops.seconds, remaining = road.troops, dayUnit = dayUnit, items = items('l'), onItem = { selectedId = it.id },
+        )
+        CategoryCard(
+            title = stringResource(R.string.road_spells), buildingId = 1000020,
+            done = road.work.spells.done,
+            seconds = road.spells.seconds, remaining = road.spells, dayUnit = dayUnit, items = items('x'), onItem = { selectedId = it.id },
+        )
+        CategoryCard(
+            title = stringResource(R.string.road_siege), buildingId = 1000059,
+            done = road.work.siege.done,
+            seconds = road.siege.seconds, remaining = road.siege, dayUnit = dayUnit, items = items('m'), onItem = { selectedId = it.id },
+        )
+        CategoryCard(
+            title = stringResource(R.string.road_equipment), buildingId = 1000070,
+            done = road.work.equipment.done,
+            seconds = null, remaining = road.equipment, dayUnit = dayUnit, items = items('e'), onItem = { selectedId = it.id },
         )
         CategoryCard(
             title = stringResource(R.string.road_pets), buildingId = 1000068,
-            done = road.levels.pets.done,
-            seconds = road.pets.seconds, remaining = road.pets, dayUnit = dayUnit,
+            done = road.work.pets.done,
+            seconds = road.pets.seconds, remaining = road.pets, dayUnit = dayUnit, items = items('p'), onItem = { selectedId = it.id },
         )
+
+        if (selected != null) ItemSheet(selected, data, road.townHall, dayUnit) { selectedId = null }
 
         Text(
             stringResource(R.string.road_note),
@@ -123,19 +216,37 @@ private fun CategoryCard(
     seconds: Long?,
     remaining: RoadTotals,
     dayUnit: String,
+    /** Every item of the group; tapping the card opens them as a grid of pictures with their levels. */
+    items: List<RoadItem> = emptyList(),
+    onItem: (RoadItem) -> Unit = {},
 ) {
+    var open by rememberSaveable(title) { mutableStateOf(false) }
     Card(
         modifier = Modifier.fillMaxWidth().wiggleOnTap(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
         shape = MaterialTheme.shapes.large,
     ) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(
+            Modifier.fillMaxWidth().then(if (items.isNotEmpty()) Modifier.clickable { open = !open } else Modifier).padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Row(
+                Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
                 BuildingImage(buildingId, 40.dp)
                 Text(title, style = MaterialTheme.typography.titleMediumEmphasized, modifier = Modifier.weight(1f))
                 Text(percentText(done), style = MaterialTheme.typography.titleMedium)
+                if (items.isNotEmpty()) Text(if (open) "▴" else "▾", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             ProgressLine(done, large = false, showPercent = false)
+            if (items.isNotEmpty()) {
+                val left = items.sumOf { it.levelsLeft }
+                Text(
+                    stringResource(R.string.road_levels_left, left),
+                    style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(stringResource(R.string.road_time), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.width(48.dp))
                 Text(
@@ -157,12 +268,69 @@ private fun CategoryCard(
                             Text(compact(remaining.goldOrElixir), style = MaterialTheme.typography.titleSmall)
                         }
                     }
-                    if (remaining.gold + remaining.elixir + remaining.darkElixir + remaining.goldOrElixir == 0L) {
+                    if (remaining.shinyOre + remaining.glowyOre + remaining.starryOre > 0) {
+                        // Hero equipment is paid in ore, which has no picture here.
+                        Text(oreText(remaining), style = MaterialTheme.typography.titleSmall)
+                    } else if (remaining.gold + remaining.elixir + remaining.darkElixir + remaining.goldOrElixir == 0L) {
                         Text("—", style = MaterialTheme.typography.titleSmall)
                     }
                 }
             }
+            AnimatedVisibility(open && items.isNotEmpty()) { ItemGrid(items, onItem) }
         }
+    }
+}
+
+/** The group's items as pictures: the level you have (the lowest copy), "×N" when there are several copies. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ItemGrid(items: List<RoadItem>, onItem: (RoadItem) -> Unit) {
+    val context = LocalContext.current
+    val density = LocalDensity.current
+    val sorted = remember(items) { items.sortedWith(compareByDescending<RoadItem> { it.levelsLeft }.thenBy { it.id }) }
+    androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxWidth()) {
+    // As many tiles per row as fit at least 58 dp wide, then widened a little so the row has no leftover gap.
+    val gap = 8.dp
+    val columns = ((maxWidth + gap) / (58.dp + gap)).toInt().coerceAtLeast(1)
+    val tile = (maxWidth - gap * (columns - 1)) / columns
+    FlowRow(
+        Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(gap),
+        verticalArrangement = Arrangement.spacedBy(gap),
+    ) {
+        for (item in sorted) {
+            val picture = remember(item.id, item.lowest, tile) {
+                WidgetIcons.get(context).bitmapForLevel(item.id, item.lowest.coerceAtLeast(1), with(density) { tile.roundToPx() })?.asImageBitmap()
+            }
+            val edge = if (item.maxed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+            Box(
+                Modifier.size(tile).border(1.5.dp, edge, RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surfaceContainerHighest, RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(12.dp)).clickable { onItem(item) },
+            ) {
+                if (picture != null) Image(picture, contentDescription = null, modifier = Modifier.fillMaxSize().padding(4.dp))
+                // Crafted Defense modules share their defense's picture, so the module's initials tell them apart.
+                if (item.group == 'c') item.name?.let { n ->
+                    Text(
+                        n.split(' ', '-').mapNotNull { it.firstOrNull() }.take(3).joinToString(""),
+                        style = MaterialTheme.typography.labelSmall,
+                        modifier = Modifier.align(Alignment.TopEnd).padding(end = 4.dp, top = 2.dp),
+                    )
+                }
+                if (item.count > 1) Text(
+                    "×${item.count}", style = MaterialTheme.typography.labelSmall,
+                    modifier = Modifier.align(Alignment.TopStart).padding(start = 4.dp, top = 2.dp),
+                )
+                Text(
+                    item.lowest.toString(), style = MaterialTheme.typography.labelMedium,
+                    color = if (item.maxed) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.align(Alignment.BottomEnd).padding(3.dp)
+                        .background(if (item.maxed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerLow, RoundedCornerShape(6.dp))
+                        .padding(horizontal = 5.dp, vertical = 1.dp),
+                )
+            }
+        }
+    }
     }
 }
 
@@ -245,4 +413,66 @@ internal fun compact(n: Long): String = when {
     n >= 1_000_000 -> String.format(Locale.US, "%.1fM", n / 1e6)
     n >= 1_000 -> String.format(Locale.US, "%.1fK", n / 1e3)
     else -> n.toString()
+}
+
+
+/** What is left for one item: its picture, the level you have, the copies and the time and cost still to pay. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ItemSheet(item: RoadItem, data: MaxData, townHall: Int, dayUnit: String, onClose: () -> Unit) {
+    val context = LocalContext.current
+    val density = LocalDensity.current
+    val steps = data.items[item.id]?.steps.orEmpty()
+    val left = remember(item, data) {
+        var t = RoadTotals()
+        for (level in item.levels) for (i in level.coerceAtLeast(if (item.group == 'l' || item.group == 'x' || item.group == 'm' || item.group == 'e') 1 else 0) until item.maxLevel) {
+            steps.getOrNull(i)?.let { t = t.add(it) }
+        }
+        t
+    }
+    val picture = remember(item.id) {
+        WidgetIcons.get(context).bitmapForLevel(item.id, item.lowest.coerceAtLeast(1), with(density) { 72.dp.roundToPx() })?.asImageBitmap()
+    }
+    ModalBottomSheet(onDismissRequest = onClose, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+        Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(bottom = 32.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                if (picture != null) Image(picture, contentDescription = null, modifier = Modifier.size(72.dp)) else Spacer(Modifier.size(72.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(item.name ?: "#${item.id}", style = MaterialTheme.typography.titleLarge)
+                    Text(
+                        if (item.maxed) stringResource(R.string.road_item_maxed, item.maxLevel, townHall)
+                        else stringResource(R.string.road_item_level, item.lowest, item.maxLevel, townHall),
+                        style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+            if (item.count > 1) {
+                // "Level 14 ×263": how many copies are at each level.
+                Text(
+                    stringResource(R.string.road_item_copies, item.levels.groupingBy { it }.eachCount().toSortedMap(reverseOrder())
+                        .entries.joinToString(", ") { "${it.key} ×${it.value}" }),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+            Text(stringResource(R.string.road_levels_left, item.levelsLeft), style = MaterialTheme.typography.bodyMedium)
+            if (left.seconds > 0) Text(stringResource(R.string.road_item_time, formatDuration(left.seconds, dayUnit)), style = MaterialTheme.typography.bodyMedium)
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                CostChip(R.drawable.road_gold, left.gold)
+                CostChip(R.drawable.road_elixir, left.elixir)
+                CostChip(R.drawable.road_dark_elixir, left.darkElixir)
+                if (left.goldOrElixir > 0) Text(compact(left.goldOrElixir), style = MaterialTheme.typography.titleSmall)
+                if (left.shinyOre + left.glowyOre + left.starryOre > 0) Text(oreText(left), style = MaterialTheme.typography.titleSmall)
+            }
+        }
+    }
+}
+
+/** "Shiny 1.3M  Glowy 93.1K  Starry 8.3K": hero equipment is paid in ore, which has no picture here. */
+@Composable
+private fun oreText(t: RoadTotals): String {
+    val shiny = stringResource(R.string.ore_shiny)
+    val glowy = stringResource(R.string.ore_glowy)
+    val starry = stringResource(R.string.ore_starry)
+    return listOf(shiny to t.shinyOre, glowy to t.glowyOre, starry to t.starryOre)
+        .filter { it.second > 0 }.joinToString("  ") { "${it.first} ${compact(it.second)}" }
 }

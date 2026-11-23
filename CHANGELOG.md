@@ -6,6 +6,21 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ## [Unreleased]
 
+### Added
+
+- Separate finish alerts for the Town Hall village and the Builder Base (Settings > Notifications). A village you switch off is not replayed when you switch it on again.
+- Timer cards show the highest level the item can reach at your Town Hall. Road to max has a search box, a details sheet for every item, and separate cards for Troops, Spells, Siege Machines and hero Equipment (ore costs).
+- Road to max: Defences and Crafted Defenses cards, tap a card to open every item with its level, and event cards in Clash now have the game's pictures. Notification sounds can be checked one by one in developer options, and the event alert sound is louder.
+- Clash Companion: a draggable golden import button and a Paste JSON notification while Clash of Clans is open (accessibility service, window events only), with the permission popup now also asking for the accessibility service and Install unknown apps.
+- Event alerts for Clan Games, Raid Weekend, CWL, season end and league reset, with per-event switches, a lead time and a custom sound.
+- Timers calendar view (pinch or +/− zoom, hour labels, up to 12 suggested upgrades per slot) and Builder Base in Bedtime level up and the calendar.
+- Dev builds use their own package (`.dev`, "Clash Trackers Dev") so they install next to the released app.
+
+### Changed
+
+- Road to max percentages are now weighted by upgrade time (walls by cost) instead of counting levels (heroes still show levels done, as ClashKing does), Traps are their own card, upgrades in progress are not counted as done, and the overall figure is the time done across the timed groups, so they line up with ClashKing.
+- The Plan tab is now **Progress**.
+
 ### Changed
 
 - Navigation motion: tabs now move on a spring and the page coming in scales from 0.96 to 1.0 as it settles; the page you are on plus one each side stay loaded, so swiping or jumping several tabs never shows a blank page. The header title (and the Open game button) slide and fade the same way the tabs moved, switching when the page passes the middle of a swipe.

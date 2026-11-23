@@ -27,7 +27,7 @@ object EventAlerts {
     private const val PREFS = "event_alerts"
     private const val ACTION = "com.killersparrow1.clashtrackers.EVENT_ALERT"
     private const val CLASH_PACKAGE = "com.supercell.clashofclans"
-    private const val CHANNEL = "events_v1"
+    private const val CHANNEL = "events_v4"
 
     val EVENT_IDS = listOf(
         GameEvents.CLAN_GAMES, GameEvents.RAID_WEEKEND, GameEvents.CWL_SIGNUP,
@@ -100,6 +100,9 @@ object EventAlerts {
 
     private fun ensureChannel(c: Context): String {
         val nm = c.getSystemService(NotificationManager::class.java)
+        nm?.deleteNotificationChannel("events_v1") // older sound files
+        nm?.deleteNotificationChannel("events_v2")
+        nm?.deleteNotificationChannel("events_v3")
         if (nm != null && nm.getNotificationChannel(CHANNEL) == null) {
             val lctx = com.killersparrow1.clashtrackers.locale.LanguageManager.wrap(c)
             val attrs = AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_NOTIFICATION)

@@ -93,7 +93,10 @@ object FinishNotices {
      * Jobs finished at [now] that haven't been announced yet, and the new [AppState.notified] set
      * (only keys that are still finished, so a job that is "un-finished" by an undo can be announced again).
      */
-    fun check(state: AppState, settings: AppSettings, names: NameMap, now: Long, clockTowerAlert: Boolean = false, idleAfterSec: Long? = null): Result {
+    fun check(
+        state: AppState, settings: AppSettings, names: NameMap, now: Long, clockTowerAlert: Boolean = false, idleAfterSec: Long? = null,
+        homeAlerts: Boolean = true, builderBaseAlerts: Boolean = true,
+    ): Result {
         val export = state.export ?: return Result(emptyList(), emptySet())
         val engine = TimerEngine(settings.boosts)
         val finished = export.jobs
@@ -101,24 +104,29 @@ object FinishNotices {
             .filter { (_, at) -> Finish.isDone(at, now) }
         val notices = finished
             .filter { (job, at) -> job.key !in state.notified && at > now - MAX_AGE_SEC }
+            // A village whose alerts are off is still marked as announced below, so turning it on later does not replay old finishes.
+            .filter { (job, _) -> if (isBuilderBase(job)) builderBaseAlerts else homeAlerts }
             .sortedBy { it.second }
             .map { (job, _) -> notice(job, names) }
         val ctEnd = if (clockTowerAlert) clockTowerEnd(export) else null
         val ctDone = ctEnd != null && Finish.isDone(ctEnd, now)
         val ctKey = ctEnd?.let { "$CLOCK_TOWER_KEY$it" }
-        val ctNotice = if (ctDone && ctKey !in state.notified && ctEnd!! > now - MAX_AGE_SEC)
+        val ctNotice = if (builderBaseAlerts && ctDone && ctKey !in state.notified && ctEnd!! > now - MAX_AGE_SEC)
             listOf(FinishNotice(ctKey!!, CLOCK_TOWER_TITLE, CLOCK_TOWER_TEXT)) else emptyList()
         // "Still free" reminders: a builder or lab job finished [idleAfterSec] ago and the next sync hasn't replaced it.
         val idleDue = if (idleAfterSec == null) emptyList() else finished
             .filter { (job, _) -> (job.category == JobCategory.BUILDER || job.category == JobCategory.LAB) && !job.isGoblin }
             .filter { (_, at) -> Finish.isDone(at + idleAfterSec, now) }
-        val idleNotices = idleDue
+        val idleNotices = if (!homeAlerts) emptyList() else idleDue
             .filter { (job, at) -> IDLE_KEY + job.key !in state.notified && at + idleAfterSec!! > now - MAX_AGE_SEC }
             .sortedBy { it.second }
             .map { (job, _) -> idleNotice(job, idleAfterSec!!) }
         val keys = finished.map { it.first.key }.toSet() + listOfNotNull(ctKey.takeIf { ctDone }) + idleDue.map { IDLE_KEY + it.first.key }
         return Result(notices + idleNotices + ctNotice, keys)
     }
+
+    /** Builder Base (night village) builders and the Star Laboratory; everything else is the home village. */
+    fun isBuilderBase(job: Job) = job.category == JobCategory.BB_BUILDER || job.category == JobCategory.STAR_LAB
 
     const val IDLE_KEY = "idle:"
 
