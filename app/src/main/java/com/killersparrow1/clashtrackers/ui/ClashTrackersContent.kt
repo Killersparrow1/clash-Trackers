@@ -292,21 +292,25 @@ fun ClashTrackersContent(
                         val rowAlpha by androidx.compose.animation.core.animateFloatAsState(
                             if (siblings.size > 1) 1f else 0f, tween(if (reduced) 0 else 160), label = "subTabsAlpha",
                         )
-                        if (siblings.size > 1 || rowAlpha > 0f) {
-                            val first = destination.firstPage()
+                        // While the row fades out after leaving Plan or Settings it keeps the tabs it had (Timers and Clash have none).
+                        val rowTabs = remember { arrayOf(siblings) }
+                        if (siblings.size > 1) rowTabs[0] = siblings
+                        val tabs = rowTabs[0]
+                        if (tabs.size > 1 && (siblings.size > 1 || rowAlpha > 0f)) {
+                            val first = Page.entries.indexOf(tabs.first())
                             androidx.compose.material3.PrimaryTabRow(
-                                selectedTabIndex = (pager.currentPage - first).coerceIn(0, (siblings.size - 1).coerceAtLeast(0)),
+                                selectedTabIndex = (pager.currentPage - first).coerceIn(0, tabs.size - 1),
                                 // Transform and opacity only: the row slides up under the app bar, the layout never changes.
                                 modifier = Modifier.align(Alignment.TopCenter).graphicsLayer {
                                     translationY = -SubTabsHeight.toPx() * subHide.value
                                     alpha = (1f - subHide.value) * rowAlpha
                                 },
                             ) {
-                                siblings.forEachIndexed { i, p ->
+                                tabs.forEachIndexed { i, p ->
                                     androidx.compose.material3.Tab(
                                         selected = pager.currentPage == first + i,
                                         onClick = { tapScope.launch { pager.goTo(first + i, pageSpring, pagerFade) } },
-                                        text = { Text(stringResource(p.labelRes!!)) },
+                                        text = { p.labelRes?.let { Text(stringResource(it)) } },
                                     )
                                 }
                             }
