@@ -125,7 +125,7 @@ fun TimerDashboard(
                     // Direction change resets the distance, so a small wobble never toggles the filters.
                     if (travelled != 0f && (travelled > 0f) != (dy > 0f)) travelled = 0f
                     travelled += dy
-                    if (travelled < -24f) filtersVisible = false else if (travelled > 24f) filtersVisible = true
+                    if (travelled < -12f) filtersVisible = false else if (travelled > 12f) filtersVisible = true
                 }
                 return Offset.Zero
             }
