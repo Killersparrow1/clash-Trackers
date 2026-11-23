@@ -245,14 +245,27 @@ fun SettingsSection(
             }
             Text(stringResource(R.string.settings_alert_desc), style = MaterialTheme.typography.bodyMedium)
             var homeOn by remember { mutableStateOf(Notifier.homeAlerts(context)) }
-            SwitchRow(stringResource(R.string.settings_alerts_home), homeOn) { on ->
-                homeOn = on
-                Notifier.setHomeAlerts(context, on)
-            }
             var bbOn by remember { mutableStateOf(Notifier.builderBaseAlerts(context)) }
-            SwitchRow(stringResource(R.string.settings_alerts_bb), bbOn) { on ->
-                bbOn = on
-                Notifier.setBuilderBaseAlerts(context, on)
+            Text(stringResource(R.string.settings_alerts_villages), style = MaterialTheme.typography.titleSmall)
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FilterChip(
+                    selected = homeOn,
+                    onClick = {
+                        homeOn = !homeOn
+                        Notifier.setHomeAlerts(context, homeOn)
+                    },
+                    label = { Text((if (homeOn) "\u2713 " else "") + stringResource(R.string.settings_alerts_home)) },
+                    modifier = Modifier.heightIn(min = 48.dp),
+                )
+                FilterChip(
+                    selected = bbOn,
+                    onClick = {
+                        bbOn = !bbOn
+                        Notifier.setBuilderBaseAlerts(context, bbOn)
+                    },
+                    label = { Text((if (bbOn) "\u2713 " else "") + stringResource(R.string.settings_alerts_bb)) },
+                    modifier = Modifier.heightIn(min = 48.dp),
+                )
             }
             Text(stringResource(R.string.settings_alerts_village_desc), style = MaterialTheme.typography.bodySmall)
             var respectDnd by remember { mutableStateOf(Notifier.respectDnd(context)) }
