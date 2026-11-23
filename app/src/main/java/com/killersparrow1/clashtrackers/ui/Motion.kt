@@ -53,9 +53,12 @@ internal fun rememberReducedMotion(): Boolean {
 /** Room the floating tab bar takes at the bottom of a page; 0 where there is no floating bar (wide screens). */
 internal val LocalBarInset = compositionLocalOf { 0.dp }
 
-/** Padding for a page's scrolling list: 16 dp around, plus room at the bottom so the floating bar never hides content. */
+/** Room a page leaves at its top for the floating sub-tab row (Plan, Settings); 0 for pages without one. */
+internal val LocalTopInset = compositionLocalOf { 0.dp }
+
+/** Padding for a page's scrolling list: 16 dp around, plus room at the top for the sub-tab row and at the bottom for the floating bar. */
 @Composable
-internal fun listPadding(): PaddingValues = PaddingValues(16.dp, 16.dp, 16.dp, 16.dp + LocalBarInset.current)
+internal fun listPadding(): PaddingValues = PaddingValues(16.dp, 16.dp + LocalTopInset.current, 16.dp, 16.dp + LocalBarInset.current)
 
 /**
  * A subtle scale while a page is moving: 0.96 when a page is a whole page away, 1.0 when it is in place, so the page
