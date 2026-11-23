@@ -250,6 +250,8 @@ fun ClashTrackersContent(
                             beyondViewportPageCount = 1,
                             flingBehavior = PagerDefaults.flingBehavior(
                                 state = pager,
+                                // Half a page is the default; a quarter makes a shorter swipe (or a lighter flick) change the tab.
+                                snapPositionalThreshold = 0.25f,
                                 snapAnimationSpec = spring(dampingRatio = 0.9f, stiffness = Spring.StiffnessMediumLow),
                             ),
                         ) { index ->
