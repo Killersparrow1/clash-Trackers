@@ -107,7 +107,6 @@ fun AboutSection(reportProvider: () -> String = { "" }) {
                 when (val u = update) {
                     is UpdateState.Available -> {
                         Text(stringResource(R.string.update_available, u.info.version), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onPrimaryContainer)
-                        if (u.info.notes.isNotBlank()) Text(u.info.notes.take(600), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onPrimaryContainer)
                         if (AppUpdater.canInstall(context)) {
                             UpdateButton(R.string.update_download_install) { install(u.info) }
                         } else {

@@ -49,7 +49,7 @@ fun UpdatePrompt() {
         title = { Text("Update available: CT${info.version}") },
         text = {
             Column(Modifier.heightIn(max = 320.dp).verticalScroll(rememberScrollState())) {
-                if (info.notes.isNotBlank()) Text(info.notes.take(800), style = MaterialTheme.typography.bodyMedium)
+                Text("Version ${info.version} is ready to download.", style = MaterialTheme.typography.bodyMedium)
                 progress?.let {
                     LinearProgressIndicator(progress = { it.coerceAtLeast(0f) }, modifier = Modifier.fillMaxWidth())
                 }
@@ -77,21 +77,10 @@ fun UpdatePrompt() {
                     }
                     progress = null
                 }
-            }) { Text(if (AppUpdater.canInstall(context)) "Update" else "Allow installs") }
+            }) { Text(if (AppUpdater.canInstall(context)) "Download" else "Allow installs") }
         },
         dismissButton = {
-            if (!busy) Row2(
-                later = { release = null },
-                skip = { UpdatePrefs.skip(context, info.version); release = null },
-            )
+            if (!busy) TextButton(onClick = { release = null }) { Text("Later") }
         },
     )
-}
-
-@Composable
-private fun Row2(later: () -> Unit, skip: () -> Unit) {
-    androidx.compose.foundation.layout.Row {
-        TextButton(onClick = skip) { Text("Skip this version") }
-        TextButton(onClick = later) { Text("Later") }
-    }
 }
