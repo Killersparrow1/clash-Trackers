@@ -108,7 +108,9 @@ internal fun TimerCalendar(model: WidgetModel, export: VillageExport?, now: Long
     val names = remember { Names.get(context) }
     val data = remember(MaxDataStore.version) { MaxDataStore.get(context) }
     val window = remember { SleepStore.get(context) }
-    val slotText = stringResource(R.string.calendar_slot)
+    val slotText = stringResource(R.string.calendar_builder_short)
+    val labText = stringResource(R.string.calendar_lab_short)
+    val petsText = stringResource(R.string.calendar_pets_short)
     val goblinText = stringResource(R.string.cat_goblin_builder)
     val starLabText = stringResource(R.string.plan_star_lab)
     val nextText = stringResource(R.string.calendar_next)
@@ -170,10 +172,10 @@ internal fun TimerCalendar(model: WidgetModel, export: VillageExport?, now: Long
                 add(Section(titles[0], 0, lanes(model.builderRows, PlanSlot.BUILDER) { i, r -> if (r.goblin) goblinText else slotText.format(i + 1) }))
             }
             if (filter == TimerFilter.ALL || filter == TimerFilter.LAB) {
-                add(Section(titles[1], 1, lanes(model.labRows, PlanSlot.LAB) { i, _ -> slotText.format(i + 1) }))
+                add(Section(titles[1], 1, lanes(model.labRows, PlanSlot.LAB) { i, _ -> if (model.labRows.size > 1) "$labText ${i + 1}" else labText }))
             }
             if (filter == TimerFilter.ALL || filter == TimerFilter.PETS) {
-                add(Section(titles[2], 2, lanes(listOf(model.petRow), PlanSlot.PET) { i, _ -> slotText.format(i + 1) }))
+                add(Section(titles[2], 2, lanes(listOf(model.petRow), PlanSlot.PET) { _, _ -> petsText }))
             }
             if (filter == TimerFilter.ALL || filter == TimerFilter.BUILDER_BASE) {
                 val hasBb = export != null && Bedtime.builderHall(export) != null
@@ -202,6 +204,7 @@ internal fun TimerCalendar(model: WidgetModel, export: VillageExport?, now: Long
         dayDp >= 560f -> 1
         dayDp >= 280f -> 3
         dayDp >= 170f -> 6
+        dayDp >= 110f -> 12
         else -> 0
     }
     val scroll = rememberScrollState()
@@ -221,31 +224,22 @@ internal fun TimerCalendar(model: WidgetModel, export: VillageExport?, now: Long
     fun xOf(t: Long): Dp = hourWidth * ((t - t0) / 3600f)
 
     val locale = Locale.getDefault()
-    val dayFormat = remember(locale) { DateTimeFormatter.ofPattern(DateFormat.getBestDateTimePattern(locale, "dMMM"), locale) }
-    val today = stringResource(R.string.calendar_today)
+    val dayFormat = remember(locale) { DateTimeFormatter.ofPattern(DateFormat.getBestDateTimePattern(locale, "EEEd"), locale) }
+    val hourFormat = remember(locale) { DateTimeFormatter.ofPattern(DateFormat.getBestDateTimePattern(locale, "j"), locale) }
+    val offlineShade = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.07f)
+    val showTitles = sections.size > 1
+    val sectionH = if (showTitles) SectionHeight else 0.dp
     val lineColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-    val nowColor = MaterialTheme.colorScheme.error
+    val nowColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f)
     val density = LocalDensity.current
 
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                stringResource(R.string.calendar_zoom_hint), style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f),
-            )
-            FilledTonalIconButton(onClick = { zoomBy(1f / 1.5f) }, enabled = dayDp > MinDayWidth.value) {
-                Text("−", style = MaterialTheme.typography.titleLarge)
-            }
-            FilledTonalIconButton(onClick = { zoomBy(1.5f) }, enabled = dayDp < MaxDayWidth.value) {
-                Text("+", style = MaterialTheme.typography.titleLarge)
-            }
-        }
         Row(Modifier.fillMaxWidth()) {
             // Slot names stay in place while the days scroll.
             Column(Modifier.width(LabelWidth)) {
                 Spacer(HeaderHeight)
                 sections.forEach { s ->
-                    Box(Modifier.height(SectionHeight).fillMaxWidth(), contentAlignment = Alignment.CenterStart) {
+                    if (showTitles) Box(Modifier.height(sectionH).fillMaxWidth(), contentAlignment = Alignment.CenterStart) {
                         Text(s.title, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                     s.lanes.forEach { l ->
@@ -267,6 +261,19 @@ internal fun TimerCalendar(model: WidgetModel, export: VillageExport?, now: Long
                         .width(DayWidth * days)
                         .drawBehind {
                             val dayPx = DayWidth.toPx()
+                            // Offline: the sleep window of every day, a little darker than the rest.
+                            if (window.startMin != window.endMin) {
+                                val minute = dayPx / 1440f
+                                val top = HeaderHeight.toPx()
+                                fun band(from: Int, to: Int, day: Int) = drawRect(
+                                    offlineShade, Offset(day * dayPx + from * minute, top),
+                                    androidx.compose.ui.geometry.Size((to - from) * minute, size.height - top),
+                                )
+                                for (d in 0 until days) {
+                                    if (window.startMin < window.endMin) band(window.startMin, window.endMin, d)
+                                    else { band(0, window.endMin, d); band(window.startMin, 1440, d) }
+                                }
+                            }
                             for (d in 0..days) drawLine(lineColor, Offset(d * dayPx, 0f), Offset(d * dayPx, size.height), 1.dp.toPx())
                             if (hourStep > 0) {
                                 val faint = lineColor.copy(alpha = lineColor.alpha * 0.5f)
@@ -279,12 +286,13 @@ internal fun TimerCalendar(model: WidgetModel, export: VillageExport?, now: Long
                         .drawWithContent {
                             drawContent()
                             val x = with(density) { xOf(now).toPx() }
-                            drawLine(nowColor, Offset(x, 0f), Offset(x, size.height), 2.dp.toPx())
+                            drawLine(nowColor, Offset(x, HeaderHeight.toPx()), Offset(x, size.height), 2.dp.toPx())
+                            drawCircle(nowColor, 5.dp.toPx(), Offset(x, HeaderHeight.toPx()))
                         },
                 ) {
                     Row(Modifier.height(HeaderHeight)) {
                         for (d in 0 until days) {
-                            val label = if (d == 0) today else dayFormat.format(Instant.ofEpochSecond(t0 + d * 86_400L).atZone(zone))
+                            val label = dayFormat.format(Instant.ofEpochSecond(t0 + d * 86_400L).atZone(zone))
                             Box(Modifier.width(DayWidth).fillMaxHeight()) {
                                 Text(
                                     label, style = MaterialTheme.typography.labelLarge,
@@ -293,7 +301,7 @@ internal fun TimerCalendar(model: WidgetModel, export: VillageExport?, now: Long
                                 )
                                 if (hourStep > 0) for (h in hourStep until 24 step hourStep) {
                                     Text(
-                                        "%02d:00".format(h), style = MaterialTheme.typography.labelSmall,
+                                        java.time.LocalTime.of(h, 0).format(hourFormat), style = MaterialTheme.typography.labelSmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1,
                                         modifier = Modifier.align(Alignment.BottomStart).offset(x = hourWidth * h.toFloat() + 3.dp).padding(bottom = 4.dp),
                                     )
@@ -302,9 +310,12 @@ internal fun TimerCalendar(model: WidgetModel, export: VillageExport?, now: Long
                         }
                     }
                     sections.forEach { s ->
-                        Spacer(SectionHeight)
+                        if (showTitles) Spacer(sectionH)
                         s.lanes.forEach { lane ->
                             Box(Modifier.height(LaneHeight).fillMaxWidth()) {
+                                // Nothing running: the stretch before the first suggested upgrade starts is idle time.
+                                val first = lane.bars.firstOrNull()
+                                if (first != null && first.suggested && first.start > now + 60) IdleHatch(xOf(now), xOf(first.start))
                                 lane.bars.forEach { bar -> CalendarBar(bar, s.kind, now, dayUnit, xOf(maxOf(bar.start, t0)), xOf(bar.end)) }
                             }
                         }
@@ -313,7 +324,57 @@ internal fun TimerCalendar(model: WidgetModel, export: VillageExport?, now: Long
             }
         }
         Text(stringResource(R.string.calendar_note), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                Modifier.weight(1f).horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically,
+            ) {
+                val scheme = MaterialTheme.colorScheme
+                LegendItem(stringResource(R.string.legend_builder), scheme.primaryContainer, scheme.primary)
+                LegendItem(stringResource(R.string.legend_lab), scheme.tertiaryContainer, scheme.tertiary)
+                LegendItem(stringResource(R.string.legend_next), scheme.surfaceContainerHigh, scheme.outline)
+                LegendItem(stringResource(R.string.legend_offline), offlineShade, Color.Transparent)
+                LegendItem(stringResource(R.string.legend_idle), scheme.error.copy(alpha = 0.35f), Color.Transparent)
+            }
+            FilledTonalIconButton(onClick = { zoomBy(1f / 1.5f) }, enabled = dayDp > MinDayWidth.value) {
+                Text("−", style = MaterialTheme.typography.titleLarge)
+            }
+            FilledTonalIconButton(onClick = { zoomBy(1.5f) }, enabled = dayDp < MaxDayWidth.value) {
+                Text("+", style = MaterialTheme.typography.titleLarge)
+            }
+        }
     }
+}
+
+@Composable
+private fun LegendItem(label: String, fill: Color, border: Color) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Box(Modifier.width(20.dp).height(12.dp).clip(RoundedCornerShape(4.dp)).background(fill).border(BorderStroke(1.dp, border), RoundedCornerShape(4.dp)))
+        Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+    }
+}
+
+/** Red diagonal stripes from [left] to [right]: a slot with nothing running. */
+@Composable
+private fun IdleHatch(left: Dp, right: Dp) {
+    val stripe = MaterialTheme.colorScheme.error.copy(alpha = 0.55f)
+    val shape = RoundedCornerShape(12.dp)
+    Box(
+        Modifier
+            .offset(x = left, y = 6.dp)
+            .width((right - left).coerceAtLeast(8.dp))
+            .height(LaneHeight - 12.dp)
+            .clip(shape)
+            .border(BorderStroke(1.dp, stripe), shape)
+            .drawBehind {
+                val step = 10.dp.toPx()
+                var x = -size.height
+                while (x < size.width) {
+                    drawLine(stripe, Offset(x, size.height), Offset(x + size.height, 0f), 2.dp.toPx())
+                    x += step
+                }
+            },
+    )
 }
 
 @Composable
@@ -336,7 +397,13 @@ private fun CalendarBar(bar: Bar, kind: Int, now: Long, dayUnit: String, left: D
         else -> scheme.onPrimaryContainer
     }
     val width = (right - left).coerceAtLeast(40.dp)
-    val shape = RoundedCornerShape(14.dp)
+    val shape = RoundedCornerShape(12.dp)
+    val edge: Color = when (kind) {
+        1 -> scheme.tertiary
+        2 -> scheme.secondary
+        3 -> scheme.outline
+        else -> scheme.primary
+    }
     val context = LocalContext.current
     val density = LocalDensity.current
     val icon = remember(bar.iconIds, bar.iconLevel) {
@@ -350,7 +417,7 @@ private fun CalendarBar(bar: Bar, kind: Int, now: Long, dayUnit: String, left: D
             .height(LaneHeight - 12.dp)
             .clip(shape)
             .background(if (bar.suggested) scheme.surfaceContainerHigh else base)
-            .then(if (bar.suggested) Modifier.border(BorderStroke(1.5.dp, scheme.outline), shape) else Modifier)
+            .border(BorderStroke(if (bar.suggested) 1.5.dp else 1.dp, if (bar.suggested) scheme.outline else edge.copy(alpha = 0.7f)), shape)
             .padding(horizontal = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp),
