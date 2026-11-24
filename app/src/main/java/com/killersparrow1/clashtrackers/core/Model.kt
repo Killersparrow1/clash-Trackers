@@ -90,6 +90,8 @@ data class VillageExport(
     val ownedLevels: Map<Int, List<Int>> = emptyMap(),
     /** The real levels (before the +1 above) of the copies being upgraded right now, per data id; Road to max counts those as not done yet. */
     val upgradingLevels: Map<Int, List<Int>> = emptyMap(),
+    /** Home-village buildings that carry a `gear_up` field in the export (Cannon, Archer Tower, Mortar once geared up). */
+    val gearedUp: Set<Int> = emptySet(),
 ) {
     /** Builders derived from the export: huts + B.O.B. Null if no huts were found. */
     val derivedTotalBuilders: Int?

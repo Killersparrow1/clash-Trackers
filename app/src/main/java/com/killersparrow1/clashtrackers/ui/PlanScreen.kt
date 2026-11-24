@@ -57,6 +57,7 @@ import com.killersparrow1.clashtrackers.core.Bedtime
 import com.killersparrow1.clashtrackers.core.PlanCandidate
 import com.killersparrow1.clashtrackers.core.PlanSlot
 import com.killersparrow1.clashtrackers.core.RowKind
+import com.killersparrow1.clashtrackers.core.BobPlanner
 import com.killersparrow1.clashtrackers.core.SleepWindow
 import com.killersparrow1.clashtrackers.core.VillageExport
 import com.killersparrow1.clashtrackers.core.WidgetModel
@@ -104,6 +105,10 @@ internal fun PlanPage(export: VillageExport?, model: WidgetModel, now: Long, pag
             for (slot in PlanSlot.entries) {
                 // The Builder Base cards need a Builder Hall in the village.
                 if ((slot == PlanSlot.BB_BUILDER || slot == PlanSlot.STAR_LAB) && Bedtime.builderHall(export) == null) continue
+                if (slot == PlanSlot.BB_BUILDER) {
+                    val bob = remember(export, data) { BobPlanner.compute(data, export) }
+                    if (bob != null) item(key = "bob") { BobCard(bob) }
+                }
                 item(key = "plan_$slot") {
                     val busyRows = model.builderRows.filter { it.kind == RowKind.RUNNING && it.finishAt != null }
                     val freeAt: Long = when (slot) {

@@ -124,6 +124,7 @@ object ExportParser {
                 clockTowerCooldownRemaining = clockTowerCooldown,
                 ownedLevels = ownedLevels(root),
                 upgradingLevels = upgradingLevels(root),
+                gearedUp = root.array("buildings").objects().filter { (it.int("gear_up") ?: 0) > 0 }.mapNotNull { it.int("data") }.toSet(),
             )
         )
     }
