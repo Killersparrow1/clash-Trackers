@@ -106,8 +106,10 @@ internal fun PlanPage(export: VillageExport?, model: WidgetModel, now: Long, pag
                 // The Builder Base cards need a Builder Hall in the village.
                 if ((slot == PlanSlot.BB_BUILDER || slot == PlanSlot.STAR_LAB) && Bedtime.builderHall(export) == null) continue
                 if (slot == PlanSlot.BB_BUILDER) {
-                    val bob = remember(export, data) { BobPlanner.compute(data, export) }
-                    if (bob != null) item(key = "bob") { BobCard(bob) }
+                    item(key = "bob") {
+                        val bob = remember(export, data) { BobPlanner.compute(data, export) }
+                        if (bob != null) BobCard(bob)
+                    }
                 }
                 item(key = "plan_$slot") {
                     val busyRows = model.builderRows.filter { it.kind == RowKind.RUNNING && it.finishAt != null }
