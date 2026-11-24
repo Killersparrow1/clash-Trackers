@@ -158,7 +158,7 @@ object FlexWidgets {
         for (hero in heroes) {
             val have = hero.levels.maxOrNull() ?: 0
             val slot = RemoteViews(context.packageName, R.layout.widget_hero_slot)
-            icons.bitmapForLevel(hero.id, null, iconPx)?.let { slot.setImageViewBitmap(R.id.icon, it) }
+            (heroArt(context, hero.id) ?: icons.bitmapForLevel(hero.id, null, iconPx))?.let { slot.setImageViewBitmap(R.id.icon, it) }
             slot.setInt(R.id.slot, "setBackgroundResource", if (hero.id == selected) t.rowSlot else 0)
             if (hero.maxed) {
                 slot.setTextViewText(R.id.lv, ctx.getString(R.string.hero_widget_max))
@@ -185,6 +185,10 @@ object FlexWidgets {
         rv.setOnClickPendingIntent(R.id.who, openApp(context, 13))
         return rv
     }
+
+    /** Full-body hero picture bundled in `assets/heroart/<id>.webp`; null for a hero that has none (the round icon is used then). */
+    private fun heroArt(context: Context, id: Int): android.graphics.Bitmap? =
+        runCatching { context.assets.open("heroart/$id.webp").use { android.graphics.BitmapFactory.decodeStream(it) } }.getOrNull()
 
     private fun tapHero(context: Context, widgetId: Int, heroId: Int): PendingIntent {
         val intent = Intent(context, HeroTapReceiver::class.java)
