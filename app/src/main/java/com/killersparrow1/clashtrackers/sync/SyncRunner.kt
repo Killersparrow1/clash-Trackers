@@ -7,7 +7,6 @@ import com.killersparrow1.clashtrackers.core.ParseResult
 import com.killersparrow1.clashtrackers.core.SyncLogic
 import com.killersparrow1.clashtrackers.core.describe
 import com.killersparrow1.clashtrackers.core.normalizeTag
-import com.killersparrow1.clashtrackers.data.MilestoneLog
 import com.killersparrow1.clashtrackers.data.Names
 import com.killersparrow1.clashtrackers.data.StateRepository
 import com.killersparrow1.clashtrackers.widget.WidgetUpdater
@@ -53,11 +52,6 @@ object SyncRunner {
                 val outcome = SyncLogic.apply(oldState, clipboard)
 
                 repo.updateAccountState(tag) { outcome.state }
-                // Remember items that just reached max, for the Milestones widget (never blocks the sync).
-                runCatching {
-                    val newExport = outcome.state.export
-                    if (newExport != null) MilestoneLog.record(app, tag, oldState.export, newExport, Names.get(app), System.currentTimeMillis() / 1000)
-                }
                 repo.ensureAccountAndSelect(tag)
 
                 val ok = outcome is SyncLogic.Outcome.Synced

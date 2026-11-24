@@ -8,7 +8,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ### Added
 
-- Three new home-screen widgets: **Hero strip** (tap a hero for its level and time to max), **Days to max** (small) and **Milestones** (the latest items you maxed, remembered from one sync to the next). They use the same account and theme setup as Road to max.
+- New **Hero strip** home-screen widget: your heroes with their levels; tap one for its level and time to max. It uses the same account and theme setup as Road to max.
 - Separate finish alerts for the Town Hall village and the Builder Base (Settings > Notifications). A village you switch off is not replayed when you switch it on again.
 - Timer cards show the highest level the item can reach at your Town Hall. Road to max has a search box, a details sheet for every item, and separate cards for Troops, Spells, Siege Machines and hero Equipment (ore costs).
 - Road to max: Defences and Crafted Defenses cards, tap a card to open every item with its level, and event cards in Clash now have the game's pictures. Notification sounds can be checked one by one in developer options, and the event alert sound is louder.

@@ -408,17 +408,6 @@
     <string name="hero_widget_max">MAX</string>
     <string name="hero_widget_detail">%1$s · %2$d/%3$d · %4$s to max</string>
     <string name="hero_widget_detail_max">%1$s · maxed at level %2$d</string>
-    <string name="days_widget_name">Days to max</string>
-    <string name="days_widget_description">How many days of builder work are left to max your Town Hall</string>
-    <string name="days_widget_caption_lab">builder time to max · lab %1$s</string>
-    <string name="days_widget_maxed">Maxed!</string>
-    <string name="milestones_widget_name">Milestones</string>
-    <string name="milestones_widget_description">The latest items you maxed</string>
-    <string name="milestones_widget_title">Latest maxed</string>
-    <string name="milestones_widget_empty">Nothing yet. Maxed items show up here after your next sync</string>
-    <string name="milestones_widget_today">today</string>
-    <string name="milestones_widget_days_ago">%1$dd ago</string>
-    <string name="milestones_widget_row">%1$s · %2$d</string>
     <string name="road_widget_name">Road to max</string>
     <string name="road_widget_description">Time and resources still needed to max your Town Hall</string>
     <string name="road_widget_title">Road to max</string>

@@ -238,8 +238,6 @@ class RoadWidgetConfigActivity : ComponentActivity() {
                     Column(Modifier.fillMaxSize().systemBarsPadding().padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                         val title = when (AppWidgetManager.getInstance(this@RoadWidgetConfigActivity).getAppWidgetInfo(appWidgetId)?.provider?.className?.substringAfterLast('.')) {
                             "HeroWidgetReceiver" -> R.string.hero_widget_name
-                            "DaysWidgetReceiver" -> R.string.days_widget_name
-                            "MilestonesWidgetReceiver" -> R.string.milestones_widget_name
                             else -> R.string.road_widget_name
                         }
                         Text(stringResource(title), style = MaterialTheme.typography.titleLarge)

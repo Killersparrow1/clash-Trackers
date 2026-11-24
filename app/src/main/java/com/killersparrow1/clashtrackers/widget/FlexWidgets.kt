@@ -17,7 +17,6 @@ import com.killersparrow1.clashtrackers.core.Countdown
 import com.killersparrow1.clashtrackers.core.RoadToMax
 import com.killersparrow1.clashtrackers.core.RoadToMaxCalc
 import com.killersparrow1.clashtrackers.data.MaxDataStore
-import com.killersparrow1.clashtrackers.data.MilestoneLog
 import com.killersparrow1.clashtrackers.data.Names
 import com.killersparrow1.clashtrackers.data.StateRepository
 import com.killersparrow1.clashtrackers.locale.LanguageManager
@@ -29,9 +28,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
- * The "flex" widgets: a hero strip (tap a hero for details), days to max, and the latest maxed items.
+ * The hero strip widget: your heroes and their levels; tap one for details.
  * Like the Road to max widget they only change when a village export is synced, so nothing here ticks; [FlexWidgets.updateAll]
- * is called from the same refresh. The three share the Road to max setup screen (account and theme).
+ * is called from the same refresh. It shares the Road to max setup screen (account and theme).
  */
 abstract class FlexReceiver : AppWidgetProvider() {
     override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) = refresh(context)
@@ -54,8 +53,6 @@ abstract class FlexReceiver : AppWidgetProvider() {
 }
 
 class HeroWidgetReceiver : FlexReceiver()
-class DaysWidgetReceiver : FlexReceiver()
-class MilestonesWidgetReceiver : FlexReceiver()
 
 /** A tap on a hero slot: shows that hero's details, or goes back to the hint when it is tapped again. */
 class HeroTapReceiver : BroadcastReceiver() {
@@ -88,14 +85,12 @@ object FlexWidgets {
     private fun ids(context: Context, cls: Class<*>): IntArray =
         AppWidgetManager.getInstance(context).getAppWidgetIds(ComponentName(context, cls))
 
-    /** Redraws every placed hero, days and milestones widget; returns how many there are. */
+    /** Redraws every placed hero strip widget; returns how many there are. */
     suspend fun updateAll(context: Context): Int {
         val app = context.applicationContext
         val manager = AppWidgetManager.getInstance(app)
         val hero = ids(app, HeroWidgetReceiver::class.java)
-        val days = ids(app, DaysWidgetReceiver::class.java)
-        val mile = ids(app, MilestonesWidgetReceiver::class.java)
-        if (hero.isEmpty() && days.isEmpty() && mile.isEmpty()) return 0
+        if (hero.isEmpty()) return 0
         val repo = StateRepository(app)
         val accounts = repo.accounts.first()
         val fallback = repo.selectedAccountTag.first() ?: accounts.firstOrNull()?.tag
@@ -103,7 +98,6 @@ object FlexWidgets {
         val renderer = WidgetRenderer(app)
         val names = Names.get(app)
         val prefs = app.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        val nowSec = System.currentTimeMillis() / 1000
 
         suspend fun forEach(widgetIds: IntArray, draw: (id: Int, tag: String?, name: String?, road: RoadToMax?, builders: Int, theme: String) -> RemoteViews) {
             for (id in widgetIds) {
@@ -118,11 +112,7 @@ object FlexWidgets {
         }
 
         forEach(hero) { id, _, name, road, _, theme -> heroViews(app, renderer, id, name, road, theme, prefs.getInt("hero_$id", 0), { x -> names.name(x) }) }
-        forEach(days) { _, _, name, road, builders, theme -> daysViews(app, renderer, name, road, builders, theme) }
-        forEach(mile) { _, tag, name, _, _, theme ->
-            milestoneViews(app, renderer, name, tag?.let { MilestoneLog.recent(app, it, 3) }.orEmpty(), theme, nowSec)
-        }
-        return hero.size + days.size + mile.size
+        return hero.size
     }
 
     private fun duration(seconds: Long, dayUnit: String): String {
@@ -202,64 +192,5 @@ object FlexWidgets {
             .putExtra(HeroTapReceiver.EXTRA_HERO, heroId)
         // One request code per widget and hero, so every slot keeps its own extras.
         return PendingIntent.getBroadcast(context, widgetId * 100_000 + (heroId % 100_000), intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-    }
-
-    private fun daysViews(context: Context, renderer: WidgetRenderer, name: String?, road: RoadToMax?, builders: Int, theme: String): RemoteViews {
-        val ctx = LanguageManager.wrap(context)
-        val t = renderer.palette(theme)
-        val rv = RemoteViews(context.packageName, R.layout.widget_days)
-        rv.setInt(R.id.panel, "setBackgroundResource", t.panel)
-        rv.setTextColor(R.id.big, t.text)
-        rv.setTextColor(R.id.caption, t.sub)
-        if (road == null) {
-            rv.setTextViewText(R.id.big, ctx.getString(R.string.days_widget_name))
-            rv.setTextViewText(R.id.caption, ctx.getString(R.string.road_widget_empty))
-            rv.setProgressBar(R.id.bar, 1000, 0, false)
-            rv.setOnClickPendingIntent(R.id.panel, syncTap(context))
-            return rv
-        }
-        val day = ctx.getString(R.string.time_day_short)
-        val seconds = road.builderSeconds(builders)
-        rv.setTextViewText(R.id.big, if (seconds <= 0L) ctx.getString(R.string.days_widget_maxed) else duration(seconds, day))
-        rv.setTextViewText(R.id.caption, ctx.getString(R.string.days_widget_caption_lab, duration(road.lab.seconds, day)))
-        rv.setProgressBar(R.id.bar, 1000, ((road.overallDone ?: 0.0) * 1000).toInt().coerceIn(0, 1000), false)
-        rv.setOnClickPendingIntent(R.id.panel, openApp(context, 14))
-        return rv
-    }
-
-    private fun milestoneViews(
-        context: Context, renderer: WidgetRenderer, name: String?, entries: List<MilestoneLog.Entry>, theme: String, nowSec: Long,
-    ): RemoteViews {
-        val ctx = LanguageManager.wrap(context)
-        val t = renderer.palette(theme)
-        val rv = RemoteViews(context.packageName, R.layout.widget_milestones)
-        rv.setInt(R.id.panel, "setBackgroundResource", t.panel)
-        rv.setTextColor(R.id.who, t.text)
-        rv.setTextColor(R.id.empty, t.text)
-        rv.setTextViewText(R.id.who, listOfNotNull(name, ctx.getString(R.string.milestones_widget_title)).joinToString(" · "))
-        rv.removeAllViews(R.id.list)
-        rv.setOnClickPendingIntent(R.id.panel, openApp(context, 15))
-        if (entries.isEmpty()) {
-            rv.setViewVisibility(R.id.list, View.GONE)
-            rv.setViewVisibility(R.id.empty, View.VISIBLE)
-            rv.setTextViewText(R.id.empty, ctx.getString(R.string.milestones_widget_empty))
-            return rv
-        }
-        rv.setViewVisibility(R.id.empty, View.GONE)
-        rv.setViewVisibility(R.id.list, View.VISIBLE)
-        val icons = WidgetIcons.get(context)
-        val iconPx = (26 * context.resources.displayMetrics.density).toInt() * 2
-        for (e in entries) {
-            val row = RemoteViews(context.packageName, R.layout.widget_milestone_row)
-            row.setInt(R.id.row, "setBackgroundResource", t.rowSlot)
-            icons.bitmapForLevel(e.id, e.level, iconPx)?.let { row.setImageViewBitmap(R.id.icon, it) } ?: row.setViewVisibility(R.id.icon, View.GONE)
-            row.setTextViewText(R.id.title, ctx.getString(R.string.milestones_widget_row, e.name, e.level))
-            row.setTextColor(R.id.title, t.text)
-            val ageDays = ((nowSec - e.at) / 86_400).toInt().coerceAtLeast(0)
-            row.setTextViewText(R.id.age, if (ageDays == 0) ctx.getString(R.string.milestones_widget_today) else ctx.getString(R.string.milestones_widget_days_ago, ageDays))
-            row.setTextColor(R.id.age, t.sub)
-            rv.addView(R.id.list, row)
-        }
-        return rv
     }
 }
