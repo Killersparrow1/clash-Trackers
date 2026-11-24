@@ -202,7 +202,7 @@ object WidgetUpdater {
 
             val manager = AppWidgetManager.getInstance(app)
             // The Road to max widget only changes with the data, so it is redrawn here and needs no alarm.
-            val roadCount = RoadWidgetUpdater.updateAll(app)
+            val roadCount = RoadWidgetUpdater.updateAll(app) + FlexWidgets.updateAll(app)
             val ids = widgetIds(app)
             if (ids.isEmpty()) {
                 WidgetAlarm.cancelRedraw(app)

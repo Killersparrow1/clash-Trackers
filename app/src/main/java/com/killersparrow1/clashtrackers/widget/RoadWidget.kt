@@ -236,7 +236,13 @@ class RoadWidgetConfigActivity : ComponentActivity() {
                         if (tag == null || accounts.none { it.tag == tag }) tag = accounts.firstOrNull()?.tag
                     }
                     Column(Modifier.fillMaxSize().systemBarsPadding().padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                        Text(stringResource(R.string.road_widget_name), style = MaterialTheme.typography.titleLarge)
+                        val title = when (AppWidgetManager.getInstance(this@RoadWidgetConfigActivity).getAppWidgetInfo(appWidgetId)?.provider?.className?.substringAfterLast('.')) {
+                            "HeroWidgetReceiver" -> R.string.hero_widget_name
+                            "DaysWidgetReceiver" -> R.string.days_widget_name
+                            "MilestonesWidgetReceiver" -> R.string.milestones_widget_name
+                            else -> R.string.road_widget_name
+                        }
+                        Text(stringResource(title), style = MaterialTheme.typography.titleLarge)
                         Column(Modifier.fillMaxWidth().weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             if (accounts.isNotEmpty()) {
                                 Text(stringResource(R.string.widget_choose_account), style = MaterialTheme.typography.titleMedium)
@@ -266,6 +272,7 @@ class RoadWidgetConfigActivity : ComponentActivity() {
                                     tag?.let { repo.setWidgetAccount(appWidgetId, it) }
                                     repo.setWidgetTheme(appWidgetId, theme ?: "material_you")
                                     RoadWidgetUpdater.updateAll(this@RoadWidgetConfigActivity, force = true)
+                                    FlexWidgets.updateAll(this@RoadWidgetConfigActivity)
                                     setResult(RESULT_OK, Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId))
                                     finish()
                                 }

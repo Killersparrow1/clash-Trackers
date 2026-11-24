@@ -148,6 +148,43 @@
             </intent-filter>
         </activity>
 
+        <!-- Flex widgets (widget/FlexWidgets.kt): hero strip, days to max, milestones. They share the Road to max setup screen. -->
+        <receiver
+            android:name=".widget.HeroWidgetReceiver"
+            android:exported="true"
+            android:label="@string/hero_widget_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/hero_widget_info" />
+        </receiver>
+        <receiver
+            android:name=".widget.DaysWidgetReceiver"
+            android:exported="true"
+            android:label="@string/days_widget_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/days_widget_info" />
+        </receiver>
+        <receiver
+            android:name=".widget.MilestonesWidgetReceiver"
+            android:exported="true"
+            android:label="@string/milestones_widget_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/milestones_widget_info" />
+        </receiver>
+
+        <receiver android:name=".widget.HeroTapReceiver" android:exported="false" />
+
         <!-- Alerts for the Clash tab's events (notify/EventAlerts.kt). -->
         <receiver
             android:name=".notify.EventAlertReceiver"
