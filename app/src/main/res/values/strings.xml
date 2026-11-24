@@ -372,6 +372,8 @@
     <string name="road_crafted">Crafted Defenses</string>
     <string name="road_traps">Traps</string>
     <string name="timer_max_level">Level %1$d of %2$d at Town Hall %3$d</string>
+    <string name="timer_max_level_bb">Level %1$d of %2$d at Builder Hall %3$d</string>
+    <string name="timer_reaches_max_bb">Level %1$d is the max at Builder Hall %3$d</string>
     <string name="timer_reaches_max">Level %1$d is the max at Town Hall %3$d</string>
     <string name="road_levels_left">%1$d levels left</string>
     <string name="road_heroes">Heroes</string>

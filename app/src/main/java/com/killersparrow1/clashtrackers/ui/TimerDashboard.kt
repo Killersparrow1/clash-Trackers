@@ -202,7 +202,7 @@ fun TimerDashboard(
                     }
                 }
                 if (!calendar) items(timers, key = { it.row.jobKey ?: "${it.category}_${it.row.name}" }) { timer ->
-                    TimerCard(timer, model.townHall)
+                    TimerCard(timer, model.townHall, export?.let { com.killersparrow1.clashtrackers.core.Bedtime.builderHall(it) })
                 }
             }
         }
@@ -524,7 +524,7 @@ private fun SyncCard(last: SyncLogEntry?, busy: Boolean, onSync: () -> Unit) {
 }
 
 @Composable
-private fun TimerCard(timer: DashboardTimer, townHall: Int?) {
+private fun TimerCard(timer: DashboardTimer, townHall: Int?, builderHall: Int? = null) {
     val row = timer.row
     Card(
         modifier = Modifier.fillMaxWidth().wiggleOnTap(),
@@ -562,10 +562,11 @@ private fun TimerCard(timer: DashboardTimer, townHall: Int?) {
             }
             // The highest level this item can reach at your Town Hall, from the game data (home village items only).
             val maxData = remember(MaxDataStore.version) { MaxDataStore.get(context) }
-            val maxLevel = remember(row.iconIds, row.iconLevel, townHall, maxData) {
+            val maxLevel = remember(row.iconIds, row.iconLevel, townHall, builderHall, maxData) {
                 val level = row.iconLevel
-                val th = townHall
-                if (level == null || th == null || timer.category == TimerFilter.BUILDER_BASE) null
+                // Home village items are capped by the Town Hall, Builder Base items by the Builder Hall.
+                val th = if (timer.category == TimerFilter.BUILDER_BASE) builderHall else townHall
+                if (level == null || th == null) null
                 else row.iconIds.firstNotNullOfOrNull { maxData.items[it] }
                     ?.let { item -> item.steps.indexOfLast { it.townHall <= th } + 1 }
                     ?.takeIf { it > 0 }
@@ -573,8 +574,13 @@ private fun TimerCard(timer: DashboardTimer, townHall: Int?) {
             if (maxLevel != null && row.iconLevel != null) {
                 Text(
                     stringResource(
-                        if (row.iconLevel >= maxLevel) R.string.timer_reaches_max else R.string.timer_max_level,
-                        row.iconLevel, maxLevel, townHall ?: 0,
+                        when {
+                            timer.category == TimerFilter.BUILDER_BASE ->
+                                if (row.iconLevel >= maxLevel) R.string.timer_reaches_max_bb else R.string.timer_max_level_bb
+                            row.iconLevel >= maxLevel -> R.string.timer_reaches_max
+                            else -> R.string.timer_max_level
+                        },
+                        row.iconLevel, maxLevel, (if (timer.category == TimerFilter.BUILDER_BASE) builderHall else townHall) ?: 0,
                     ),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
