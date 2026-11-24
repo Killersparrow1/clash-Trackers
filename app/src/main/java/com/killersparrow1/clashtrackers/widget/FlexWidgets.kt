@@ -155,7 +155,7 @@ object FlexWidgets {
         rv.setTextColor(R.id.detail, t.sub)
         rv.setTextViewText(R.id.who, listOfNotNull(name, ctx.getString(R.string.hero_widget_name)).joinToString(" · "))
         rv.removeAllViews(R.id.slots)
-        val heroes = road?.items?.filter { it.group == 'h' && it.levels.any { l -> l > 0 } }?.sortedBy { it.id }?.take(5).orEmpty()
+        val heroes = road?.items?.filter { it.group == 'h' && it.levels.any { l -> l > 0 } }?.sortedBy { it.id }?.take(6).orEmpty()
         if (road == null || heroes.isEmpty()) {
             rv.setTextViewText(R.id.detail, ctx.getString(R.string.road_widget_empty))
             rv.setOnClickPendingIntent(R.id.panel, syncTap(context))
