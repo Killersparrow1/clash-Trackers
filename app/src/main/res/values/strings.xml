@@ -416,6 +416,8 @@
     <string name="legend_next">Next upgrade</string>
     <string name="legend_offline">Offline</string>
     <string name="legend_idle">Idle</string>
+    <string name="bob_chip">B.O.B. %1$d/%2$d</string>
+    <string name="bob_chip_unlocked">B.O.B. unlocked</string>
     <string name="bob_title">6th builder (B.O.B.)</string>
     <string name="bob_unlocked">B.O.B. is unlocked.</string>
     <string name="bob_progress">%1$d of %2$d done</string>

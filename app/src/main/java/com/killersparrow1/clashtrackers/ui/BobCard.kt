@@ -1,7 +1,6 @@
 package com.killersparrow1.clashtrackers.ui
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -43,28 +43,22 @@ private fun duration(seconds: Long, dayUnit: String): String {
     return if (days >= 1) String.format(Locale.US, "%,d %s", days, dayUnit) else Countdown.text(seconds, dayUnit)
 }
 
-/** The "6th builder (B.O.B.)" card in Bedtime level up; tap it for the requirements and what to upgrade first. */
+/** A small "B.O.B. 3/7" chip for the Bedtime header; tap it for the requirements and what to upgrade first. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun BobCard(plan: BobPlan) {
+internal fun BobChip(plan: BobPlan) {
     var open by remember { mutableStateOf(false) }
-    val names = Names.get(LocalContext.current)
     val dayUnit = stringResource(R.string.time_day_short)
-    Card(
-        Modifier.fillMaxWidth().clickable { open = true },
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
-        shape = MaterialTheme.shapes.extraLarge,
-    ) {
-        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(stringResource(R.string.bob_title), style = MaterialTheme.typography.titleLarge)
-            if (plan.unlocked) {
-                Text(stringResource(R.string.bob_unlocked), style = MaterialTheme.typography.bodyMedium)
-            } else {
-                Text(stringResource(R.string.bob_progress, plan.doneCount, plan.rows.size), style = MaterialTheme.typography.bodyMedium)
-                plan.next?.let { Text(stringResource(R.string.bob_next, rowTitle(it, names::name)), style = MaterialTheme.typography.bodyMedium) }
-            }
-        }
-    }
+    val names = Names.get(LocalContext.current)
+    AssistChip(
+        onClick = { open = true },
+        label = {
+            Text(
+                if (plan.unlocked) stringResource(R.string.bob_chip_unlocked)
+                else stringResource(R.string.bob_chip, plan.doneCount, plan.rows.size),
+            )
+        },
+    )
     if (open) {
         ModalBottomSheet(onDismissRequest = { open = false }, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
             Column(

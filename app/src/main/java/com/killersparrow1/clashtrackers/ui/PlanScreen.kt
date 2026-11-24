@@ -95,13 +95,8 @@ internal fun PlanPage(export: VillageExport?, model: WidgetModel, now: Long, pag
                 item { RoadToMaxCard(export, model.buildersTotal) }
                 return@LazyColumn
             }
-            // The 6th builder plan sits first so it is in view when Bedtime level up opens.
-            item(key = "bob") {
-                val bob = remember(export, data) { BobPlanner.compute(data, export) }
-                if (bob != null) BobCard(bob)
-            }
             item {
-                SleepCard(window) {
+                SleepCard(window, remember(export, data) { BobPlanner.compute(data, export) }) {
                     window = it
                     SleepStore.set(context, it)
                 }
@@ -187,7 +182,7 @@ private fun timeText(minutes: Int): String =
     LocalTime.of(minutes / 60, minutes % 60).format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT))
 
 @Composable
-private fun SleepCard(window: SleepWindow, onChange: (SleepWindow) -> Unit) {
+private fun SleepCard(window: SleepWindow, bob: com.killersparrow1.clashtrackers.core.BobPlan?, onChange: (SleepWindow) -> Unit) {
     var editing by remember { mutableStateOf<Boolean?>(null) } // true = start, false = end
     Card(
         Modifier.fillMaxWidth(),
@@ -195,7 +190,10 @@ private fun SleepCard(window: SleepWindow, onChange: (SleepWindow) -> Unit) {
         shape = MaterialTheme.shapes.extraLarge,
     ) {
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(stringResource(R.string.plan_bedtime), style = MaterialTheme.typography.titleLarge)
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(stringResource(R.string.plan_bedtime), style = MaterialTheme.typography.titleLarge)
+                if (bob != null) BobChip(bob)
+            }
             Text(stringResource(R.string.plan_sleep_from), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 TimeChip(timeText(window.startMin)) { editing = true }
