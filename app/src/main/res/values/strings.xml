@@ -402,12 +402,6 @@
     <string name="road_walls_cost">Walls (Gold or Elixir)</string>
     <string name="road_include_walls">Include walls</string>
     <string name="road_note">Estimate from the village export and the game data: base times and costs, without potions, helpers, events or the Gold Pass. For buildings, defences, crafted defenses, traps and pets the share done is the upgrade time you have already done (walls: their cost); heroes, troops, spells, siege machines and equipment show the levels you have against the levels at your Town Hall maximum, and what you do not have yet counts as level 0. An upgrade in progress is not counted as done. Builder time shares the work evenly between your builders, but never drops below the hero with the most work left. Helpers are not included yet.</string>
-    <string name="hero_widget_name">Hero strip</string>
-    <string name="hero_widget_description">Your heroes and their levels. Tap one for details</string>
-    <string name="hero_widget_hint">Tap a hero for details</string>
-    <string name="hero_widget_max">MAX</string>
-    <string name="hero_widget_detail">%1$s · %2$d/%3$d · %4$s to max</string>
-    <string name="hero_widget_detail_max">%1$s · maxed at level %2$d</string>
     <string name="calendar_builder_short">B%1$d</string>
     <string name="calendar_lab_short">Lab</string>
     <string name="calendar_pets_short">Pets</string>

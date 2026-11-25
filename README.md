@@ -81,7 +81,7 @@ Built with **Material 3 Expressive**, the Clash typeface, a deterministic boost 
 ### Progress tab
 - **Road to max**: time and resources still needed to max your Town Hall, with a card for **Buildings, Defences, Crafted Defenses, Traps, Walls, Heroes, Troops, Spells, Siege Machines, Equipment and Pets**. Tap a card to open a grid of every item with its level, tap an item for its details (levels of each copy, time and cost left), or use the search box to find an item by name. An estimate from your export plus ClashKing's game data; potions, helpers, events and the Gold Pass are not counted.
 - **Bedtime level up**: set when you sleep and it lists what to start in each free builder, lab, pet, Builder Base builder or Star Laboratory slot so upgrades run through the night and finish after you wake.
-- A **Road to max widget** shows the same numbers on the home screen. A **Hero strip** widget shows your heroes and their levels; tap one for its level and time to max.
+- A **Road to max widget** shows the same numbers on the home screen.
 - Bedtime level up and the Timers calendar include the Builder Base (builders, Battle Machine / Copter, Star Laboratory).
 
 ### How Road to max is calculated
