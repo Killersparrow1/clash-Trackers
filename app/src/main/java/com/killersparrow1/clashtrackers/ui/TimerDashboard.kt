@@ -136,6 +136,8 @@ fun TimerDashboard(
     // The account switcher floats over the top of the list and hides with transform and opacity only, so the list is never
     // re-measured while you scroll; the list leaves room for it in its own top padding.
     val hasBar = accounts.isNotEmpty()
+    val bobContext = androidx.compose.ui.platform.LocalContext.current
+    val bobPlan = remember(export, MaxDataStore.version) { export?.let { com.killersparrow1.clashtrackers.core.BobPlanner.compute(MaxDataStore.get(bobContext), it) } }
     val barHide by androidx.compose.animation.core.animateFloatAsState(if (showFilters) 0f else 1f, label = "accountBarHide")
     Box(modifier.fillMaxSize().nestedScroll(scrollConnection)) {
       CompositionLocalProvider(LocalTopInset provides (LocalTopInset.current + if (hasBar) AccountBarHeight else 0.dp)) {
@@ -217,6 +219,8 @@ fun TimerDashboard(
                 .background(MaterialTheme.colorScheme.background),
         ) {
             AccountSwitcherBar(accounts, selectedTag, onSelectAccount, onRenameAccount, onDeleteAccount)
+            // The 6th builder (B.O.B.) tracker sits opposite the account button.
+            if (bobPlan != null) Box(Modifier.align(Alignment.CenterEnd).padding(end = 16.dp)) { BobChip(bobPlan) }
         }
       }
     }
