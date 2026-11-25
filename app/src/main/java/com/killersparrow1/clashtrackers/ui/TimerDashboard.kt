@@ -220,7 +220,7 @@ fun TimerDashboard(
         ) {
             AccountSwitcherBar(accounts, selectedTag, onSelectAccount, onRenameAccount, onDeleteAccount)
             // The 6th builder (B.O.B.) tracker sits opposite the account button.
-            if (bobPlan != null) Box(Modifier.align(Alignment.CenterEnd).padding(end = 16.dp)) { BobChip(bobPlan) }
+            if (bobPlan != null && !bobPlan.unlocked) Box(Modifier.align(Alignment.CenterEnd).padding(end = 16.dp)) { BobChip(bobPlan) }
         }
       }
     }
