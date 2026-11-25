@@ -650,7 +650,7 @@ class WidgetRenderer(private val context: Context) {
             PILL_RESEARCH -> pill(v, PillIds(R.id.pill_rpot, R.id.pill_rpot_add, R.id.pill_rpot_undo, R.id.pill_rpot_icon, R.id.pill_rpot_text),
                 model.researchPotion, "research_potion", R.drawable.ic_research_potion, model.accountTag, t, true)
             PILL_CTPOT -> pill(v, PillIds(R.id.pill_ctpot, R.id.pill_ctpot_add, R.id.pill_ctpot_undo, R.id.pill_ctpot_icon, R.id.pill_ctpot_text),
-                model.clockTowerPotion, "clock_tower", R.drawable.ic_clock_tower, model.accountTag, t, true)
+                model.clockTowerPotion, "clock_tower_potion", R.drawable.ic_clock_tower, model.accountTag, t, true)
             PILL_SOUP -> pill(v, PillIds(R.id.pill_soup, R.id.pill_soup_add, R.id.pill_soup_undo, R.id.pill_soup_icon, R.id.pill_soup_text),
                 model.soup, "study_soup", R.drawable.ic_study_soup, model.accountTag, t, true)
             PILL_PET -> pill(v, PillIds(R.id.pill_ppot, R.id.pill_ppot_add, R.id.pill_ppot_undo, R.id.pill_ppot_icon, R.id.pill_ppot_text),
