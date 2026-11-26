@@ -53,15 +53,16 @@ object LiveStatus {
         val total = model.buildersTotal
         val free = (total - busy).coerceAtLeast(0)
         val icon = runCatching { WidgetIcons.get(context).bitmapForLevel(next.iconIds.firstOrNull() ?: 0, next.iconLevel, 128) }.getOrNull()
+        val finishTime = java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT).format(java.util.Date(finishMs))
         val chipText = when (chip(context)) {
-            CHIP_FINISH_TIME -> java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT).format(java.util.Date(finishMs))
+            CHIP_FINISH_TIME -> finishTime
             CHIP_FREE_BUILDERS -> "$free/$total"
             else -> null // the system counts down by itself
         }
         val builder = NotificationCompat.Builder(context, CHANNEL)
             .setSmallIcon(R.drawable.ic_stat_timer)
             .setContentTitle(context.getString(R.string.live_status_title, next.label))
-            .setContentText(context.getString(R.string.live_status_text, busy, total))
+            .setContentText(context.getString(R.string.live_status_text, finishTime, busy, total, free))
             .setWhen(finishMs)
             .setShowWhen(true)
             .setUsesChronometer(true)
