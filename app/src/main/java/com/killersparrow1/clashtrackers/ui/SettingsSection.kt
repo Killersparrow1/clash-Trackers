@@ -270,6 +270,34 @@ fun SettingsSection(
                 Notifier.setRespectDnd(context, on)
             }
             Text(stringResource(R.string.settings_follow_dnd_desc), style = MaterialTheme.typography.bodyMedium)
+            var liveOn by remember { mutableStateOf(com.killersparrow1.clashtrackers.notify.LiveStatus.enabled(context)) }
+            var liveChip by remember { mutableIntStateOf(com.killersparrow1.clashtrackers.notify.LiveStatus.chip(context)) }
+            val liveScope = rememberCoroutineScope()
+            SwitchRow(stringResource(R.string.settings_live_status), liveOn) { on ->
+                liveOn = on
+                com.killersparrow1.clashtrackers.notify.LiveStatus.setEnabled(context, on)
+                liveScope.launch { SyncRunner.refreshWidgets(context.applicationContext, "settings") }
+            }
+            Text(stringResource(R.string.settings_live_status_desc), style = MaterialTheme.typography.bodyMedium)
+            if (liveOn) {
+                Text(stringResource(R.string.settings_live_chip), style = MaterialTheme.typography.titleSmall)
+                Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf(
+                        R.string.settings_live_chip_countdown, R.string.settings_live_chip_time, R.string.settings_live_chip_free,
+                    ).forEachIndexed { i, label ->
+                        FilterChip(
+                            selected = liveChip == i,
+                            onClick = {
+                                liveChip = i
+                                com.killersparrow1.clashtrackers.notify.LiveStatus.setChip(context, i)
+                                liveScope.launch { SyncRunner.refreshWidgets(context.applicationContext, "settings") }
+                            },
+                            label = { Text(stringResource(label)) },
+                            modifier = Modifier.heightIn(min = 48.dp),
+                        )
+                    }
+                }
+            }
             var idleOn by remember { mutableStateOf(IdleAlert.enabled(context)) }
             var idleHours by remember { mutableIntStateOf(IdleAlert.hours(context)) }
             val idleScope = rememberCoroutineScope()

@@ -166,6 +166,8 @@ object Notifier {
     }
 
     /** Tapping a notification opens Clash of Clans if it's installed, otherwise this app. */
+    internal fun openAppIntent(context: Context): PendingIntent = openIntent(context)
+
     private fun openIntent(context: Context): PendingIntent {
         val intent = context.packageManager.getLaunchIntentForPackage(CLASH_PACKAGE)
             ?: Intent(context, MainActivity::class.java)

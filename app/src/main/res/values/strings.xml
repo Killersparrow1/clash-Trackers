@@ -505,4 +505,14 @@
     <string name="ev_settings_more">Choose which events, and how early, in Settings.</string>
     <string name="ev_settings_test">Send a test alert</string>
     <string name="ev_settings_blocked">Notifications are off for this app, so no alert was shown.</string>
+    <string name="live_status_channel">Live builder status</string>
+    <string name="live_status_channel_desc">An ongoing notification counting down to the next free builder.</string>
+    <string name="live_status_title">Next free: %1$s</string>
+    <string name="live_status_text">%1$d of %2$d builders busy</string>
+    <string name="settings_live_status">Live builder status</string>
+    <string name="settings_live_status_desc">Ongoing notification counting down to the next free builder, with the upgrading item\'s picture. On Android 16 it shows as a Live Update chip in the status bar.</string>
+    <string name="settings_live_chip">Status bar chip shows</string>
+    <string name="settings_live_chip_countdown">Countdown</string>
+    <string name="settings_live_chip_time">Finish time</string>
+    <string name="settings_live_chip_free">Free builders</string>
 </resources>
