@@ -692,6 +692,13 @@ private fun GoldPassChip(tag: String, now: Long) {
     androidx.compose.material3.AssistChip(
         onClick = { open = true },
         label = { Text(stringResource(if (answer.gold) R.string.gold_pass_title_short else R.string.gold_pass_chip_f2p)) },
+        leadingIcon = {
+            androidx.compose.foundation.Image(
+                androidx.compose.ui.res.painterResource(if (answer.gold) R.drawable.gold_pass else R.drawable.silver_pass),
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+            )
+        },
     )
     if (open) {
         GoldPassDialog(
