@@ -141,7 +141,11 @@ internal fun fixNeed(context: Context, need: Need, notificationsAsked: Boolean, 
         Need.ALARMS ->
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) open(context, Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, pkg))
         // The small "Allow app to always run in the background?" box for this app only, not the whole battery list.
-        Need.BATTERY -> open(context, Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, pkg))
+        Need.BATTERY -> {
+            // No NEW_TASK flag: started from the screen itself, the box shows over this app instead of over a Settings page.
+            val box = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, pkg)
+            if (runCatching { context.startActivity(box) }.isFailure) open(context, box)
+        }
         Need.ACCESSIBILITY -> {
             // Android never lets an app switch an accessibility service on itself. This opens the service's own page
             // where that is supported (Android 14+) and the accessibility list otherwise.
