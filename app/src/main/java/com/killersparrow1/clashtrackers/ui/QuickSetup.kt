@@ -20,7 +20,13 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Alarm
+import androidx.compose.material.icons.rounded.Bolt
+import androidx.compose.material.icons.rounded.Download
+import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
@@ -42,6 +48,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Density
@@ -87,7 +94,7 @@ private class ScallopShape(private val lobes: Int = 8, private val depth: Float 
 
 @Composable
 private fun SetupCard(
-    glyph: String,
+    icon: ImageVector,
     badge: Color,
     title: String,
     body: String,
@@ -97,7 +104,7 @@ private fun SetupCard(
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.Top) {
                 Box(Modifier.size(52.dp).clip(ScallopShape()).background(badge), contentAlignment = Alignment.Center) {
-                    Text(glyph, style = MaterialTheme.typography.titleLarge)
+                    Icon(icon, contentDescription = null, modifier = Modifier.size(26.dp))
                 }
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.weight(1f)) {
                     Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
@@ -158,16 +165,16 @@ fun QuickSetup(onDone: () -> Unit) {
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     SetupCard(
-                        "🔔", MaterialTheme.colorScheme.primaryContainer,
+                        Icons.Rounded.Notifications, MaterialTheme.colorScheme.primaryContainer,
                         "Notifications", "Tells you the moment a builder, lab or pet upgrade finishes.",
                     ) { StatusOrAllow(Need.NOTIFICATIONS !in needs) { fix(Need.NOTIFICATIONS) } }
                     val reliable = needs.firstOrNull { it == Need.ALARMS } ?: needs.firstOrNull { it == Need.BATTERY }
                     SetupCard(
-                        "⚡", MaterialTheme.colorScheme.tertiaryContainer,
+                        Icons.Rounded.Bolt, MaterialTheme.colorScheme.tertiaryContainer,
                         "Reliable alerts", "Lets alarms fire on time and stops Android putting the app to sleep.",
                     ) { StatusOrAllow(reliable == null) { reliable?.let { fix(it) } } }
                     SetupCard(
-                        "⏰", MaterialTheme.colorScheme.secondaryContainer,
+                        Icons.Rounded.Alarm, MaterialTheme.colorScheme.secondaryContainer,
                         "Idle builder reminder", "Reminds you when a builder or the lab has sat free for a while.",
                     ) {
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -186,7 +193,7 @@ fun QuickSetup(onDone: () -> Unit) {
                         }
                     }
                     SetupCard(
-                        "📥", MaterialTheme.colorScheme.primaryContainer,
+                        Icons.Rounded.Download, MaterialTheme.colorScheme.primaryContainer,
                         "Auto-import", "Shows an import button while Clash of Clans is open, so syncing takes one tap.",
                     ) { StatusOrAllow(Need.ACCESSIBILITY !in needs) { fix(Need.ACCESSIBILITY) } }
                 }
