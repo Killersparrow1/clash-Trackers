@@ -79,7 +79,14 @@ object LiveStatus {
         }
         builder.addExtras(extras)
         try {
-            nm.notify(NOTIFICATION_ID, builder.build())
+            var notification = builder.build()
+            if (Build.VERSION.SDK_INT >= 36) {
+                // The system's own setters, in case the plain extras are not read for the chip text.
+                val b = android.app.Notification.Builder.recoverBuilder(context, notification).setRequestPromotedOngoing(true)
+                if (chipText != null) b.setShortCriticalText(chipText)
+                notification = b.build()
+            }
+            nm.notify(NOTIFICATION_ID, notification)
         } catch (e: SecurityException) {
             // Notifications were blocked in the meantime.
         }
