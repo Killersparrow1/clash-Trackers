@@ -8,6 +8,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ### Added
 
+- Optional **Shizuku auto-import** (Settings > Shizuku auto-import): with Shizuku running through wireless debugging, tapping Copy in Clash of Clans imports the village by itself, using the normal import. It reads the clipboard only while the game is open and keeps only village data. While it works, the Clash Companion import button is hidden; it returns if Shizuku stops.
 - A tappable **Clock Tower potion** chip on the widget (Builder Base heading, next to the Clock Tower cooldown): tap for one more hour of 10x, − to undo. It speeds up the Builder Base builders and the Star Laboratory in the widget's finish times.
 - Separate finish alerts for the Town Hall village and the Builder Base (Settings > Notifications). A village you switch off is not replayed when you switch it on again.
 - Timer cards show the highest level the item can reach at your Town Hall. Road to max has a search box, a details sheet for every item, and separate cards for Troops, Spells, Siege Machines and hero Equipment (ore costs).

@@ -56,3 +56,15 @@ LIBRARIES
 
 The app is built with AndroidX, Jetpack Compose, Kotlin and kotlinx.serialization,
 which are licensed under the Apache License, Version 2.0.
+
+The optional Shizuku auto-import uses the Shizuku API and provider (Rikka, Apache
+License 2.0) and HiddenApiBypass (LSPosed, Apache License 2.0).
+
+The idea of watching the clipboard through a Shizuku user service while Clash of
+Clans is open comes from Clash Timers by memehammad (GPL-3.0,
+https://github.com/memehammad/clash-timers). No code from that project is used:
+the implementation here is written separately, which is why this project stays
+under the MIT License.
+
+The Shizuku logo in docs/badge_shizuku.png is the Shizuku app icon (Rikka, Apache
+License 2.0), used to show that the app works with Shizuku.

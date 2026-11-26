@@ -294,6 +294,7 @@ fun SettingsSection(
                 }) { Text(stringResource(R.string.companion_open_app_info)) }
             }
         }
+        ShizukuCard()
         SectionCard(stringResource(R.string.settings_section_gold_pass)) {
             val gpScope = rememberCoroutineScope()
             var gpOpen by remember { mutableStateOf(false) }
@@ -448,7 +449,7 @@ private fun SettingRow(title: String, value: String, description: String? = null
 
 /** A tick-box option on a rounded tile: the whole tile toggles, the box only shows the state. */
 @Composable
-private fun CheckRow(title: String, detail: String, checked: Boolean, onChange: (Boolean) -> Unit) {
+internal fun CheckRow(title: String, detail: String, checked: Boolean, onChange: (Boolean) -> Unit) {
     val tile = if (checked) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerHighest
     val spring = remember { androidx.compose.animation.core.Animatable(1f) }
     Row(

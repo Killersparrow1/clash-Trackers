@@ -15,6 +15,8 @@ class ClashApp : Application() {
         super.onCreate()
         // Event alerts keep one alarm for the next alert; make sure it exists (it is cleared by force-stop, not by a reboot).
         runCatching { if (!CrashReporter.isCrashProcess(this)) com.killersparrow1.clashtrackers.notify.EventAlerts.schedule(this) }
+        // Optional Shizuku auto-import: reconnects whenever Shizuku (re)starts. A no-op when the user never turned it on.
+        runCatching { if (!CrashReporter.isCrashProcess(this)) com.killersparrow1.clashtrackers.shizuku.ShizukuManager.init(this) }
     }
 
     override fun attachBaseContext(base: Context) {

@@ -89,10 +89,16 @@ android {
         compose = true
         // The dev build's package name is written into a string (resValue "app_package") for the shortcuts.
         resValues = true
+        // The Shizuku clipboard watcher's interface (src/main/aidl).
+        aidl = true
     }
 }
 
 dependencies {
+    // Optional auto-import through Shizuku: official API and provider, plus the hidden-API exemption the watcher needs.
+    implementation(libs.shizuku.api)
+    implementation(libs.shizuku.provider)
+    implementation(libs.hiddenapibypass)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)

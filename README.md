@@ -21,6 +21,7 @@ Built with **Material 3 Expressive**, the Clash typeface, a deterministic boost 
 
 <p align="center">
   <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%7B%22id%22%3A%22com.killersparrow1.clashtrackers%22%2C%22url%22%3A%22https%3A%2F%2Fgithub.com%2FKillersparrow1%2Fclash-trackers%22%2C%22author%22%3A%22Killersparrow1%22%2C%22name%22%3A%22Clash%20Trackers%22%7D"><img src="docs/badge_obtainium.png" alt="Get it on Obtainium" height="56"></a>
+  <a href="https://shizuku.rikka.app/"><img src="docs/badge_shizuku.png" alt="Works with Shizuku" height="56"></a>
 </p>
 
 ---
@@ -124,6 +125,10 @@ Built with **Material 3 Expressive**, the Clash typeface, a deterministic boost 
 - A matching **Paste JSON** notification action is shown while the game is open.
 - It needs the **Clash Companion accessibility service** (switch it on from the permission popup or **Settings > Import assistant**). The service only receives "which app is in front" events: it cannot read the screen, and nothing is sent anywhere. Android cannot tell the home village from a battle, so the button also shows in battles; double-tap to get rid of it. Sideloaded installs on Android 13+ may first need **App info > ⋮ > Allow restricted settings**.
 
+### Shizuku auto-import (optional)
+- With [Shizuku](https://shizuku.rikka.app/) running (wireless debugging, no root), tapping **Copy** in Clash of Clans imports your village by itself. Turn it on in **Settings > Shizuku auto-import**.
+- It reads the clipboard only while Clash of Clans is open, and only keeps village data. While it works, the in-game import button is hidden; the button returns if Shizuku stops.
+
 ### Notifications
 - **Event alerts**: when Clan Games, Raid Weekend, CWL signup or wars start, and 1 hour, 6 hours or 1 day before they end (season end and league reset: before they happen). Choose the events and the lead time in **Settings > Event alerts**; the event sound is a bundled file you can replace. Finish alerts when a builder, the lab or a pet is free, with the Clash of Clans sound; a Clock Tower ready alert; an optional idle reminder (off by default).
 - **Separate villages**: in **Settings > Notifications** the Town Hall village and the Builder Base have their own alert switches. Turn Builder Base off (builders, Star Laboratory, Clock Tower) and you still get Town Hall alerts, or the other way round.
@@ -220,6 +225,7 @@ cd clash-Trackers
 | `POST_NOTIFICATIONS` | Finish, Clock Tower and idle alerts. |
 | `RECEIVE_BOOT_COMPLETED` | Reschedules alarms after a reboot. |
 | `REQUEST_INSTALL_PACKAGES` | Hands a downloaded update to Android's installer. |
+| Shizuku permission (granted in the Shizuku app, not a manifest permission) | Optional auto-import only: lets a small helper read the clipboard while Clash of Clans is open. |
 | Accessibility service (user-enabled, not a manifest permission) | Clash Companion only: learns when Clash of Clans is in front. Window-change events only; it never reads screen content. |
 
 ---

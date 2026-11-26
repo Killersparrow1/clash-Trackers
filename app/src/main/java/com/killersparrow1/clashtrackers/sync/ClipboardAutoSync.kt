@@ -28,6 +28,12 @@ object ClipboardAutoSync {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putInt(KEY_LAST, clipboard.hashCode()).apply()
     }
 
+    /** True when this exact text was already imported (by any route). */
+    fun isUsed(context: Context, clipboard: String): Boolean {
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        return prefs.contains(KEY_LAST) && prefs.getInt(KEY_LAST, 0) == clipboard.hashCode()
+    }
+
     /** The clipboard text to sync, or null when the switch is off, it is not new, or it is not village data. */
     fun pending(context: Context, clipboard: String?): String? {
         if (!enabled(context) || clipboard.isNullOrBlank()) return null
