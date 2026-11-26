@@ -35,6 +35,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ClashTimer">
         <receiver
+            android:name=".notify.LiveStatusReturnReceiver"
+            android:exported="false" />
+
+        <receiver
             android:name=".update.UpdateInstallReceiver"
             android:exported="false" />
 

@@ -72,6 +72,13 @@ object LiveStatus {
             .setSilent(true)
             .setCategory(NotificationCompat.CATEGORY_PROGRESS)
             .setContentIntent(Notifier.openAppIntent(context))
+            // Swiping it away brings it straight back; turning the option off removes it for good.
+            .setDeleteIntent(
+                android.app.PendingIntent.getBroadcast(
+                    context, 7302, android.content.Intent(context, LiveStatusReturnReceiver::class.java),
+                    android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE,
+                ),
+            )
         if (icon != null) builder.setLargeIcon(icon)
         // Android 16 Live Updates: these are plain extras, so older versions simply ignore them.
         val extras = Bundle().apply {
