@@ -136,6 +136,8 @@ fun TimerDashboard(
     // The account switcher floats over the top of the list and hides with transform and opacity only, so the list is never
     // re-measured while you scroll; the list leaves room for it in its own top padding.
     val hasBar = accounts.isNotEmpty()
+    val bobContext = androidx.compose.ui.platform.LocalContext.current
+    val bobPlan = remember(export, MaxDataStore.version) { export?.let { com.killersparrow1.clashtrackers.core.BobPlanner.compute(MaxDataStore.get(bobContext), it) } }
     val barHide by androidx.compose.animation.core.animateFloatAsState(if (showFilters) 0f else 1f, label = "accountBarHide")
     Box(modifier.fillMaxSize().nestedScroll(scrollConnection)) {
       CompositionLocalProvider(LocalTopInset provides (LocalTopInset.current + if (hasBar) AccountBarHeight else 0.dp)) {
@@ -202,7 +204,7 @@ fun TimerDashboard(
                     }
                 }
                 if (!calendar) items(timers, key = { it.row.jobKey ?: "${it.category}_${it.row.name}" }) { timer ->
-                    TimerCard(timer, model.townHall)
+                    TimerCard(timer, model.townHall, export?.let { com.killersparrow1.clashtrackers.core.Bedtime.builderHall(it) })
                 }
             }
         }
@@ -217,6 +219,15 @@ fun TimerDashboard(
                 .background(MaterialTheme.colorScheme.background),
         ) {
             AccountSwitcherBar(accounts, selectedTag, onSelectAccount, onRenameAccount, onDeleteAccount)
+            // The 6th builder (B.O.B.) tracker sits opposite the account button.
+            Row(
+                Modifier.align(Alignment.CenterEnd).padding(end = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                if (selectedTag != null) GoldPassChip(selectedTag, now)
+                if (bobPlan != null && !bobPlan.unlocked) BobChip(bobPlan)
+            }
         }
       }
     }
@@ -524,7 +535,7 @@ private fun SyncCard(last: SyncLogEntry?, busy: Boolean, onSync: () -> Unit) {
 }
 
 @Composable
-private fun TimerCard(timer: DashboardTimer, townHall: Int?) {
+private fun TimerCard(timer: DashboardTimer, townHall: Int?, builderHall: Int? = null) {
     val row = timer.row
     Card(
         modifier = Modifier.fillMaxWidth().wiggleOnTap(),
@@ -562,10 +573,11 @@ private fun TimerCard(timer: DashboardTimer, townHall: Int?) {
             }
             // The highest level this item can reach at your Town Hall, from the game data (home village items only).
             val maxData = remember(MaxDataStore.version) { MaxDataStore.get(context) }
-            val maxLevel = remember(row.iconIds, row.iconLevel, townHall, maxData) {
+            val maxLevel = remember(row.iconIds, row.iconLevel, townHall, builderHall, maxData) {
                 val level = row.iconLevel
-                val th = townHall
-                if (level == null || th == null || timer.category == TimerFilter.BUILDER_BASE) null
+                // Home village items are capped by the Town Hall, Builder Base items by the Builder Hall.
+                val th = if (timer.category == TimerFilter.BUILDER_BASE) builderHall else townHall
+                if (level == null || th == null) null
                 else row.iconIds.firstNotNullOfOrNull { maxData.items[it] }
                     ?.let { item -> item.steps.indexOfLast { it.townHall <= th } + 1 }
                     ?.takeIf { it > 0 }
@@ -573,8 +585,13 @@ private fun TimerCard(timer: DashboardTimer, townHall: Int?) {
             if (maxLevel != null && row.iconLevel != null) {
                 Text(
                     stringResource(
-                        if (row.iconLevel >= maxLevel) R.string.timer_reaches_max else R.string.timer_max_level,
-                        row.iconLevel, maxLevel, townHall ?: 0,
+                        when {
+                            timer.category == TimerFilter.BUILDER_BASE ->
+                                if (row.iconLevel >= maxLevel) R.string.timer_reaches_max_bb else R.string.timer_max_level_bb
+                            row.iconLevel >= maxLevel -> R.string.timer_reaches_max
+                            else -> R.string.timer_max_level
+                        },
+                        row.iconLevel, maxLevel, (if (timer.category == TimerFilter.BUILDER_BASE) builderHall else townHall) ?: 0,
                     ),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -663,6 +680,42 @@ private fun StatTile(label: String, value: String, accent: androidx.compose.ui.g
 }
 
 /** A dismissible nudge on Day 4 / Day 8 when a Gold Pass player may have unlocked a bigger builder boost. */
+/** A small chip that shows the Gold Pass answer and opens the same popup as the monthly question. */
+@Composable
+private fun GoldPassChip(tag: String, now: Long) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    var open by rememberSaveable { mutableStateOf(false) }
+    val answer = remember(tag, com.killersparrow1.clashtrackers.sync.GoldPassStore.version) {
+        com.killersparrow1.clashtrackers.sync.GoldPassStore.answer(context, tag)
+    }
+    androidx.compose.material3.AssistChip(
+        onClick = { open = true },
+        label = { Text(stringResource(if (answer.gold) R.string.gold_pass_title_short else R.string.gold_pass_chip_f2p)) },
+        leadingIcon = {
+            androidx.compose.foundation.Image(
+                androidx.compose.ui.res.painterResource(if (answer.gold) R.drawable.gold_pass else R.drawable.silver_pass),
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+            )
+        },
+    )
+    if (open) {
+        GoldPassDialog(
+            initial = answer,
+            onSave = { gold, b, r ->
+                com.killersparrow1.clashtrackers.sync.GoldPassStore.save(
+                    context, tag, com.killersparrow1.clashtrackers.core.GoldPassLogic.monthKey(now), gold, b, r,
+                )
+                open = false
+                scope.launch { com.killersparrow1.clashtrackers.sync.SyncRunner.refreshWidgets(context.applicationContext, "app") }
+            },
+            onLater = { open = false },
+            laterLabel = stringResource(android.R.string.cancel),
+        )
+    }
+}
+
 @Composable
 private fun GoldPassBanner(tag: String?, now: Long) {
     val context = androidx.compose.ui.platform.LocalContext.current

@@ -30,6 +30,8 @@ data class WidgetModel(
     val builderPotion: BoostPill,
     val researchPotion: BoostPill,
     val petPotion: BoostPill,
+    /** Builder Base Clock Tower potion; tap adds an hour like the other potions. */
+    val clockTowerPotion: BoostPill = BoostPill(BoostType.CLOCK_TOWER_POTION, null),
     /** One row per builder job (finished ones say Completed); free builders get no rows. */
     val builderRows: List<WidgetRow>,
     val labRow: WidgetRow,
@@ -198,6 +200,7 @@ object WidgetModelBuilder {
                 buildersBusy = 0, buildersTotal = settings.totalBuilders(null), goblinWorking = false,
                 bite = pills(BoostType.BUILDER_BITE), builderPotion = pills(BoostType.BUILDER_POTION),
                 researchPotion = pills(BoostType.RESEARCH_POTION), petPotion = pills(BoostType.PET_POTION),
+                clockTowerPotion = pills(BoostType.CLOCK_TOWER_POTION),
                 builderRows = emptyList(),
                 labRow = idleRow(text.laboratory, LABORATORY, text), petRow = idleRow(text.petHouse, PET_HOUSE, text),
                 footerLeft = if (state.syncFailed) listOf(FooterPart(text.syncFailed, FooterTone.ERROR)) else emptyList(),
@@ -312,6 +315,7 @@ object WidgetModelBuilder {
             builderPotion = pills(BoostType.BUILDER_POTION),
             researchPotion = pills(BoostType.RESEARCH_POTION),
             petPotion = pills(BoostType.PET_POTION),
+            clockTowerPotion = pills(BoostType.CLOCK_TOWER_POTION),
             soup = pills(BoostType.STUDY_SOUP),
             builderRows = builderRows,
             labRow = labRow,

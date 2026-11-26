@@ -112,37 +112,49 @@ internal fun slideTransition(forward: Boolean): androidx.compose.animation.Conte
 }
 
 /**
- * A very small giggle plus a crisp tick when a card is tapped. It only reacts to a plain tap on the card itself: a scroll,
- * or a tap that a button inside the card handles, does nothing. Follows the system "touch feedback" setting.
+ * The "glass spring": on a plain tap the card swells a little, then springs past its size and settles
+ * (damping 0.41, stiffness 386), with a crisp tick. It only reacts to a tap on the card itself: a scroll, or a switch,
+ * button or checkbox inside the card, leaves the card still. Follows the system "touch feedback" setting.
  */
 @Composable
 internal fun Modifier.wiggleOnTap(): Modifier {
     val view = LocalView.current
     val scope = rememberCoroutineScope()
-    val tilt = remember { Animatable(0f) }
-    val squash = remember { Animatable(1f) }
+    val scale = remember { Animatable(1f) }
     return this
         .graphicsLayer {
-            rotationZ = tilt.value
-            scaleX = squash.value
-            scaleY = squash.value
+            scaleX = scale.value
+            scaleY = scale.value
         }
         .pointerInput(Unit) {
             awaitEachGesture {
                 awaitFirstDown(requireUnconsumed = false)
+                // Null when the touch was a scroll or a switch, button or checkbox inside the card took it: then the card stays still.
                 if (waitForUpOrCancellation() != null) {
                     view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
                     scope.launch {
-                        squash.snapTo(0.992f)
-                        squash.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium))
-                    }
-                    scope.launch {
-                        tilt.snapTo(0.35f)
-                        tilt.animateTo(0f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMediumLow))
+                        scale.snapTo(1.03f)
+                        scale.animateTo(1f, spring(dampingRatio = 0.41f, stiffness = 386f))
                     }
                 }
             }
         }
+}
+
+/** Drives [scale] with the glass spring from touches on this element; it never consumes the touch, so taps still work. */
+@Composable
+internal fun Modifier.glassTouch(scale: Animatable<Float, androidx.compose.animation.core.AnimationVector1D>, swell: Float, tick: Boolean): Modifier {
+    val view = LocalView.current
+    val scope = rememberCoroutineScope()
+    return this.pointerInput(Unit) {
+        awaitEachGesture {
+            awaitFirstDown(requireUnconsumed = false)
+            scope.launch { scale.animateTo(swell, spring(dampingRatio = 0.8f, stiffness = 900f)) }
+            val up = waitForUpOrCancellation()
+            if (up != null && tick) view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+            scope.launch { scale.animateTo(1f, spring(dampingRatio = 0.41f, stiffness = 386f)) }
+        }
+    }
 }
 
 /** The light rounded tile behind every game picture (buildings, troops, heroes, spells), so they look the same everywhere. */

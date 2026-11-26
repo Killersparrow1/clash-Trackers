@@ -63,6 +63,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
@@ -87,6 +88,9 @@ fun PersonalizationSection(settings: AppSettings, onChange: ((AppSettings) -> Ap
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+        }
+        SectionCard(stringResource(R.string.settings_language)) {
+            LanguageSetting()
         }
         SectionCard(stringResource(R.string.settings_section_widget)) {
             WidgetThemeSetting(settings, onChange)
@@ -118,30 +122,110 @@ fun SettingsSection(
     var confirmReset by rememberSaveable { mutableStateOf(false) }
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        SectionCard(stringResource(R.string.settings_section_gold_pass)) {
-            val gpScope = rememberCoroutineScope()
-            var gpOpen by remember { mutableStateOf(false) }
-            val gp = remember(selectedTag, GoldPassStore.version) { GoldPassStore.answer(context, selectedTag) }
+        SectionCard(stringResource(R.string.settings_section_notifications)) {
+            SwitchRow(stringResource(R.string.settings_finish_alerts), settings.notificationsEnabled) { on ->
+                onChange { it.copy(notificationsEnabled = on) }
+                if (on && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !Notifier.allowed(context)) {
+                    askPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
+            }
+            Text(stringResource(R.string.settings_alert_desc), style = MaterialTheme.typography.bodyMedium)
+            var homeOn by remember { mutableStateOf(Notifier.homeAlerts(context)) }
+            var bbOn by remember { mutableStateOf(Notifier.builderBaseAlerts(context)) }
+            Text(stringResource(R.string.settings_alerts_villages), style = MaterialTheme.typography.titleSmall)
+            CheckRow(
+                title = stringResource(R.string.settings_alerts_home),
+                detail = stringResource(R.string.settings_alerts_home_desc),
+                checked = homeOn,
+            ) { on ->
+                homeOn = on
+                Notifier.setHomeAlerts(context, on)
+            }
+            CheckRow(
+                title = stringResource(R.string.settings_alerts_bb),
+                detail = stringResource(R.string.settings_alerts_bb_desc),
+                checked = bbOn,
+            ) { on ->
+                bbOn = on
+                Notifier.setBuilderBaseAlerts(context, on)
+            }
+            var respectDnd by remember { mutableStateOf(Notifier.respectDnd(context)) }
+            SwitchRow(stringResource(R.string.settings_follow_dnd), respectDnd) { on ->
+                respectDnd = on
+                Notifier.setRespectDnd(context, on)
+            }
+            Text(stringResource(R.string.settings_follow_dnd_desc), style = MaterialTheme.typography.bodyMedium)
+            var liveOn by remember { mutableStateOf(com.killersparrow1.clashtrackers.notify.LiveStatus.enabled(context)) }
+            val liveScope = rememberCoroutineScope()
+            SwitchRow(stringResource(R.string.settings_live_status), liveOn) { on ->
+                liveOn = on
+                com.killersparrow1.clashtrackers.notify.LiveStatus.setEnabled(context, on)
+                liveScope.launch { SyncRunner.refreshWidgets(context.applicationContext, "settings") }
+            }
+            Text(stringResource(R.string.settings_live_status_desc), style = MaterialTheme.typography.bodyMedium)
+            var idleOn by remember { mutableStateOf(IdleAlert.enabled(context)) }
+            var idleHours by remember { mutableIntStateOf(IdleAlert.hours(context)) }
+            val idleScope = rememberCoroutineScope()
+            SwitchRow(stringResource(R.string.settings_idle_alert), idleOn) { on ->
+                idleOn = on
+                IdleAlert.setEnabled(context, on)
+                idleScope.launch { SyncRunner.refreshWidgets(context.applicationContext, "settings") }
+            }
+            Text(stringResource(R.string.settings_idle_alert_desc, idleHours), style = MaterialTheme.typography.bodyMedium)
+            if (idleOn) {
+                Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    IdleAlert.CHOICES.forEach { h ->
+                        FilterChip(
+                            selected = idleHours == h,
+                            onClick = {
+                                idleHours = h
+                                IdleAlert.setHours(context, h)
+                                idleScope.launch { SyncRunner.refreshWidgets(context.applicationContext, "settings") }
+                            },
+                            label = { Text("$h h") },
+                            modifier = Modifier.heightIn(min = 48.dp),
+                        )
+                    }
+                }
+            }
+            if (settings.notificationsEnabled && !notificationsAllowed) {
+                Text(stringResource(R.string.settings_notif_blocked), color = MaterialTheme.colorScheme.error)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    OutlinedButton(onClick = { askPermission.launch(Manifest.permission.POST_NOTIFICATIONS) }) {
+                        Text(stringResource(R.string.settings_allow_notif))
+                    }
+                }
+                OutlinedButton(onClick = { openNotificationSettings(context); permissionTick++ }) { Text(stringResource(R.string.settings_notif_settings)) }
+            }
             Text(
-                if (gp.month == null) stringResource(R.string.gold_pass_not_set)
-                else if (gp.gold) stringResource(R.string.gold_pass_summary_gold, gp.builder, gp.research)
-                else stringResource(R.string.gold_pass_silver_summary),
+                stringResource(R.string.settings_battery_hint),
                 style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            OutlinedButton(onClick = { gpOpen = true }) { Text(stringResource(R.string.gold_pass_change)) }
-            var gpAsk by remember { mutableStateOf(GoldPassStore.askMonthly(context)) }
-            SwitchRow(stringResource(R.string.gold_pass_ask_monthly), gpAsk) { on -> gpAsk = on; GoldPassStore.setAskMonthly(context, on) }
-            if (gpOpen) {
-                GoldPassDialog(
-                    initial = gp,
-                    laterLabel = stringResource(android.R.string.cancel),
-                    onSave = { gold, b, r ->
-                        GoldPassStore.save(context, selectedTag, GoldPassLogic.monthKey(now), gold, b, r)
-                        gpOpen = false
-                        gpScope.launch { SyncRunner.refreshWidgets(context.applicationContext, "settings") }
-                    },
-                    onLater = { gpOpen = false },
-                )
+            OutlinedButton(onClick = { openAppSettings(context) }) { Text(stringResource(R.string.settings_battery_btn)) }
+        }
+        SectionCard(stringResource(R.string.ev_settings_title)) {
+            var evOn by remember { mutableStateOf(EventAlerts.enabled(context)) }
+            var lead by remember { mutableStateOf(EventAlerts.leadSec(context)) }
+            SwitchRow(stringResource(R.string.ev_settings_enable), evOn) { on -> evOn = on; EventAlerts.setEnabled(context, on) }
+            Text(stringResource(R.string.ev_settings_desc), style = MaterialTheme.typography.bodyMedium)
+            if (evOn) {
+                EventAlerts.EVENT_IDS.forEach { id ->
+                    var on by remember(id) { mutableStateOf(EventAlerts.eventOn(context, id)) }
+                    CheckRow(stringResource(eventName(id)), "", on) { v -> on = v; EventAlerts.setEventOn(context, id, v) }
+                }
+                Text(stringResource(R.string.ev_settings_lead), style = MaterialTheme.typography.titleSmall)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf(
+                        3600L to R.string.ev_lead_1h, 6 * 3600L to R.string.ev_lead_6h, 24 * 3600L to R.string.ev_lead_24h,
+                    ).forEach { (sec, label) ->
+                        androidx.compose.material3.FilterChip(
+                            selected = lead == sec,
+                            onClick = { lead = sec; EventAlerts.setLeadSec(context, sec) },
+                            label = { Text(stringResource(label)) },
+                        )
+                    }
+                }
             }
         }
         SectionCard(stringResource(R.string.settings_section_clock_tower)) {
@@ -160,30 +244,6 @@ fun SettingsSection(
                 ctScope.launch { SyncRunner.refreshWidgets(context.applicationContext, "settings") }
             }
             Text(stringResource(R.string.settings_clock_tower_alert_desc), style = MaterialTheme.typography.bodyMedium)
-        }
-        SectionCard(stringResource(R.string.ev_settings_title)) {
-            var evOn by remember { mutableStateOf(EventAlerts.enabled(context)) }
-            var lead by remember { mutableStateOf(EventAlerts.leadSec(context)) }
-            SwitchRow(stringResource(R.string.ev_settings_enable), evOn) { on -> evOn = on; EventAlerts.setEnabled(context, on) }
-            Text(stringResource(R.string.ev_settings_desc), style = MaterialTheme.typography.bodyMedium)
-            if (evOn) {
-                EventAlerts.EVENT_IDS.forEach { id ->
-                    var on by remember(id) { mutableStateOf(EventAlerts.eventOn(context, id)) }
-                    SwitchRow(stringResource(eventName(id)), on) { v -> on = v; EventAlerts.setEventOn(context, id, v) }
-                }
-                Text(stringResource(R.string.ev_settings_lead), style = MaterialTheme.typography.titleSmall)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf(
-                        3600L to R.string.ev_lead_1h, 6 * 3600L to R.string.ev_lead_6h, 24 * 3600L to R.string.ev_lead_24h,
-                    ).forEach { (sec, label) ->
-                        androidx.compose.material3.FilterChip(
-                            selected = lead == sec,
-                            onClick = { lead = sec; EventAlerts.setLeadSec(context, sec) },
-                            label = { Text(stringResource(label)) },
-                        )
-                    }
-                }
-            }
         }
         SectionCard(stringResource(R.string.companion_section)) {
             var cOn by remember { mutableStateOf(CompanionPrefs.enabled(context)) }
@@ -234,82 +294,31 @@ fun SettingsSection(
                 }) { Text(stringResource(R.string.companion_open_app_info)) }
             }
         }
-        SectionCard(stringResource(R.string.settings_language)) {
-            LanguageSetting()
-        }
-        SectionCard(stringResource(R.string.settings_section_notifications)) {
-            SwitchRow(stringResource(R.string.settings_finish_alerts), settings.notificationsEnabled) { on ->
-                onChange { it.copy(notificationsEnabled = on) }
-                if (on && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !Notifier.allowed(context)) {
-                    askPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
-                }
-            }
-            Text(stringResource(R.string.settings_alert_desc), style = MaterialTheme.typography.bodyMedium)
-            var homeOn by remember { mutableStateOf(Notifier.homeAlerts(context)) }
-            var bbOn by remember { mutableStateOf(Notifier.builderBaseAlerts(context)) }
-            Text(stringResource(R.string.settings_alerts_villages), style = MaterialTheme.typography.titleSmall)
-            CheckRow(
-                title = stringResource(R.string.settings_alerts_home),
-                detail = stringResource(R.string.settings_alerts_home_desc),
-                checked = homeOn,
-            ) { on ->
-                homeOn = on
-                Notifier.setHomeAlerts(context, on)
-            }
-            CheckRow(
-                title = stringResource(R.string.settings_alerts_bb),
-                detail = stringResource(R.string.settings_alerts_bb_desc),
-                checked = bbOn,
-            ) { on ->
-                bbOn = on
-                Notifier.setBuilderBaseAlerts(context, on)
-            }
-            var respectDnd by remember { mutableStateOf(Notifier.respectDnd(context)) }
-            SwitchRow(stringResource(R.string.settings_follow_dnd), respectDnd) { on ->
-                respectDnd = on
-                Notifier.setRespectDnd(context, on)
-            }
-            Text(stringResource(R.string.settings_follow_dnd_desc), style = MaterialTheme.typography.bodyMedium)
-            var idleOn by remember { mutableStateOf(IdleAlert.enabled(context)) }
-            var idleHours by remember { mutableIntStateOf(IdleAlert.hours(context)) }
-            val idleScope = rememberCoroutineScope()
-            SwitchRow(stringResource(R.string.settings_idle_alert), idleOn) { on ->
-                idleOn = on
-                IdleAlert.setEnabled(context, on)
-                idleScope.launch { SyncRunner.refreshWidgets(context.applicationContext, "settings") }
-            }
-            Text(stringResource(R.string.settings_idle_alert_desc, idleHours), style = MaterialTheme.typography.bodyMedium)
-            if (idleOn) {
-                Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    IdleAlert.CHOICES.forEach { h ->
-                        FilterChip(
-                            selected = idleHours == h,
-                            onClick = {
-                                idleHours = h
-                                IdleAlert.setHours(context, h)
-                                idleScope.launch { SyncRunner.refreshWidgets(context.applicationContext, "settings") }
-                            },
-                            label = { Text("$h h") },
-                            modifier = Modifier.heightIn(min = 48.dp),
-                        )
-                    }
-                }
-            }
-            if (settings.notificationsEnabled && !notificationsAllowed) {
-                Text(stringResource(R.string.settings_notif_blocked), color = MaterialTheme.colorScheme.error)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    OutlinedButton(onClick = { askPermission.launch(Manifest.permission.POST_NOTIFICATIONS) }) {
-                        Text(stringResource(R.string.settings_allow_notif))
-                    }
-                }
-                OutlinedButton(onClick = { openNotificationSettings(context); permissionTick++ }) { Text(stringResource(R.string.settings_notif_settings)) }
-            }
+        SectionCard(stringResource(R.string.settings_section_gold_pass)) {
+            val gpScope = rememberCoroutineScope()
+            var gpOpen by remember { mutableStateOf(false) }
+            val gp = remember(selectedTag, GoldPassStore.version) { GoldPassStore.answer(context, selectedTag) }
             Text(
-                stringResource(R.string.settings_battery_hint),
+                if (gp.month == null) stringResource(R.string.gold_pass_not_set)
+                else if (gp.gold) stringResource(R.string.gold_pass_summary_gold, gp.builder, gp.research)
+                else stringResource(R.string.gold_pass_silver_summary),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            OutlinedButton(onClick = { openAppSettings(context) }) { Text(stringResource(R.string.settings_battery_btn)) }
+            OutlinedButton(onClick = { gpOpen = true }) { Text(stringResource(R.string.gold_pass_change)) }
+            var gpAsk by remember { mutableStateOf(GoldPassStore.askMonthly(context)) }
+            SwitchRow(stringResource(R.string.gold_pass_ask_monthly), gpAsk) { on -> gpAsk = on; GoldPassStore.setAskMonthly(context, on) }
+            if (gpOpen) {
+                GoldPassDialog(
+                    initial = gp,
+                    laterLabel = stringResource(android.R.string.cancel),
+                    onSave = { gold, b, r ->
+                        GoldPassStore.save(context, selectedTag, GoldPassLogic.monthKey(now), gold, b, r)
+                        gpOpen = false
+                        gpScope.launch { SyncRunner.refreshWidgets(context.applicationContext, "settings") }
+                    },
+                    onLater = { gpOpen = false },
+                )
+            }
         }
         SectionCard(stringResource(R.string.settings_section_builders)) {
             val derived = export?.derivedTotalBuilders ?: AppSettings.DEFAULT_TOTAL_BUILDERS
@@ -441,33 +450,45 @@ private fun SettingRow(title: String, value: String, description: String? = null
 @Composable
 private fun CheckRow(title: String, detail: String, checked: Boolean, onChange: (Boolean) -> Unit) {
     val tile = if (checked) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerHighest
+    val spring = remember { androidx.compose.animation.core.Animatable(1f) }
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
-        modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp)
+        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)
             .clip(androidx.compose.foundation.shape.RoundedCornerShape(20.dp))
             .background(tile)
+            .glassTouch(spring, 1.15f, tick = false)
             .toggleable(value = checked, role = Role.Checkbox, onValueChange = onChange)
             .padding(horizontal = 12.dp, vertical = 8.dp),
     ) {
-        androidx.compose.material3.Checkbox(checked = checked, onCheckedChange = null)
+        androidx.compose.material3.Checkbox(
+            checked = checked,
+            onCheckedChange = null,
+            modifier = Modifier.graphicsLayer { scaleX = spring.value; scaleY = spring.value },
+        )
         Column(Modifier.weight(1f)) {
             Text(title, style = MaterialTheme.typography.titleSmall)
-            Text(detail, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (detail.isNotEmpty()) Text(detail, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
 
 @Composable
 fun SwitchRow(label: String, checked: Boolean, onChange: (Boolean) -> Unit) {
+    val spring = remember { androidx.compose.animation.core.Animatable(1f) }
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)
+            .glassTouch(spring, 1.15f, tick = false)
             .toggleable(value = checked, role = Role.Switch, onValueChange = onChange).padding(vertical = 8.dp),
     ) {
         Text(label, style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
-        Switch(checked = checked, onCheckedChange = null)
+        Switch(
+            checked = checked,
+            onCheckedChange = null,
+            modifier = Modifier.graphicsLayer { scaleX = spring.value; scaleY = spring.value },
+        )
     }
 }
 

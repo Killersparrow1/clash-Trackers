@@ -27,6 +27,8 @@ data class BoostSettings(
     val studySoupSavingSec: Long = 1 * HOUR,
     val researchPotionSavingSec: Long = 23 * HOUR,
     val petPotionSavingSec: Long = 23 * HOUR,
+    /** A Clock Tower potion hour runs the Builder Base builders at 10x, like a builder potion: 9 h saved. */
+    val clockTowerPotionSavingSec: Long = 9 * HOUR,
     /** null = use the Apprentice's level from the export (level hours). */
     val apprenticeSavingSecOverride: Long? = null,
     /** null = use the Lab Assistant's level from the export (level hours). */
@@ -43,6 +45,7 @@ data class BoostSettings(
         BoostType.STUDY_SOUP -> studySoupSavingSec
         BoostType.RESEARCH_POTION -> researchPotionSavingSec
         BoostType.PET_POTION -> petPotionSavingSec
+        BoostType.CLOCK_TOWER_POTION -> clockTowerPotionSavingSec
     }
 }
 
@@ -54,6 +57,8 @@ enum class BoostType(val category: JobCategory) {
     STUDY_SOUP(JobCategory.LAB),
     RESEARCH_POTION(JobCategory.LAB),
     PET_POTION(JobCategory.PET),
+    /** Builder Base Clock Tower potion: 10x for the Builder Base builders and Star Laboratory. */
+    CLOCK_TOWER_POTION(JobCategory.BB_BUILDER),
 }
 
 /** One potion/snack window, [start, end). */
@@ -160,7 +165,7 @@ class TimerEngine(val settings: BoostSettings = BoostSettings()) {
         val result = mutableListOf<SpeedBoost>()
         val dur = settings.boostDurationSec.toDouble()
         val potionsApply = !job.isGoblin || settings.boostsApplyToGoblin
-        boosts.filter { potionsApply && it.type.category == job.category }.forEach { use ->
+        boosts.filter { potionsApply && (it.type.category == job.category || (it.type == BoostType.CLOCK_TOWER_POTION && job.category == JobCategory.STAR_LAB)) }.forEach { use ->
             result += FixedWindow(use.start, use.end, settings.savingFor(use.type) / dur)
         }
         modifiers.filter { it.appliesTo(job) && it.endTimestamp > export.timestamp }.forEach { mod ->

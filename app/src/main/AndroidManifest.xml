@@ -9,6 +9,8 @@
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
     <!-- "Builder free" notifications and rescheduling the alarms after a reboot. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <uses-permission android:name="android.permission.POST_PROMOTED_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <!-- In-app update (Support > About): reads the latest GitHub release and installs its APK. Only used when you tap a button there. -->
@@ -32,6 +34,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.ClashTimer">
+        <receiver
+            android:name=".notify.LiveStatusReturnReceiver"
+            android:exported="false" />
+
         <receiver
             android:name=".update.UpdateInstallReceiver"
             android:exported="false" />
@@ -147,6 +153,7 @@
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
             </intent-filter>
         </activity>
+
 
         <!-- Alerts for the Clash tab's events (notify/EventAlerts.kt). -->
         <receiver

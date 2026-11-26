@@ -122,7 +122,12 @@ fun ClashTrackersContent(
     snackbarHost: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     UpdatePrompt()
-    PermissionPrompt()
+    val setupContext = androidx.compose.ui.platform.LocalContext.current
+    var setupOpen by rememberSaveable { mutableStateOf(!QuickSetupPrefs.done(setupContext) && !model.hasData) }
+    // Quick setup already asked about these, so the older reminder dialog waits until the next launch.
+    val setupShownThisLaunch = rememberSaveable { setupOpen }
+    PermissionPrompt(enabled = !setupOpen && !setupShownThisLaunch)
+    if (setupOpen) QuickSetup(onDone = { setupOpen = false })
     EventsAutoRefresh()
     GameDataAutoRefresh()
     var developerOpen by rememberSaveable { mutableStateOf(false) }

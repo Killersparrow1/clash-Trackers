@@ -199,6 +199,10 @@ object WidgetUpdater {
             }
 
             WidgetAlarm.scheduleFinish(app, allFinishTimes.minOrNull()?.times(1000))
+            runCatching {
+                val liveModel = if (com.killersparrow1.clashtrackers.notify.LiveStatus.enabled(app)) modelFor(app, -1).first else null
+                com.killersparrow1.clashtrackers.notify.LiveStatus.update(app, liveModel)
+            }
 
             val manager = AppWidgetManager.getInstance(app)
             // The Road to max widget only changes with the data, so it is redrawn here and needs no alarm.

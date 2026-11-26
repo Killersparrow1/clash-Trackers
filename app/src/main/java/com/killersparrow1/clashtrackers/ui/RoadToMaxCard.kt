@@ -85,6 +85,9 @@ internal fun RoadToMaxCard(export: VillageExport?, builders: Int, modifier: Modi
     var selectedId by rememberSaveable { mutableStateOf<Int?>(null) }
     val selected = selectedId?.let { id -> road.items.firstOrNull { it.id == id } }
 
+    // Only one group is open at a time: opening one closes the other.
+    val openGroup = rememberSaveable { mutableStateOf<String?>(null) }
+    androidx.compose.runtime.CompositionLocalProvider(LocalRoadOpenGroup provides openGroup) {
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         CollapsibleCard(stringResource(R.string.road_title, road.townHall), "road_summary", alwaysOpen = true) {
             ProgressLine(road.overallDone, large = true)
@@ -204,7 +207,10 @@ internal fun RoadToMaxCard(export: VillageExport?, builders: Int, modifier: Modi
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
+    }
 }
+
+private val LocalRoadOpenGroup = androidx.compose.runtime.compositionLocalOf<androidx.compose.runtime.MutableState<String?>?> { null }
 
 /** One group of upgrades: picture, name, share done, a bar, the time left (or "No timer") and the cost left. */
 @Composable
@@ -220,14 +226,23 @@ private fun CategoryCard(
     items: List<RoadItem> = emptyList(),
     onItem: (RoadItem) -> Unit = {},
 ) {
-    var open by rememberSaveable(title) { mutableStateOf(false) }
+    val group = LocalRoadOpenGroup.current
+    var ownOpen by rememberSaveable(title) { mutableStateOf(false) }
+    val open = if (group != null) group.value == title else ownOpen
+    val toggle: () -> Unit = {
+        if (group != null) {
+            group.value = if (open) null else title
+        } else {
+            ownOpen = !open
+        }
+    }
     Card(
         modifier = Modifier.fillMaxWidth().wiggleOnTap(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
         shape = MaterialTheme.shapes.large,
     ) {
         Column(
-            Modifier.fillMaxWidth().then(if (items.isNotEmpty()) Modifier.clickable { open = !open } else Modifier).padding(16.dp),
+            Modifier.fillMaxWidth().then(if (items.isNotEmpty()) Modifier.clickable { toggle() } else Modifier).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Row(
