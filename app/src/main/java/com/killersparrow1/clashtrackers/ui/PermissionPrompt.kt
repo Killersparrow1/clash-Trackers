@@ -140,7 +140,8 @@ internal fun fixNeed(context: Context, need: Need, notificationsAsked: Boolean, 
             }
         Need.ALARMS ->
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) open(context, Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, pkg))
-        Need.BATTERY -> open(context, Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
+        // The small "Allow app to always run in the background?" box for this app only, not the whole battery list.
+        Need.BATTERY -> open(context, Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, pkg))
         Need.ACCESSIBILITY -> {
             // Android never lets an app switch an accessibility service on itself. This opens the service's own page
             // where that is supported (Android 14+) and the accessibility list otherwise.
