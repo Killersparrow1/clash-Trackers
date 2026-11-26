@@ -55,7 +55,7 @@ internal fun BobChip(plan: BobPlan) {
         label = {
             Text(
                 if (plan.unlocked) stringResource(R.string.bob_chip_unlocked)
-                else stringResource(R.string.bob_chip, plan.doneCount, plan.rows.size),
+                else stringResource(R.string.bob_chip),
             )
         },
     )
