@@ -44,6 +44,12 @@ object SyncLogic {
             boosts = boosts.filterNot { it.type == BoostType.PET_POTION } +
                 BoostUse(BoostType.PET_POTION, export.timestamp, export.timestamp + left)
         }
+        // Clock Tower: `boosts.clocktower_boost` is the game's own remaining 10x time (free boost or potion), so it replaces
+        // any Clock Tower potion windows tapped on the widget and drives the Builder Base and Star Laboratory finish times.
+        export.clockTowerBoostRemaining?.let { left ->
+            boosts = boosts.filterNot { it.type == BoostType.CLOCK_TOWER_POTION } +
+                BoostUse(BoostType.CLOCK_TOWER_POTION, export.timestamp, export.timestamp + left)
+        }
         // Builder Bite: the game's own remaining time replaces any Bite windows tapped on the widget.
         export.studySoupRemaining?.let { left ->
             boosts = boosts.filterNot { it.type == BoostType.STUDY_SOUP } +
