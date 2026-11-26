@@ -112,35 +112,27 @@ internal fun slideTransition(forward: Boolean): androidx.compose.animation.Conte
 }
 
 /**
- * A very small giggle plus a crisp tick when a card is tapped. It only reacts to a plain tap on the card itself: a scroll,
- * or a tap that a button inside the card handles, does nothing. Follows the system "touch feedback" setting.
+ * The "glass spring": the card swells a little while a finger is on it, then on release springs past its size and settles
+ * (damping 0.41, stiffness 386). A crisp tick plays on a plain tap. It only reacts to a touch on the card itself, and a
+ * scroll just lets it spring back. Follows the system "touch feedback" setting.
  */
 @Composable
 internal fun Modifier.wiggleOnTap(): Modifier {
     val view = LocalView.current
     val scope = rememberCoroutineScope()
-    val tilt = remember { Animatable(0f) }
-    val squash = remember { Animatable(1f) }
+    val scale = remember { Animatable(1f) }
     return this
         .graphicsLayer {
-            rotationZ = tilt.value
-            scaleX = squash.value
-            scaleY = squash.value
+            scaleX = scale.value
+            scaleY = scale.value
         }
         .pointerInput(Unit) {
             awaitEachGesture {
                 awaitFirstDown(requireUnconsumed = false)
-                if (waitForUpOrCancellation() != null) {
-                    view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
-                    scope.launch {
-                        squash.snapTo(0.992f)
-                        squash.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium))
-                    }
-                    scope.launch {
-                        tilt.snapTo(0.35f)
-                        tilt.animateTo(0f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMediumLow))
-                    }
-                }
+                scope.launch { scale.animateTo(1.03f, spring(dampingRatio = 0.8f, stiffness = 900f)) }
+                val up = waitForUpOrCancellation()
+                if (up != null) view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+                scope.launch { scale.animateTo(1f, spring(dampingRatio = 0.41f, stiffness = 386f)) }
             }
         }
 }
