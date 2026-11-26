@@ -32,7 +32,7 @@ object LiveStatus {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(KEY_ON, on).apply()
     }
 
-    fun chip(context: Context): Int = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getInt(KEY_CHIP, CHIP_COUNTDOWN)
+    fun chip(context: Context): Int = CHIP_COUNTDOWN // the chip counts down; the other details are in the notification text
     fun setChip(context: Context, chip: Int) {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putInt(KEY_CHIP, chip).apply()
     }
