@@ -220,7 +220,14 @@ fun TimerDashboard(
         ) {
             AccountSwitcherBar(accounts, selectedTag, onSelectAccount, onRenameAccount, onDeleteAccount)
             // The 6th builder (B.O.B.) tracker sits opposite the account button.
-            if (bobPlan != null && !bobPlan.unlocked) Box(Modifier.align(Alignment.CenterEnd).padding(end = 16.dp)) { BobChip(bobPlan) }
+            Row(
+                Modifier.align(Alignment.CenterEnd).padding(end = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                if (selectedTag != null) GoldPassChip(selectedTag, now)
+                if (bobPlan != null && !bobPlan.unlocked) BobChip(bobPlan)
+            }
         }
       }
     }
@@ -673,6 +680,35 @@ private fun StatTile(label: String, value: String, accent: androidx.compose.ui.g
 }
 
 /** A dismissible nudge on Day 4 / Day 8 when a Gold Pass player may have unlocked a bigger builder boost. */
+/** A small chip that shows the Gold Pass answer and opens the same popup as the monthly question. */
+@Composable
+private fun GoldPassChip(tag: String, now: Long) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    var open by rememberSaveable { mutableStateOf(false) }
+    val answer = remember(tag, com.killersparrow1.clashtrackers.sync.GoldPassStore.version) {
+        com.killersparrow1.clashtrackers.sync.GoldPassStore.answer(context, tag)
+    }
+    androidx.compose.material3.AssistChip(
+        onClick = { open = true },
+        label = { Text(stringResource(if (answer.gold) R.string.gold_pass_title_short else R.string.gold_pass_chip_f2p)) },
+    )
+    if (open) {
+        GoldPassDialog(
+            initial = answer,
+            onSave = { gold, b, r ->
+                com.killersparrow1.clashtrackers.sync.GoldPassStore.save(
+                    context, tag, com.killersparrow1.clashtrackers.core.GoldPassLogic.monthKey(now), gold, b, r,
+                )
+                open = false
+                scope.launch { com.killersparrow1.clashtrackers.sync.SyncRunner.refreshWidgets(context.applicationContext, "app") }
+            },
+            onLater = { open = false },
+            laterLabel = stringResource(android.R.string.cancel),
+        )
+    }
+}
+
 @Composable
 private fun GoldPassBanner(tag: String?, now: Long) {
     val context = androidx.compose.ui.platform.LocalContext.current
