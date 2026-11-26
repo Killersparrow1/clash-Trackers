@@ -112,19 +112,33 @@ internal fun slideTransition(forward: Boolean): androidx.compose.animation.Conte
 }
 
 /**
- * The "glass spring": the card swells a little while a finger is on it, then on release springs past its size and settles
- * (damping 0.41, stiffness 386). A crisp tick plays on a plain tap. It only reacts to a touch on the card itself, and a
- * scroll just lets it spring back. Follows the system "touch feedback" setting.
+ * The "glass spring": on a plain tap the card swells a little, then springs past its size and settles
+ * (damping 0.41, stiffness 386), with a crisp tick. It only reacts to a tap on the card itself: a scroll, or a switch,
+ * button or checkbox inside the card, leaves the card still. Follows the system "touch feedback" setting.
  */
 @Composable
 internal fun Modifier.wiggleOnTap(): Modifier {
+    val view = LocalView.current
+    val scope = rememberCoroutineScope()
     val scale = remember { Animatable(1f) }
     return this
         .graphicsLayer {
             scaleX = scale.value
             scaleY = scale.value
         }
-        .glassTouch(scale, 1.03f, tick = true)
+        .pointerInput(Unit) {
+            awaitEachGesture {
+                awaitFirstDown(requireUnconsumed = false)
+                // Null when the touch was a scroll or a switch, button or checkbox inside the card took it: then the card stays still.
+                if (waitForUpOrCancellation() != null) {
+                    view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+                    scope.launch {
+                        scale.snapTo(1.03f)
+                        scale.animateTo(1f, spring(dampingRatio = 0.41f, stiffness = 386f))
+                    }
+                }
+            }
+        }
 }
 
 /** Drives [scale] with the glass spring from touches on this element; it never consumes the touch, so taps still work. */
