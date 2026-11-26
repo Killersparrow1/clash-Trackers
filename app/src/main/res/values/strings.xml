@@ -516,4 +516,19 @@
     <string name="settings_live_chip_time">Finish time</string>
     <string name="settings_live_chip_free">Free builders</string>
     <string name="gold_pass_chip_f2p">F2P</string>
+    <string name="shizuku_title">Shizuku auto-import</string>
+    <string name="shizuku_desc">Imports your village by itself when you tap Copy in Clash of Clans. It needs the Shizuku app, started with wireless debugging (no root). Optional.</string>
+    <string name="shizuku_enable">Use Shizuku for import</string>
+    <string name="shizuku_enable_desc">Reads the clipboard only while Clash of Clans is open, and only keeps village data.</string>
+    <string name="shizuku_status_unavailable">Shizuku is not running. Open it and start it.</string>
+    <string name="shizuku_status_permission">Allow Clash Trackers in Shizuku.</string>
+    <string name="shizuku_status_off">Off.</string>
+    <string name="shizuku_status_connecting">Connecting to Shizuku…</string>
+    <string name="shizuku_status_running">Connected. Auto-import is running.</string>
+    <string name="shizuku_status_failed">Could not start the watcher.</string>
+    <string name="shizuku_open">Open Shizuku</string>
+    <string name="shizuku_check_again">Check again</string>
+    <string name="shizuku_allow">Allow</string>
+    <string name="shizuku_retry">Retry</string>
+    <string name="shizuku_running_hint">While this is running, the Clash Companion import button is hidden. It comes back if Shizuku stops.</string>
 </resources>

@@ -87,12 +87,14 @@ class CompanionService : AccessibilityService() {
         handler.removeCallbacks(applyLater)
         val enabled = session.active && CompanionPrefs.enabled(this)
         val t = now()
-        if (enabled && CompanionPrefs.bar(this) && session.canShow(t)) {
+        // Shizuku auto-import fully working: the import button is not needed, and returns as soon as it is not.
+        val shizukuCovers = com.killersparrow1.clashtrackers.shizuku.ShizukuManager.operational
+        if (enabled && !shizukuCovers && CompanionPrefs.bar(this) && session.canShow(t)) {
             showBar()
         } else {
             hideBar()
             // Not yet time: one timer for the remainder of the start delay (cancelled when the game leaves).
-            if (enabled && CompanionPrefs.bar(this) && session.pending()) handler.postDelayed(applyLater, session.waitMs(t))
+            if (enabled && !shizukuCovers && CompanionPrefs.bar(this) && session.pending()) handler.postDelayed(applyLater, session.waitMs(t))
         }
         if (enabled && CompanionPrefs.notification(this)) postNotification() else cancelNotification()
     }
