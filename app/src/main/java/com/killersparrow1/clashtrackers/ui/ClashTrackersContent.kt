@@ -122,7 +122,8 @@ fun ClashTrackersContent(
     snackbarHost: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     UpdatePrompt()
-    var setupOpen by rememberSaveable { mutableStateOf(!QuickSetupPrefs.done(androidx.compose.ui.platform.LocalContext.current) && !model.hasData) }
+    val setupContext = androidx.compose.ui.platform.LocalContext.current
+    var setupOpen by rememberSaveable { mutableStateOf(!QuickSetupPrefs.done(setupContext) && !model.hasData) }
     PermissionPrompt(enabled = !setupOpen)
     if (setupOpen) QuickSetup(onDone = { setupOpen = false })
     EventsAutoRefresh()
