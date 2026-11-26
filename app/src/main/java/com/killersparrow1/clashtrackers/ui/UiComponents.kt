@@ -118,23 +118,29 @@ internal fun slideTransition(forward: Boolean): androidx.compose.animation.Conte
  */
 @Composable
 internal fun Modifier.wiggleOnTap(): Modifier {
-    val view = LocalView.current
-    val scope = rememberCoroutineScope()
     val scale = remember { Animatable(1f) }
     return this
         .graphicsLayer {
             scaleX = scale.value
             scaleY = scale.value
         }
-        .pointerInput(Unit) {
-            awaitEachGesture {
-                awaitFirstDown(requireUnconsumed = false)
-                scope.launch { scale.animateTo(1.03f, spring(dampingRatio = 0.8f, stiffness = 900f)) }
-                val up = waitForUpOrCancellation()
-                if (up != null) view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
-                scope.launch { scale.animateTo(1f, spring(dampingRatio = 0.41f, stiffness = 386f)) }
-            }
+        .glassTouch(scale, 1.03f, tick = true)
+}
+
+/** Drives [scale] with the glass spring from touches on this element; it never consumes the touch, so taps still work. */
+@Composable
+internal fun Modifier.glassTouch(scale: Animatable<Float, androidx.compose.animation.core.AnimationVector1D>, swell: Float, tick: Boolean): Modifier {
+    val view = LocalView.current
+    val scope = rememberCoroutineScope()
+    return this.pointerInput(Unit) {
+        awaitEachGesture {
+            awaitFirstDown(requireUnconsumed = false)
+            scope.launch { scale.animateTo(swell, spring(dampingRatio = 0.8f, stiffness = 900f)) }
+            val up = waitForUpOrCancellation()
+            if (up != null && tick) view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
+            scope.launch { scale.animateTo(1f, spring(dampingRatio = 0.41f, stiffness = 386f)) }
         }
+    }
 }
 
 /** The light rounded tile behind every game picture (buildings, troops, heroes, spells), so they look the same everywhere. */

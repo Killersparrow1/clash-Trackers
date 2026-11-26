@@ -63,6 +63,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
@@ -449,16 +450,22 @@ private fun SettingRow(title: String, value: String, description: String? = null
 @Composable
 private fun CheckRow(title: String, detail: String, checked: Boolean, onChange: (Boolean) -> Unit) {
     val tile = if (checked) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerHighest
+    val spring = remember { androidx.compose.animation.core.Animatable(1f) }
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)
             .clip(androidx.compose.foundation.shape.RoundedCornerShape(20.dp))
             .background(tile)
+            .glassTouch(spring, 1.15f, tick = false)
             .toggleable(value = checked, role = Role.Checkbox, onValueChange = onChange)
             .padding(horizontal = 12.dp, vertical = 8.dp),
     ) {
-        androidx.compose.material3.Checkbox(checked = checked, onCheckedChange = null)
+        androidx.compose.material3.Checkbox(
+            checked = checked,
+            onCheckedChange = null,
+            modifier = Modifier.graphicsLayer { scaleX = spring.value; scaleY = spring.value },
+        )
         Column(Modifier.weight(1f)) {
             Text(title, style = MaterialTheme.typography.titleSmall)
             if (detail.isNotEmpty()) Text(detail, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -468,14 +475,20 @@ private fun CheckRow(title: String, detail: String, checked: Boolean, onChange: 
 
 @Composable
 fun SwitchRow(label: String, checked: Boolean, onChange: (Boolean) -> Unit) {
+    val spring = remember { androidx.compose.animation.core.Animatable(1f) }
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)
+            .glassTouch(spring, 1.15f, tick = false)
             .toggleable(value = checked, role = Role.Switch, onValueChange = onChange).padding(vertical = 8.dp),
     ) {
         Text(label, style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
-        Switch(checked = checked, onCheckedChange = null)
+        Switch(
+            checked = checked,
+            onCheckedChange = null,
+            modifier = Modifier.graphicsLayer { scaleX = spring.value; scaleY = spring.value },
+        )
     }
 }
 
