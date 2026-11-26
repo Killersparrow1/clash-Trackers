@@ -169,7 +169,7 @@ fun SettingsSection(
             if (evOn) {
                 EventAlerts.EVENT_IDS.forEach { id ->
                     var on by remember(id) { mutableStateOf(EventAlerts.eventOn(context, id)) }
-                    SwitchRow(stringResource(eventName(id)), on) { v -> on = v; EventAlerts.setEventOn(context, id, v) }
+                    CheckRow(stringResource(eventName(id)), "", on) { v -> on = v; EventAlerts.setEventOn(context, id, v) }
                 }
                 Text(stringResource(R.string.ev_settings_lead), style = MaterialTheme.typography.titleSmall)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -452,7 +452,7 @@ private fun CheckRow(title: String, detail: String, checked: Boolean, onChange: 
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
-        modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp)
+        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)
             .clip(androidx.compose.foundation.shape.RoundedCornerShape(20.dp))
             .background(tile)
             .toggleable(value = checked, role = Role.Checkbox, onValueChange = onChange)
@@ -461,7 +461,7 @@ private fun CheckRow(title: String, detail: String, checked: Boolean, onChange: 
         androidx.compose.material3.Checkbox(checked = checked, onCheckedChange = null)
         Column(Modifier.weight(1f)) {
             Text(title, style = MaterialTheme.typography.titleSmall)
-            Text(detail, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (detail.isNotEmpty()) Text(detail, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
