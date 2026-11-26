@@ -42,7 +42,7 @@ import com.killersparrow1.clashtrackers.companion.CompanionService
 import com.killersparrow1.clashtrackers.notify.Notifier
 import com.killersparrow1.clashtrackers.widget.WidgetAlarm
 
-private enum class Need(@StringRes val title: Int, @StringRes val why: Int) {
+internal enum class Need(@StringRes val title: Int, @StringRes val why: Int) {
     NOTIFICATIONS(R.string.perm_notifications, R.string.perm_notifications_why),
     ALARMS(R.string.perm_alarms, R.string.perm_alarms_why),
     BATTERY(R.string.perm_battery, R.string.perm_battery_why),
@@ -52,7 +52,7 @@ private enum class Need(@StringRes val title: Int, @StringRes val why: Int) {
 }
 
 /** What is switched off right now. Android never lets an app grant these itself, so each one opens its own screen. */
-private fun missing(context: Context): List<Need> = buildList {
+internal fun missing(context: Context): List<Need> = buildList {
     if (!Notifier.allowed(context)) add(Need.NOTIFICATIONS)
     if (!WidgetAlarm.canScheduleExact(context)) add(Need.ALARMS)
     val power = runCatching { context.getSystemService(PowerManager::class.java)?.isIgnoringBatteryOptimizations(context.packageName) }.getOrNull()
@@ -65,7 +65,7 @@ private fun missing(context: Context): List<Need> = buildList {
     if (!runCatching { context.packageManager.canRequestPackageInstalls() }.getOrDefault(true)) add(Need.INSTALL_APPS)
 }
 
-private fun open(context: Context, intent: Intent) {
+internal fun open(context: Context, intent: Intent) {
     val fallback = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}"))
     if (runCatching { context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }.isFailure) {
         runCatching { context.startActivity(fallback.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
@@ -78,7 +78,7 @@ private fun open(context: Context, intent: Intent) {
  * hides it until the next launch.
  */
 @Composable
-fun PermissionPrompt() {
+fun PermissionPrompt(enabled: Boolean = true) {
     val context = LocalContext.current
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     var tick by remember { mutableIntStateOf(0) }
@@ -95,38 +95,11 @@ fun PermissionPrompt() {
         }
     }
     val needs = remember(tick) { missing(context) }
-    if (later || needs.isEmpty()) return
+    if (!enabled || later || needs.isEmpty()) return
 
-    fun fix(need: Need) {
-        val pkg = Uri.parse("package:${context.packageName}")
-        when (need) {
-            Need.NOTIFICATIONS ->
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !asked) {
-                    asked = true
-                    ask.launch(Manifest.permission.POST_NOTIFICATIONS)
-                } else {
-                    open(context, Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName))
-                }
-            Need.ALARMS ->
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) open(context, Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, pkg))
-            Need.BATTERY -> open(context, Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
-            Need.ACCESSIBILITY -> {
-                // Android never lets an app switch an accessibility service on itself. This opens the service's own page
-                // where that is supported (Android 14+) and the accessibility list otherwise.
-                CompanionPrefs.setEnabled(context, true)
-                CompanionService.refresh()
-                val service = ComponentName(context, CompanionService::class.java).flattenToString()
-                val intent = if (Build.VERSION.SDK_INT >= 34) {
-                    Intent("android.settings.ACCESSIBILITY_DETAILS_SETTINGS").putExtra(Intent.EXTRA_COMPONENT_NAME, service)
-                } else Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
-                if (runCatching { context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }.isFailure) {
-                    runCatching { context.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
-                }
-            }
-            Need.INSTALL_APPS -> open(context, Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, pkg))
-            Need.UNUSED ->
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) open(context, Intent(Intent.ACTION_AUTO_REVOKE_PERMISSIONS, pkg))
-        }
+    fun fix(need: Need) = fixNeed(context, need, asked) {
+        asked = true
+        ask.launch(Manifest.permission.POST_NOTIFICATIONS)
     }
 
     AlertDialog(
@@ -154,4 +127,35 @@ fun PermissionPrompt() {
         },
         confirmButton = { TextButton(onClick = { later = true }) { Text(stringResource(R.string.perm_later)) } },
     )
+}
+
+internal fun fixNeed(context: Context, need: Need, notificationsAsked: Boolean, askNotifications: () -> Unit) {
+    val pkg = Uri.parse("package:${context.packageName}")
+    when (need) {
+        Need.NOTIFICATIONS ->
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !notificationsAsked) {
+                askNotifications()
+            } else {
+                open(context, Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName))
+            }
+        Need.ALARMS ->
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) open(context, Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, pkg))
+        Need.BATTERY -> open(context, Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
+        Need.ACCESSIBILITY -> {
+            // Android never lets an app switch an accessibility service on itself. This opens the service's own page
+            // where that is supported (Android 14+) and the accessibility list otherwise.
+            CompanionPrefs.setEnabled(context, true)
+            CompanionService.refresh()
+            val service = ComponentName(context, CompanionService::class.java).flattenToString()
+            val intent = if (Build.VERSION.SDK_INT >= 34) {
+                Intent("android.settings.ACCESSIBILITY_DETAILS_SETTINGS").putExtra(Intent.EXTRA_COMPONENT_NAME, service)
+            } else Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+            if (runCatching { context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }.isFailure) {
+                runCatching { context.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+            }
+        }
+        Need.INSTALL_APPS -> open(context, Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, pkg))
+        Need.UNUSED ->
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) open(context, Intent(Intent.ACTION_AUTO_REVOKE_PERMISSIONS, pkg))
+    }
 }

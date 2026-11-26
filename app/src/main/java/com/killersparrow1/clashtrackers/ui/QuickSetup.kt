@@ -1,0 +1,203 @@
+package com.killersparrow1.clashtrackers.ui
+
+import android.Manifest
+import android.content.Context
+import android.content.Intent
+import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
+import com.killersparrow1.clashtrackers.notify.Notifier
+import com.killersparrow1.clashtrackers.sync.IdleAlert
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sin
+
+object QuickSetupPrefs {
+    private const val PREFS = "quick_setup"
+    fun done(context: Context): Boolean = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean("done", false)
+    fun setDone(context: Context) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean("done", true).apply()
+    }
+}
+
+/** A rounded badge with scalloped edges, like a cookie. */
+private class ScallopShape(private val lobes: Int = 8, private val depth: Float = 0.07f) : Shape {
+    override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
+        val r = size.minDimension / 2f
+        val c = Offset(size.width / 2f, size.height / 2f)
+        val path = Path()
+        val steps = 160
+        for (i in 0..steps) {
+            val a = 2.0 * PI * i / steps
+            val rad = r * (1f - depth + depth * cos(lobes * a).toFloat())
+            val x = c.x + rad * cos(a).toFloat()
+            val y = c.y + rad * sin(a).toFloat()
+            if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
+        }
+        path.close()
+        return Outline.Generic(path)
+    }
+}
+
+@Composable
+private fun SetupCard(
+    glyph: String,
+    badge: Color,
+    title: String,
+    body: String,
+    control: @Composable () -> Unit,
+) {
+    Surface(shape = RoundedCornerShape(28.dp), color = MaterialTheme.colorScheme.surfaceContainerHigh, modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.Top) {
+                Box(Modifier.size(52.dp).clip(ScallopShape()).background(badge), contentAlignment = Alignment.Center) {
+                    Text(glyph, style = MaterialTheme.typography.titleLarge)
+                }
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.weight(1f)) {
+                    Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Text(body, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+            control()
+        }
+    }
+}
+
+@Composable
+private fun StatusOrAllow(on: Boolean, onAllow: () -> Unit) {
+    if (on) {
+        Text("On", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+    } else {
+        FilledTonalButton(onClick = onAllow, modifier = Modifier.heightIn(min = 48.dp)) { Text("Allow") }
+    }
+}
+
+/** First-run page: a few choices, then on to the village. Shown once; every choice can be changed later in Settings. */
+@Composable
+fun QuickSetup(onDone: () -> Unit) {
+    val context = LocalContext.current
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    var tick by remember { mutableIntStateOf(0) }
+    var asked by remember { mutableStateOf(false) }
+    LaunchedEffect(lifecycle) { lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) { tick++ } }
+    val ask = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
+        tick++
+        if (!Notifier.allowed(context)) {
+            open(context, Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName))
+        }
+    }
+    val needs = remember(tick) { missing(context) }
+    var idleOn by remember { mutableStateOf(IdleAlert.enabled(context)) }
+    var idleHours by remember { mutableIntStateOf(IdleAlert.hours(context)) }
+
+    fun fix(need: Need) = fixNeed(context, need, asked) {
+        asked = true
+        ask.launch(Manifest.permission.POST_NOTIFICATIONS)
+    }
+
+    Dialog(
+        onDismissRequest = {},
+        properties = DialogProperties(usePlatformDefaultWidth = false, dismissOnBackPress = false, dismissOnClickOutside = false),
+    ) {
+        Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
+            Column(Modifier.systemBarsPadding().padding(horizontal = 20.dp)) {
+                Column(
+                    Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(top = 24.dp, bottom = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp),
+                ) {
+                    Text("Quick setup", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold)
+                    Text(
+                        "A few choices, then a short tour. You can change all of this later.",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    SetupCard(
+                        "🔔", MaterialTheme.colorScheme.primaryContainer,
+                        "Notifications", "Tells you the moment a builder, lab or pet upgrade finishes.",
+                    ) { StatusOrAllow(Need.NOTIFICATIONS !in needs) { fix(Need.NOTIFICATIONS) } }
+                    val reliable = needs.firstOrNull { it == Need.ALARMS } ?: needs.firstOrNull { it == Need.BATTERY }
+                    SetupCard(
+                        "⚡", MaterialTheme.colorScheme.tertiaryContainer,
+                        "Reliable alerts", "Lets alarms fire on time and stops Android putting the app to sleep.",
+                    ) { StatusOrAllow(reliable == null) { reliable?.let { fix(it) } } }
+                    SetupCard(
+                        "⏰", MaterialTheme.colorScheme.secondaryContainer,
+                        "Idle builder reminder", "Reminds you when a builder or the lab has sat free for a while.",
+                    ) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            FilterChip(selected = !idleOn, onClick = {
+                                idleOn = false
+                                IdleAlert.setEnabled(context, false)
+                            }, label = { Text("Off") })
+                            listOf(1, 2, 3).forEach { h ->
+                                FilterChip(selected = idleOn && idleHours == h, onClick = {
+                                    idleOn = true
+                                    idleHours = h
+                                    IdleAlert.setEnabled(context, true)
+                                    IdleAlert.setHours(context, h)
+                                }, label = { Text("$h h") })
+                            }
+                        }
+                    }
+                    SetupCard(
+                        "📥", MaterialTheme.colorScheme.primaryContainer,
+                        "Auto-import", "Shows an import button while Clash of Clans is open, so syncing takes one tap.",
+                    ) { StatusOrAllow(Need.ACCESSIBILITY !in needs) { fix(Need.ACCESSIBILITY) } }
+                }
+                Button(
+                    onClick = {
+                        QuickSetupPrefs.setDone(context)
+                        onDone()
+                    },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp).padding(bottom = 16.dp),
+                ) { Text("Continue") }
+            }
+        }
+    }
+}
