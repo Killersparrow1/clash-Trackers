@@ -80,6 +80,21 @@ class PotionBoostsTest {
         assertEquals(81008L, export.clockTowerCooldownRemaining)
     }
 
+    @Test fun clockTowerBoostBecomesATenTimesWindowFromTheExport() {
+        val (export, state) = sync("""{"clocktower_boost":1808,"clocktower_cooldown":81008}""")
+        val window = state.boosts.single { it.type == BoostType.CLOCK_TOWER_POTION }
+        assertEquals(export.timestamp, window.start)
+        assertEquals(export.timestamp + 1808L, window.end)
+        // 1 h at 10x saves 9 h, so the rate is 9 extra seconds per second for exactly the game's remaining time.
+        val rate = BoostSettings().savingFor(BoostType.CLOCK_TOWER_POTION).toDouble() / BoostSettings().boostDurationSec
+        assertEquals(9.0, rate, 1e-9)
+    }
+
+    @Test fun noClockTowerBoostMeansNoClockTowerWindow() {
+        val (_, state) = sync("""{"clocktower_cooldown":600}""")
+        assertTrue(state.boosts.none { it.type == BoostType.CLOCK_TOWER_POTION })
+    }
+
     @Test fun clockTowerZeroOrMissingValuesAreIgnored() {
         val (zero, _) = sync("""{"clocktower_boost":0,"clocktower_cooldown":0}""")
         assertNull(zero.clockTowerBoostRemaining)
