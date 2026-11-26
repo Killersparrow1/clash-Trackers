@@ -20,11 +20,6 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Alarm
-import androidx.compose.material.icons.rounded.Bolt
-import androidx.compose.material.icons.rounded.Download
-import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.FilledTonalButton
@@ -48,7 +43,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Density
@@ -64,6 +61,17 @@ import com.killersparrow1.clashtrackers.sync.IdleAlert
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
+
+// Four Material icons drawn from their path data, so the app does not need the large icon library.
+private fun icon(name: String, path: String): ImageVector =
+    ImageVector.Builder(name, 24.dp, 24.dp, 24f, 24f)
+        .addPath(PathParser().parsePathString(path).toNodes(), fill = SolidColor(Color.Black))
+        .build()
+
+private val NotificationsIcon = icon("notifications", "M12,22c1.1,0 2,-0.9 2,-2h-4c0,1.1 0.89,2 2,2zM18,16v-5c0,-3.07 -1.64,-5.64 -4.5,-6.32V4c0,-0.83 -0.67,-1.5 -1.5,-1.5s-1.5,0.67 -1.5,1.5v0.68C7.63,5.36 6,7.92 6,11v5l-2,2v1h16v-1l-2,-2z")
+private val BoltIcon = icon("bolt", "M11,21h-1l1,-7H7.5c-0.58,0 -0.57,-0.32 -0.38,-0.66 0.19,-0.34 0.05,-0.08 0.07,-0.12C8.48,10.94 10.42,7.54 13,3h1l-1,7h3.5c0.49,0 0.56,0.33 0.47,0.51l-0.07,0.15C12.96,17.55 11,21 11,21z")
+private val AlarmIcon = icon("alarm", "M22,5.72l-4.6,-3.86 -1.29,1.53 4.6,3.86L22,5.72zM7.88,3.39L6.6,1.86 2,5.71l1.29,1.53 4.59,-3.85zM12.5,8H11v6l4.75,2.85 0.75,-1.23 -4,-2.37V8zM12,4c-4.97,0 -9,4.03 -9,9s4.02,9 9,9c4.97,0 9,-4.03 9,-9s-4.03,-9 -9,-9zM12,20c-3.87,0 -7,-3.13 -7,-7s3.13,-7 7,-7 7,3.13 7,7 -3.13,7 -7,7z")
+private val DownloadIcon = icon("download", "M19,9h-4V3H9v6H5l7,7 7,-7zM5,18v2h14v-2H5z")
 
 object QuickSetupPrefs {
     private const val PREFS = "quick_setup"
@@ -165,16 +173,16 @@ fun QuickSetup(onDone: () -> Unit) {
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     SetupCard(
-                        Icons.Rounded.Notifications, MaterialTheme.colorScheme.primaryContainer,
+                        NotificationsIcon, MaterialTheme.colorScheme.primaryContainer,
                         "Notifications", "Tells you the moment a builder, lab or pet upgrade finishes.",
                     ) { StatusOrAllow(Need.NOTIFICATIONS !in needs) { fix(Need.NOTIFICATIONS) } }
                     val reliable = needs.firstOrNull { it == Need.ALARMS } ?: needs.firstOrNull { it == Need.BATTERY }
                     SetupCard(
-                        Icons.Rounded.Bolt, MaterialTheme.colorScheme.tertiaryContainer,
+                        BoltIcon, MaterialTheme.colorScheme.tertiaryContainer,
                         "Reliable alerts", "Lets alarms fire on time and stops Android putting the app to sleep.",
                     ) { StatusOrAllow(reliable == null) { reliable?.let { fix(it) } } }
                     SetupCard(
-                        Icons.Rounded.Alarm, MaterialTheme.colorScheme.secondaryContainer,
+                        AlarmIcon, MaterialTheme.colorScheme.secondaryContainer,
                         "Idle builder reminder", "Reminds you when a builder or the lab has sat free for a while.",
                     ) {
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -193,7 +201,7 @@ fun QuickSetup(onDone: () -> Unit) {
                         }
                     }
                     SetupCard(
-                        Icons.Rounded.Download, MaterialTheme.colorScheme.primaryContainer,
+                        DownloadIcon, MaterialTheme.colorScheme.primaryContainer,
                         "Auto-import", "Shows an import button while Clash of Clans is open, so syncing takes one tap.",
                     ) { StatusOrAllow(Need.ACCESSIBILITY !in needs) { fix(Need.ACCESSIBILITY) } }
                 }
