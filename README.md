@@ -21,6 +21,7 @@ Built with **Material 3 Expressive**, the Clash typeface, a deterministic boost 
 
 <p align="center">
   <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%7B%22id%22%3A%22com.killersparrow1.clashtrackers%22%2C%22url%22%3A%22https%3A%2F%2Fgithub.com%2FKillersparrow1%2Fclash-trackers%22%2C%22author%22%3A%22Killersparrow1%22%2C%22name%22%3A%22Clash%20Trackers%22%7D"><img src="docs/badge_obtainium.png" alt="Get it on Obtainium" height="56"></a>
+  <a href="https://shizuku.rikka.app/"><img src="docs/badge_shizuku.png" alt="Works with Shizuku" height="56"></a>
 </p>
 
 ---
