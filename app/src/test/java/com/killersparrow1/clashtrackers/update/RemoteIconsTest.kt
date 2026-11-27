@@ -32,4 +32,18 @@ class RemoteIconsTest {
         assertEquals("buildings/home-village/spiky_tower/level_1.webp", data.items[1000107]?.icon)
         assertEquals(null, data.items[1000001]?.name)
     }
+
+    @Test
+    fun levelPathSwapsTheLevelOfBuildingsAndTraps() {
+        assertEquals("buildings/home-village/cannon/level_8.webp", RemoteIcons.levelPath("buildings/home-village/cannon/level_21.webp", 8))
+        assertEquals("buildings/builder-base/double_cannon/level_3.webp", RemoteIcons.levelPath("buildings/builder-base/double_cannon/level_12.webp", 3))
+        assertEquals("traps/home-village/bomb/level_2.webp", RemoteIcons.levelPath("traps/home-village/bomb/level_13.webp", 2))
+    }
+
+    @Test
+    fun levelPathLeavesEverythingElseAlone() {
+        assertEquals(null, RemoteIcons.levelPath("heroes/barbarian_king/icon.webp", 5))
+        assertEquals(null, RemoteIcons.levelPath("spells/rage_spell.webp", 5))
+        assertEquals(null, RemoteIcons.levelPath("equipment/giant_gauntlet.webp", 5))
+    }
 }

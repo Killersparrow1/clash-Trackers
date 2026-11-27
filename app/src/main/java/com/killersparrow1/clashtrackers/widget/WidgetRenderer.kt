@@ -821,6 +821,10 @@ class WidgetIcons private constructor(private val context: Context) {
      */
     fun bitmapForLevel(id: Int, level: Int?, sizePx: Int): Bitmap? {
         if (level != null) {
+            // The picture of exactly this level is fetched in the background if it is not here yet (buildings and traps only).
+            if (EXTENSIONS.none { "${id}_$level.$it" in available }) {
+                com.killersparrow1.clashtrackers.update.RemoteIcons.ensureLevel(context, id, level)
+            }
             for (l in level downTo 1) bitmap("${id}_$l", sizePx)?.let { return it }
         }
         return bitmap(id.toString(), sizePx)
