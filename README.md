@@ -17,10 +17,10 @@
 
 <div align="center">
 
-![Android 8.0+](https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white)
-![Material 3 Expressive](https://img.shields.io/badge/Material_3-Expressive-6750A4?logo=googlematerial&logoColor=white)
-![No tracking](https://img.shields.io/badge/Privacy-No%20tracking-00C853)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+<img src="docs/chip_android.png" alt="Android 8.0+" height="36">
+<img src="docs/chip_m3.png" alt="Material 3 Expressive" height="36">
+<img src="docs/chip_privacy.png" alt="No tracking" height="36">
+<a href="LICENSE"><img src="docs/chip_mit.png" alt="MIT license" height="36"></a>
 
 [Screenshots](#screenshots) · [Highlights](#highlights) · [Quick setup](#quick-setup) · [Permissions](#permissions) · [Build](#building-from-source) · [Disclaimer](#disclaimer)
 
