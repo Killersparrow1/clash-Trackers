@@ -124,7 +124,15 @@ object RemoteIcons {
      * Icon name (a game data id such as `1000008`, or widget artwork such as `builder_potion`) -> path on the asset site.
      * The list built into the app (`assets/icon_paths.json`), plus the paths the game data names for newer items.
      */
+    @Volatile private var pathsCache: Pair<Int, Map<String, String>>? = null
+
     internal fun paths(context: Context): Map<String, String> {
+        val version = MaxDataStore.version
+        pathsCache?.takeIf { it.first == version }?.let { return it.second }
+        return buildPaths(context).also { pathsCache = version to it }
+    }
+
+    private fun buildPaths(context: Context): Map<String, String> {
         val out = linkedMapOf<String, String>()
         runCatching {
             context.assets.open("icon_paths.json").bufferedReader().use { text ->

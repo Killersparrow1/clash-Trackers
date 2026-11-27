@@ -14,6 +14,7 @@ import com.killersparrow1.clashtrackers.data.MaxDataStore
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
@@ -110,11 +111,18 @@ fun TimerDashboard(
     var filter by rememberSaveable { mutableStateOf(TimerFilter.ALL) }
     var showHelp by rememberSaveable { mutableStateOf(false) }
     var calendar by rememberSaveable { mutableStateOf(false) }
-    val timers = remember(model, filter) { model.timers(filter) }
+    val gridState = rememberLazyGridState()
+    // The clock ticks every second and hands this screen a new model; while the list is being scrolled or flung it keeps
+    // the last one and catches up the moment it stops, so scrolling is not interrupted by a recomposition of every card.
+    val scrolling = gridState.isScrollInProgress
+    var settled by remember { mutableStateOf(model to now) }
+    LaunchedEffect(model, now, scrolling) { if (!scrolling) settled = model to now }
+    val shown = if (scrolling) settled.first else model
+    val shownNow = if (scrolling) settled.second else now
+    val timers = remember(shown, filter) { shown.timers(filter) }
 
     // Filters collapse when the list is pushed up and come back when it is pulled down (or at the very top).
     var filtersVisible by remember { mutableStateOf(true) }
-    val gridState = rememberLazyGridState()
     val atTop by remember { derivedStateOf { gridState.firstVisibleItemIndex == 0 && gridState.firstVisibleItemScrollOffset == 0 } }
     val scrollConnection = remember {
         object : NestedScrollConnection {
@@ -149,8 +157,8 @@ fun TimerDashboard(
             verticalArrangement = Arrangement.spacedBy(12.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            if (model.hasData) {
-                item(key = "village", span = { GridItemSpan(maxLineSpan) }) { VillageOverviewCard(model, lastSync, busy, onSync) }
+            if (shown.hasData) {
+                item(key = "village", span = { GridItemSpan(maxLineSpan) }) { VillageOverviewCard(shown, lastSync, busy, onSync) }
             } else {
                 item(key = "welcome", span = { GridItemSpan(maxLineSpan) }) {
                     SectionCard(stringResource(R.string.welcome_title)) {
@@ -171,22 +179,22 @@ fun TimerDashboard(
                 }
             }
 
-            if (!model.hasData) {
+            if (!shown.hasData) {
                 item(key = "sync", span = { GridItemSpan(maxLineSpan) }) { SyncCard(lastSync, busy, onSync) }
             }
 
-            item(key = "gold_pass_banner", span = { GridItemSpan(maxLineSpan) }) { GoldPassBanner(selectedTag, now) }
+            item(key = "gold_pass_banner", span = { GridItemSpan(maxLineSpan) }) { GoldPassBanner(selectedTag, shownNow) }
 
-            if (model.hasData) {
-                item(key = "stats", span = { GridItemSpan(maxLineSpan) }) { StatTiles(model) }
+            if (shown.hasData) {
+                item(key = "stats", span = { GridItemSpan(maxLineSpan) }) { StatTiles(shown) }
             }
 
-            if (model.hasData) {
+            if (shown.hasData) {
                 item(key = "heading", span = { GridItemSpan(maxLineSpan) }) {
                     UpgradesHeader(filter, { filter = it }, calendar, { calendar = it })
                 }
                 if (calendar) {
-                    item(key = "calendar", span = { GridItemSpan(maxLineSpan) }) { TimerCalendar(model, export, now, filter) }
+                    item(key = "calendar", span = { GridItemSpan(maxLineSpan) }) { TimerCalendar(shown, export, shownNow, filter) }
                 } else if (timers.isEmpty()) {
                     item(key = "empty_filter", span = { GridItemSpan(maxLineSpan) }) {
                         Card(
@@ -204,7 +212,7 @@ fun TimerDashboard(
                     }
                 }
                 if (!calendar) items(timers, key = { it.row.jobKey ?: "${it.category}_${it.row.name}" }) { timer ->
-                    TimerCard(timer, model.townHall, export?.let { com.killersparrow1.clashtrackers.core.Bedtime.builderHall(it) })
+                    TimerCard(timer, shown.townHall, export?.let { com.killersparrow1.clashtrackers.core.Bedtime.builderHall(it) })
                 }
             }
         }

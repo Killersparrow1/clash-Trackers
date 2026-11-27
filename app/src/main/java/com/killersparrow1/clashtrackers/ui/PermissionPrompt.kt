@@ -94,7 +94,8 @@ fun PermissionPrompt(enabled: Boolean = true) {
             open(context, Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName))
         }
     }
-    val needs = remember(tick) { missing(context) }
+    // The accessibility service is optional: it is left out of this reminder after "Remind me later" or "Don't ask again".
+    val needs = remember(tick) { missing(context).filter { it != Need.ACCESSIBILITY || AccessibilityReminder.shouldAsk(context) } }
     if (!enabled || later || needs.isEmpty()) return
 
     fun fix(need: Need) = fixNeed(context, need, asked) {
@@ -119,6 +120,16 @@ fun PermissionPrompt(enabled: Boolean = true) {
                                 OutlinedButton(onClick = {
                                     open(context, Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}")))
                                 }) { Text(stringResource(R.string.perm_app_info)) }
+                            }
+                        }
+                        if (need == Need.ACCESSIBILITY) {
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                TextButton(onClick = { AccessibilityReminder.remindLater(context); tick++ }) {
+                                    Text(stringResource(R.string.perm_remind_later))
+                                }
+                                TextButton(onClick = { AccessibilityReminder.neverAsk(context); tick++ }) {
+                                    Text(stringResource(R.string.perm_dont_ask))
+                                }
                             }
                         }
                     }
