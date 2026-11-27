@@ -1,4 +1,4 @@
-Clash Timers
+Clash Trackers
 Copyright (c) 2026 Kuswa Tul Kaabah
 
 The MIT License in the LICENSE file covers the original source code of this
@@ -43,13 +43,16 @@ That package is published under the MIT License,
 Copyright (c) 2026 Christopher Pezza.
 
 
-FONT
+FONTS
 
-Lilita One, by Juan Montoreano, is licensed under the SIL Open Font License,
-Version 1.1. It is not licensed under the MIT License.
+Lilita One, by Juan Montoreano, and Doto, by The Doto Project Authors, are
+licensed under the SIL Open Font License, Version 1.1. They are not licensed
+under the MIT License.
 
   - Font:    app/src/main/res/font/lilita_one.ttf
   - Licence: app/src/main/assets/licenses/LilitaOne-OFL.txt
+  - Font:    app/src/main/res/font/doto.ttf
+  - Licence: app/src/main/assets/licenses/Doto-OFL.txt
 
 
 LIBRARIES
@@ -66,5 +69,6 @@ https://github.com/memehammad/clash-timers). No code from that project is used:
 the implementation here is written separately, which is why this project stays
 under the MIT License.
 
-The Shizuku logo in docs/pill_shizuku.png is the Shizuku app icon (Rikka, Apache
-License 2.0), used to show that the app works with Shizuku.
+The README buttons in docs/ show the Shizuku app icon (Rikka, Apache License 2.0)
+and the Obtainium logo (ImranR98, GPL-3.0). Both belong to their projects and are
+used only as links to them. They are not covered by the MIT License.

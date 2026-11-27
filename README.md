@@ -249,7 +249,7 @@ Thank you to everyone on [r/ClashOfClans](https://www.reddit.com/r/ClashOfClans/
 
 ## License
 
-The source code is licensed under the [MIT License](LICENSE). Game assets, names, logos and audio belong to Supercell and are not covered by it; see [NOTICE](NOTICE) for the full list, including the ClashKing data.
+The source code is licensed under the [MIT License](LICENSE). Game assets, names, logos and audio belong to Supercell and are not covered by it; see [NOTICE](NOTICE) for the full list: the ClashKing data, the fonts (SIL OFL 1.1), the libraries (Apache 2.0, including Shizuku) and the Shizuku and Obtainium logos.
 
 ## Disclaimer
 
