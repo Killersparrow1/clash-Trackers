@@ -4,25 +4,31 @@
 
 <h1 align="center">Clash Trackers</h1>
 
+<p align="center"><b>Upgrade timers, potions and home-screen widgets for Clash of Clans, with a Material 3 Expressive interface.</b></p>
+
+<p align="center">
+  <a href="https://github.com/Killersparrow1/clash-Trackers/releases/latest"><img src="docs/pill_download.png" alt="Download the latest release" height="60"></a>
+  <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%7B%22id%22%3A%22com.killersparrow1.clashtrackers%22%2C%22url%22%3A%22https%3A%2F%2Fgithub.com%2FKillersparrow1%2Fclash-trackers%22%2C%22author%22%3A%22Killersparrow1%22%2C%22name%22%3A%22Clash%20Trackers%22%7D"><img src="docs/pill_obtainium.png" alt="Get it on Obtainium" height="60"></a>
+</p>
+<p align="center">
+  <a href="https://shizuku.rikka.app/"><img src="docs/pill_shizuku.png" alt="Works with Shizuku" height="60"></a>
+  <a href="https://github.com/Killersparrow1/clash-Trackers/issues/new"><img src="docs/pill_issue.png" alt="Report an issue" height="60"></a>
+</p>
+
 <div align="center">
 
-![Android 8.0+](https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white)
-![Material 3 Expressive](https://img.shields.io/badge/Material_3-Expressive-6750A4?logo=googlematerial&logoColor=white)
-![No tracking](https://img.shields.io/badge/Privacy-No%20tracking-00C853)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+<img src="docs/chip_android.png" alt="Android 8.0+" height="36">
+<img src="docs/chip_m3.png" alt="Material 3 Expressive" height="36">
+<img src="docs/chip_privacy.png" alt="No tracking" height="36">
+<a href="LICENSE"><img src="docs/chip_mit.png" alt="MIT license" height="36"></a>
+
+[Screenshots](#screenshots) · [Highlights](#highlights) · [Quick setup](#quick-setup) · [Permissions](#permissions) · [Build](#building-from-source) · [Disclaimer](#disclaimer)
 
 </div>
 
-A modern Android app and home-screen widgets for **Clash of Clans** that track your Home Village and Builder Base upgrade timers, potions and game events in real time, and plan what to upgrade next.
-
-Built with **Material 3 Expressive**, the Clash typeface, a deterministic boost engine and full Builder Base support. The app works online: game data, pictures and event dates come from [ClashKing](https://clashk.ing), and everything it downloads is cached on the phone, so the last good copy stays available when the connection drops.
+A modern Android app and widgets that track your Home Village and Builder Base upgrade timers, potions and game events in real time, and plan what to upgrade next. Game data, pictures and event dates come from [ClashKing](https://clashk.ing) and are cached on the phone, so the last good copy stays available offline.
 
 > **Unofficial fan project.** Not affiliated with, endorsed, sponsored or approved by Supercell. See the [Disclaimer](#disclaimer).
-
-<p align="center">
-  <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://app/%7B%22id%22%3A%22com.killersparrow1.clashtrackers%22%2C%22url%22%3A%22https%3A%2F%2Fgithub.com%2FKillersparrow1%2Fclash-trackers%22%2C%22author%22%3A%22Killersparrow1%22%2C%22name%22%3A%22Clash%20Trackers%22%7D"><img src="docs/badge_obtainium.png" alt="Get it on Obtainium" height="56"></a>
-  <a href="https://shizuku.rikka.app/"><img src="docs/badge_shizuku.png" alt="Works with Shizuku" height="56"></a>
-</p>
 
 ---
 
@@ -243,7 +249,7 @@ Thank you to everyone on [r/ClashOfClans](https://www.reddit.com/r/ClashOfClans/
 
 ## License
 
-The source code is licensed under the [MIT License](LICENSE). Game assets, names, logos and audio belong to Supercell and are not covered by it; see [NOTICE](NOTICE) for the full list, including the ClashKing data.
+The source code is licensed under the [MIT License](LICENSE). Game assets, names, logos and audio belong to Supercell and are not covered by it; see [NOTICE](NOTICE) for the full list: the ClashKing data, the fonts (SIL OFL 1.1), the libraries (Apache 2.0, including Shizuku) and the Shizuku and Obtainium logos.
 
 ## Disclaimer
 
