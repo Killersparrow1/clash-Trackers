@@ -32,6 +32,7 @@ data class WidgetText(
     val assistantIdle: String = "Assistant idle",
     val laboratory: String = "Laboratory",
     val petHouse: String = "Pet House",
+    val starLab: String = "Star Laboratory",
     val newSuffix: String = "(new)",
     val unknownName: String = "Unknown (%1\$d)",
     val craftedDefense: String = "Crafted defense",

@@ -581,11 +581,12 @@ private fun TimerCard(timer: DashboardTimer, townHall: Int?, builderHall: Int? =
             }
             // The highest level this item can reach at your Town Hall, from the game data (home village items only).
             val maxData = remember(MaxDataStore.version) { MaxDataStore.get(context) }
-            val maxLevel = remember(row.iconIds, row.iconLevel, townHall, builderHall, maxData) {
+            val maxLevel = remember(row.iconIds, row.iconLevel, row.kind, townHall, builderHall, maxData) {
                 val level = row.iconLevel
                 // Home village items are capped by the Town Hall, Builder Base items by the Builder Hall.
                 val th = if (timer.category == TimerFilter.BUILDER_BASE) builderHall else townHall
-                if (level == null || th == null) null
+                // A free Laboratory / Star Laboratory row only shows the building's picture: there is no upgrade to compare.
+                if (level == null || th == null || row.kind == RowKind.IDLE) null
                 else row.iconIds.firstNotNullOfOrNull { maxData.items[it] }
                     ?.let { item -> item.steps.indexOfLast { it.townHall <= th } + 1 }
                     ?.takeIf { it > 0 }

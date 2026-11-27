@@ -57,12 +57,39 @@ class BuilderBaseTest {
         assertTrue(busy.showBuilderBase)
         assertEquals(listOf("Double Cannon"), busy.bbRows.map { it.name })
         assertEquals("8", busy.bbRows.single().levelText)
-        assertNull(busy.starLabRow)
+        // The Star Laboratory is free here: it gets an idle row like the Laboratory does, with its own building picture.
+        val starLab = busy.starLabRow!!
+        assertEquals(RowKind.IDLE, starLab.kind)
+        assertEquals("Star Laboratory", starLab.name)
+        assertEquals(listOf(GameIds.STAR_LABORATORY), starLab.iconIds)
+        assertEquals(RowKind.IDLE, busy.starLabRow!!.kind)
 
         val idle = WidgetModelBuilder.build(
             AppState(exportJson = SampleExports.text("export_1.json")), AppSettings(), names, times, export1.timestamp,
         )
         assertFalse(idle.showBuilderBase)
+    }
+
+    @Test fun freeStarLaboratoryIsNotABuilderBaseSection() {
+        // Nothing is running in the night village, so the widget's Builder Base section stays hidden even though the idle row exists.
+        val idle = WidgetModelBuilder.build(
+            AppState(exportJson = SampleExports.text("export_1.json")), AppSettings(), names, times, export1.timestamp,
+        )
+        assertEquals(RowKind.IDLE, idle.starLabRow?.kind)
+        assertFalse(idle.showBuilderBase)
+    }
+
+    @Test fun starLaboratoryLevelAndPresenceComeFromTheExport() {
+        fun parse(json: String) = (ExportParser.parse(json) as ParseResult.Success).export
+        val withBuilding = parse("""{"tag":"#A","timestamp":1,"buildings":[{"data":1000001,"lvl":17},{"data":1000007,"lvl":13}],"buildings2":[{"data":1000046,"lvl":8}]}""")
+        assertTrue(withBuilding.hasStarLab)
+        assertEquals(8, withBuilding.starLabLevel)
+        assertEquals(13, withBuilding.labLevel)
+        val withTroops = parse("""{"tag":"#A","timestamp":1,"buildings":[{"data":1000001,"lvl":17}],"units2":[{"data":4000031,"lvl":5}]}""")
+        assertTrue(withTroops.hasStarLab)
+        assertNull(withTroops.starLabLevel)
+        val none = parse("""{"tag":"#A","timestamp":1,"buildings":[{"data":1000001,"lvl":17}]}""")
+        assertFalse(none.hasStarLab)
     }
 
     @Test fun finishNoticeNamesTheBuilderBaseBuilder() {
