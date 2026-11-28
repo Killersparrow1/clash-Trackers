@@ -13,6 +13,7 @@
 <p align="center">
   <a href="https://shizuku.rikka.app/"><img src="docs/pill_shizuku.png" alt="Works with Shizuku" height="60"></a>
   <a href="https://github.com/Killersparrow1/clash-Trackers/issues/new"><img src="docs/pill_issue.png" alt="Report an issue" height="60"></a>
+  <a href="https://t.me/clashtrackers"><img src="docs/pill_telegram.png" alt="Join the Telegram group" height="60"></a>
 </p>
 
 <div align="center">
