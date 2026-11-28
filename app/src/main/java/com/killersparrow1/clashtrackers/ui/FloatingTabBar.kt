@@ -45,6 +45,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
@@ -163,6 +164,9 @@ internal fun FloatingTabBar(
         }
     }
 
+    val glassSource = LocalGlassSource.current
+    val glass = glassSource != null
+    val blurLayer = androidx.compose.ui.graphics.rememberGraphicsLayer()
     Surface(
         modifier = modifier
             .graphicsLayer { translationY = hide.value * travel }
@@ -172,11 +176,15 @@ internal fun FloatingTabBar(
             .fillMaxWidth()
             .height(FloatingBar.Height),
         shape = RoundedCornerShape(percent = 50),
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        shadowElevation = 8.dp,
-        border = BorderStroke(Dp.Hairline, MaterialTheme.colorScheme.outlineVariant),
+        color = if (glass) Color.Transparent else MaterialTheme.colorScheme.surfaceContainerHigh,
+        shadowElevation = if (glass) 0.dp else 8.dp,
+        border = if (glass) glassRim() else BorderStroke(Dp.Hairline, MaterialTheme.colorScheme.outlineVariant),
     ) {
-        BoxWithConstraints(Modifier.fillMaxSize().padding(6.dp)) {
+        BoxWithConstraints(
+            Modifier.fillMaxSize()
+                .then(if (glassSource != null) Modifier.glassBackdrop(glassSource, GlassSetting.strength, blurLayer) else Modifier)
+                .padding(6.dp),
+        ) {
             val itemWidth = maxWidth / items.size
             val itemWidthPx = with(density) { itemWidth.toPx() }
             val slide = remember { Animatable(itemWidthPx * selectedIndex) }

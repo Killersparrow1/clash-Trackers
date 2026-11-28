@@ -239,7 +239,12 @@ fun ClashTrackersContent(
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val wide = maxWidth >= 600.dp
         val floating = floatingOn && !wide
+        // The glass look: the page is also kept as a layer, so the floating bar can show a blurred copy of what is under it.
+        val glassOn = floating && GlassSetting.supported && GlassSetting.enabled
+        val glassLayer = androidx.compose.ui.graphics.rememberGraphicsLayer()
+        androidx.compose.runtime.CompositionLocalProvider(LocalGlassSource provides (if (glassOn) glassLayer else null)) {
         Scaffold(
+            modifier = Modifier.glassSource(glassLayer, glassOn),
             topBar = {
                 TopAppBar(title = {
                     // The title slides the way the tabs moved; it changes when the page passes the middle of a swipe.
@@ -398,6 +403,7 @@ fun ClashTrackersContent(
                 reduced = reduced,
                 modifier = Modifier.align(Alignment.BottomCenter),
             )
+        }
         }
         if (developerOpen) DeveloperOptionsScreen(selectedTag, log, onClose = { developerOpen = false }, onTestCommunity = { communityTest = true }, onTestBlurAdvice = { adviceTest = true })
     }

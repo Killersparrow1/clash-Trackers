@@ -106,6 +106,37 @@ fun PersonalizationSection(settings: AppSettings, onChange: ((AppSettings) -> Ap
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            if (GlassSetting.supported && settings.floatingTabBar) {
+                val glassContext = LocalContext.current
+                SwitchRow(stringResource(R.string.glass_switch), GlassSetting.enabled) { on -> GlassSetting.setEnabled(glassContext, on) }
+                Text(
+                    stringResource(R.string.glass_desc),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                if (GlassSetting.enabled) {
+                    androidx.compose.material3.Slider(
+                        value = GlassSetting.strength.toFloat(),
+                        onValueChange = { v -> GlassSetting.setStrength(glassContext, v.roundToInt()) },
+                        valueRange = GlassSetting.LOW.toFloat()..GlassSetting.HIGH.toFloat(),
+                        steps = 1,
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                    )
+                    Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                        listOf(
+                            GlassSetting.LOW to R.string.glass_soft,
+                            GlassSetting.MEDIUM to R.string.glass_medium,
+                            GlassSetting.HIGH to R.string.glass_strong,
+                        ).forEach { (value, label) ->
+                            Text(
+                                stringResource(label),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = if (GlassSetting.strength == value) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                }
+            }
         }
         if (ScrollBlurSetting.supported) {
             // On at High by default (needs Android 13).

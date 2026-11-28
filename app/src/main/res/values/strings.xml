@@ -439,6 +439,11 @@
     <string name="perm_app_info">App info</string>
     <string name="perm_later">Close</string>
     <string name="perm_remind_later">Remind me later</string>
+    <string name="glass_switch">Glass look</string>
+    <string name="glass_desc">The floating tab bar blurs and tints what scrolls behind it, with a light rim. Needs the floating tab bar.</string>
+    <string name="glass_soft">Soft</string>
+    <string name="glass_medium">Medium</string>
+    <string name="glass_strong">Strong</string>
     <string name="scroll_blur_title">Scroll motion blur</string>
     <string name="scroll_blur_desc">Softens lists a little while they move. It uses a little more battery and can slow weaker phones; turn it off if you prefer.</string>
     <string name="scroll_blur_off">Off</string>
