@@ -135,14 +135,6 @@ fun PermissionPrompt(enabled: Boolean = true) {
                                 },
                                 modifier = Modifier.fillMaxWidth(),
                             ) { Text(stringResource(R.string.perm_app_info)) }
-                            Row(
-                                Modifier.fillMaxWidth().toggleable(dontShow, role = Role.Checkbox) { dontShow = it },
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            ) {
-                                Checkbox(checked = dontShow, onCheckedChange = null)
-                                Text(stringResource(R.string.perm_dont_show), style = MaterialTheme.typography.bodyMedium)
-                            }
                             TextButton(
                                 onClick = {
                                     if (dontShow) AccessibilityReminder.neverAsk(context) else AccessibilityReminder.remindLater(context)
@@ -159,6 +151,18 @@ fun PermissionPrompt(enabled: Boolean = true) {
                 }
             }
         },
+        // The tick sits at the left of the bottom row, opposite Close.
+        dismissButton = if (needs.any { it == Need.ACCESSIBILITY }) {
+            {
+                Row(
+                    Modifier.toggleable(dontShow, role = Role.Checkbox) { dontShow = it },
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Checkbox(checked = dontShow, onCheckedChange = null)
+                    Text(stringResource(R.string.perm_dont_show), style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+        } else null,
         confirmButton = { TextButton(onClick = { close() }) { Text(stringResource(R.string.perm_later)) } },
     )
 }
