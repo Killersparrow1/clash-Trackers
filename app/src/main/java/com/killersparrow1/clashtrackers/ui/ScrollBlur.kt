@@ -30,7 +30,7 @@ import kotlin.math.abs
  * a separate implementation; the one difference that matters is that the per-frame loop only runs while something moves.
  */
 
-/** Optional motion blur while a list scrolls or the pages are swiped (Settings > Personalization). Off by default. */
+/** Motion blur while a list scrolls or the pages are swiped. On (High) by default; Settings > Personalization turns it Off or lowers it. */
 object ScrollBlurSetting {
     const val OFF = 0
     const val LOW = 1
@@ -43,11 +43,11 @@ object ScrollBlurSetting {
     val supported: Boolean get() = Build.VERSION.SDK_INT >= 33
 
     /** 0 off, 1 low, 2 high. Read by the lists, so they react as soon as it changes. */
-    var level by mutableIntStateOf(OFF)
+    var level by mutableIntStateOf(HIGH)
         private set
 
     fun init(context: Context) {
-        level = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getInt(KEY, OFF).coerceIn(OFF, HIGH)
+        level = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getInt(KEY, HIGH).coerceIn(OFF, HIGH)
     }
 
     fun set(context: Context, value: Int) {

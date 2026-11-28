@@ -442,7 +442,7 @@
     <string name="perm_later">Close</string>
     <string name="perm_remind_later">Remind me later</string>
     <string name="scroll_blur_title">Scroll motion blur</string>
-    <string name="scroll_blur_desc">Softens lists a little while they move. It uses more battery and can slow weaker phones. Off by default.</string>
+    <string name="scroll_blur_desc">Softens lists a little while they move. It uses a little more battery and can slow weaker phones; turn it off if you prefer.</string>
     <string name="scroll_blur_off">Off</string>
     <string name="scroll_blur_low">Low</string>
     <string name="scroll_blur_high">High</string>
