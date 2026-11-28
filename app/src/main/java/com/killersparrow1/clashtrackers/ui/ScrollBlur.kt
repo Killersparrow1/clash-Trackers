@@ -152,6 +152,13 @@ fun rememberScrollBlur(state: LazyListState): ScrollBlur = rememberScrollBlur(
 )
 
 @Composable
+fun rememberScrollBlur(state: androidx.compose.foundation.ScrollState): ScrollBlur = rememberScrollBlur(
+    horizontal = false,
+    position = { state.value.toFloat() },
+    moving = { state.isScrollInProgress },
+)
+
+@Composable
 fun rememberScrollBlur(state: PagerState): ScrollBlur = rememberScrollBlur(
     horizontal = true,
     position = { (state.currentPage + state.currentPageOffsetFraction) * 400f },

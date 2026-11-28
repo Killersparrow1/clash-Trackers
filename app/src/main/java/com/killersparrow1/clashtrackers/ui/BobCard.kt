@@ -61,8 +61,11 @@ internal fun BobChip(plan: BobPlan) {
     )
     if (open) {
         ModalBottomSheet(onDismissRequest = { open = false }, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+            // No stretch effect at the ends: it made the sheet jiggle when pulling it down to close. The scroll blur follows the content.
+            val sheetScroll = rememberScrollState()
+            androidx.compose.runtime.CompositionLocalProvider(androidx.compose.foundation.LocalOverscrollFactory provides null) {
             Column(
-                Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 24.dp).padding(bottom = 32.dp),
+                Modifier.fillMaxWidth().scrollBlur(rememberScrollBlur(sheetScroll)).verticalScroll(sheetScroll).padding(horizontal = 24.dp).padding(bottom = 32.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Text(stringResource(R.string.bob_title), style = MaterialTheme.typography.titleLarge)
@@ -80,6 +83,7 @@ internal fun BobChip(plan: BobPlan) {
                 val first = plan.next
                 plan.rows.forEach { BobRowView(it, highlight = !plan.unlocked && it == first, dimmed = !plan.unlocked && first != null && !it.done && it != first, names::name, dayUnit) }
                 Text(stringResource(R.string.bob_note), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
             }
         }
     }
