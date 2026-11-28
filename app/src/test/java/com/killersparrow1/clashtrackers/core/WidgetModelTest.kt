@@ -105,7 +105,9 @@ class WidgetModelTest {
         val m = build(t0 + 30L * 86400)
         assertEquals("BUILDERS 0/6", m.buildersLabel)
         assertEquals(6, m.builderRows.size) // finished jobs stay until the next sync; free builders get no rows
-        assertTrue(m.allRows.all { it.kind == RowKind.COMPLETED })
+        // Everything that was running is done; the free Star Laboratory only has its idle row.
+        assertTrue(m.allRows.filter { it.kind != RowKind.IDLE }.all { it.kind == RowKind.COMPLETED })
+        assertEquals(RowKind.IDLE, m.starLabRow?.kind)
         assertEquals("Apprentice idle · Assistant idle", m.footerLeft.joinToString("") { it.text })
         assertEquals("synced 30d ago", m.footerRight)
         assertNull(m.nextChangeAt?.takeIf { it < t0 + 30L * 86400 })
