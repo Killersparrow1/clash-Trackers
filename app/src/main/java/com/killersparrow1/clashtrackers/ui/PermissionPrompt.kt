@@ -122,11 +122,19 @@ fun PermissionPrompt(enabled: Boolean = true) {
             Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(stringResource(R.string.perm_intro), style = MaterialTheme.typography.bodyMedium)
                 needs.forEach { need ->
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(stringResource(need.title), style = MaterialTheme.typography.titleSmall)
                         Text(stringResource(need.why), style = MaterialTheme.typography.bodySmall)
                         if (need == Need.ACCESSIBILITY) {
-                            // Optional permission: "Do not show this again" tick, a postpone button, and the action.
+                            // Optional permission. Order: what to do, how to get unstuck, then how to postpone or stop being asked.
+                            Button(onClick = { fix(need) }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.perm_fix)) }
+                            // The accessibility switch can be greyed out until "Allow restricted settings" is chosen in App info.
+                            OutlinedButton(
+                                onClick = {
+                                    open(context, Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}")))
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                            ) { Text(stringResource(R.string.perm_app_info)) }
                             Row(
                                 Modifier.fillMaxWidth().toggleable(dontShow, role = Role.Checkbox) { dontShow = it },
                                 verticalAlignment = Alignment.CenterVertically,
@@ -135,21 +143,13 @@ fun PermissionPrompt(enabled: Boolean = true) {
                                 Checkbox(checked = dontShow, onCheckedChange = null)
                                 Text(stringResource(R.string.perm_dont_show), style = MaterialTheme.typography.bodyMedium)
                             }
-                            OutlinedButton(
+                            TextButton(
                                 onClick = {
                                     if (dontShow) AccessibilityReminder.neverAsk(context) else AccessibilityReminder.remindLater(context)
                                     tick++
                                 },
                                 modifier = Modifier.fillMaxWidth(),
                             ) { Text(stringResource(R.string.perm_remind_later)) }
-                            Button(onClick = { fix(need) }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.perm_fix)) }
-                            // The accessibility switch can be greyed out until "Allow restricted settings" is chosen in App info.
-                            TextButton(
-                                onClick = {
-                                    open(context, Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}")))
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                            ) { Text(stringResource(R.string.perm_app_info)) }
                         } else {
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 OutlinedButton(onClick = { fix(need) }) { Text(stringResource(R.string.perm_fix)) }
