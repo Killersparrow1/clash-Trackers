@@ -25,6 +25,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.dp
 
 /**
  * The glass look for the floating tab bar: what is behind the bar (the page, scrolling under it) is blurred and tinted, with
@@ -102,5 +103,3 @@ internal fun Modifier.glassBackdrop(source: GraphicsLayer, level: Int, blurLayer
 /** A thin lit rim: brighter at the top, fading to the bottom. */
 internal fun glassRim(): BorderStroke =
     BorderStroke(1.dp, Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.55f), Color.White.copy(alpha = 0.10f))))
-
-private val Float.dp get() = androidx.compose.ui.unit.Dp(this)
