@@ -2,7 +2,7 @@ package com.killersparrow1.clashtrackers.update
 
 import android.content.Context
 
-/** Whether to look for updates when the app opens, when it last did, and a version the user said "Later" to. */
+/** Always on in the real app. When to look for updates, when it last did, and a version the user said "Later" to. */
 object UpdatePrefs {
     private const val PREFS = "app_update"
     private const val CHECK_EVERY_MS = 12L * 60 * 60 * 1000
@@ -10,8 +10,7 @@ object UpdatePrefs {
     private fun p(c: Context) = c.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
     /** A dev build (package ...clashtrackers.dev) never checks for or announces releases: those are a different app. */
-    fun autoCheck(c: Context) = c.packageName == "com.killersparrow1.clashtrackers" && p(c).getBoolean("auto", true)
-    fun setAutoCheck(c: Context, on: Boolean) = p(c).edit().putBoolean("auto", on).apply()
+    fun autoCheck(c: Context) = c.packageName == "com.killersparrow1.clashtrackers"
 
     /** True at most every 12 hours; marks the check as done. */
     fun dueNow(c: Context, nowMs: Long = System.currentTimeMillis()): Boolean {

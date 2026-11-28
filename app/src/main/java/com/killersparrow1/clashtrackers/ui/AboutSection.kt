@@ -98,11 +98,6 @@ fun AboutSection(reportProvider: () -> String = { "" }) {
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
-                Text(
-                    stringResource(R.string.about_updates_note),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
                 when (val u = update) {
                     is UpdateState.Available -> {
                         Text(stringResource(R.string.update_available, u.info.version), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onPrimaryContainer)
@@ -127,20 +122,6 @@ fun AboutSection(reportProvider: () -> String = { "" }) {
                         UpdateButton(R.string.about_check_updates) { check() }
                     }
                     UpdateState.Idle -> UpdateButton(R.string.about_check_updates) { check() }
-                }
-                var auto by remember { mutableStateOf(com.killersparrow1.clashtrackers.update.UpdatePrefs.autoCheck(context)) }
-                Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                    Text(
-                        stringResource(R.string.update_auto),
-                        modifier = Modifier.weight(1f),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    )
-                    androidx.compose.material3.Switch(checked = auto, onCheckedChange = {
-                        auto = it
-                        com.killersparrow1.clashtrackers.update.UpdatePrefs.setAutoCheck(context, it)
-                        com.killersparrow1.clashtrackers.update.UpdateCheckJob.sync(context)
-                    })
                 }
                 TextButton(onClick = { openUrl(context, RELEASES_URL) }, modifier = Modifier.heightIn(min = 48.dp), contentPadding = PaddingValues(0.dp)) {
                     Text(stringResource(R.string.update_releases_page), color = MaterialTheme.colorScheme.onPrimaryContainer)
