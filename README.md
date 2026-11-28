@@ -123,7 +123,11 @@ A modern Android app and widgets that track your Home Village and Builder Base u
 - **Six app looks** in **Settings > Personalization > App look**: Material You (follows your phone), Material light and Material dark (always light or always dark, whatever the phone is set to), and the fixed Clean, Classic and Game palettes. Widgets have their own theme.
 - Material You colour on Android 12+, a themed launcher icon on Android 13+, a navigation rail on tablets and a two-column Timers screen on wide displays.
 - Spring-based tab swiping, a header that slides with the tabs, and a floating pill tab bar (switch it off in Personalization for a docked bar) that hides while you scroll down and returns on scrolling up (all of it off with the phone's "Remove animations" setting).
-- A subtle wiggle and light haptic feedback when you press cards.
+- A subtle wiggle and light haptic feedback when you press cards, and a small tick when you change tab (a firmer one for a tab, a lighter one for a sub-tab; it follows the phone's touch feedback setting).
+- **Scroll motion blur** (Android 13+, on by default): lists and the swipe between pages blur a little in the direction they move, more the faster you scroll. A three-step slider in **Settings > Personalization** sets it to Off, Low or High. If scrolling looks choppy on a weaker phone, the app suggests turning it off once; it never turns it off by itself.
+- **Glass look** (optional, off by default, Android 12+): the floating tab bar blurs and tints the page behind it with a light rim, in three strengths. Switch it on in **Settings > Personalization > Tab bar**.
+- In Personalization, **App look** and **Widget compatibility** (the widget theme, shown with colour dots like the app looks) are collapsible cards that open one at a time.
+- A **monthly support popup** (star on GitHub, share the app, discuss on Reddit, join the Telegram group): at most once a month, at least 14 days apart, after the app has been in use for a minute, and never again once all four buttons have been used. It needs no extra permission and sends nothing anywhere.
 - Lilita One for headings and numbers; filter chips that get out of the way as you scroll.
 - **Languages**: English and Russian, chosen in **Settings > Language**. New text is added in English first. See [Adding a language](CONTRIBUTING.md#adding-a-language).
 
@@ -143,9 +147,9 @@ A modern Android app and widgets that track your Home Village and Builder Base u
 - A switch makes alerts follow Do Not Disturb (default) or ring through it like an alarm.
 
 ### Updates, support and diagnostics
-- **Update notification**: a background check (about every 12 hours, online only) posts one notification when a new release is out, even if the app is closed. Turn it off with the update switch in **Settings > Support > About**.
+- **Update notification**: a background check (about every 12 hours, online only) posts one notification when a new release is out, even if the app is closed.
 - **In-app update**: **Settings > Support > About > Check for updates** looks up the latest GitHub release, shows what is new, downloads the APK and hands it to Android's installer. Builds use a fixed signing key, so updates install over the old version. [Obtainium](https://github.com/ImranR98/Obtainium) also works: add `https://github.com/Killersparrow1/clash-Trackers`.
-- **Issues and feature requests** open [GitHub Issues](https://github.com/Killersparrow1/clash-Trackers/issues/); *Report an issue* copies a diagnostic report first.
+- **Issues and feature requests** open [GitHub Issues](https://github.com/Killersparrow1/clash-Trackers/issues/); *Report an issue* copies a diagnostic report first. **Settings > Support** also links to the [Telegram group](https://t.me/clashtrackers).
 - **Diagnostics**: a health checklist (saved village, notifications, exact alarms, battery restriction, icons) and a copyable report with app, Android and widget info, recent activity and the last crash. It never includes your player tag or name.
 - A short toast on launch asks you to connect when there is no internet.
 
@@ -240,8 +244,9 @@ cd clash-Trackers
 ## Credits
 
 - **[ClashKing](https://clashk.ing)**: game data, names, upgrade times and pictures from [ClashKingAssets](https://github.com/ClashKingInc/ClashKingAssets) (GPL-3.0, data only; no code copied), and event dates from the [ClashKing API](https://api.clashk.ing/swagger/index.html). Thank you to the ClashKing team.
-- **Original project**: built upon [Kuswaa/clash-timers](https://github.com/Kuswaa/clash-timers); Material 3 UI ideas from [Hy4ri/clash-timers](https://github.com/Hy4ri/clash-timers/tree/feat/material-app-ui).
+- **Design ideas**: Material 3 UI ideas from [Hy4ri/clash-timers](https://github.com/Hy4ri/clash-timers/tree/feat/material-app-ui).
 - **Built-in icons** (shown until the current pictures download) and the Study Soup and Clock Tower level images: [clash-of-clans-data](https://github.com/chiefpansancolt/clash-of-clans-data) by Christopher Pezza (MIT). This is the only thing still taken from that package.
+- **Scroll motion blur**: modelled on the blur in [Essentials](https://github.com/sameerasw/essentials) by Sameera Sandakelum (MIT); a separate implementation.
 - **Fonts**: [Lilita One](app/src/main/res/font/lilita_one.ttf) by Juan Montoreano and [Doto](https://github.com/oliverlalan/Doto) by The Doto Project Authors, both SIL Open Font License 1.1 (licences in `app/src/main/assets/licenses/`).
 
 Thank you to everyone on [r/ClashOfClans](https://www.reddit.com/r/ClashOfClans/) who tried the app, reported bugs, shared test exports and suggested features. Contributions are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md).

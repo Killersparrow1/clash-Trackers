@@ -159,4 +159,4 @@ First release.
 - Notifications when a builder, the lab or the pet house is free.
 - Settings for boost strength, helper savings, helper interval and builder count.
 
-[1.0.2]: https://github.com/Kuswaa/clash-timers/releases/tag/v1.0.2
+[1.0.2]: https://github.com/Killersparrow1/clash-Trackers/releases/tag/v1.0.2
