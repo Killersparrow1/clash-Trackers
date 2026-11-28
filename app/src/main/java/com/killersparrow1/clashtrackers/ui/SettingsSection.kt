@@ -82,7 +82,7 @@ private const val H = 3600L
 fun PersonalizationSection(settings: AppSettings, onChange: ((AppSettings) -> AppSettings) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         // App look and Widget compatibility open one at a time: opening one closes the other.
-        var openCard by rememberSaveable { mutableIntStateOf(0) }
+        var openCard by rememberSaveable { mutableIntStateOf(-1) }
         CollapsibleCard(
             stringResource(R.string.look_title), "look",
             expanded = openCard == 0, onToggle = { openCard = if (openCard == 0) -1 else 0 },
