@@ -64,10 +64,14 @@ internal fun CollapsibleCard(
     modifier: Modifier = Modifier,
     /** True for a card that has a page of its own: no "+" / "−", always open. */
     alwaysOpen: Boolean = false,
+    /** When set, the caller decides whether the card is open (so cards can open and close each other). */
+    expanded: Boolean? = null,
+    onToggle: (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     var openState by rememberSaveable(stateKey) { mutableStateOf(false) }
-    val open = alwaysOpen || openState
+    val open = alwaysOpen || (expanded ?: openState)
+    val toggle = { if (onToggle != null) onToggle() else openState = !openState }
     Card(
         modifier = modifier.fillMaxWidth().wiggleOnTap(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
@@ -75,7 +79,7 @@ internal fun CollapsibleCard(
     ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(
-                Modifier.fillMaxWidth().heightIn(min = 48.dp).then(if (alwaysOpen) Modifier else Modifier.clickable { openState = !openState }),
+                Modifier.fillMaxWidth().heightIn(min = 48.dp).then(if (alwaysOpen) Modifier else Modifier.clickable { toggle() }),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {

@@ -81,7 +81,24 @@ private const val H = 3600L
 @Composable
 fun PersonalizationSection(settings: AppSettings, onChange: ((AppSettings) -> AppSettings) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        SectionCard(stringResource(R.string.look_title)) { AppLookPicker() }
+        // App look and Widget compatibility open one at a time: opening one closes the other.
+        var openCard by rememberSaveable { mutableIntStateOf(0) }
+        CollapsibleCard(
+            stringResource(R.string.look_title), "look",
+            expanded = openCard == 0, onToggle = { openCard = if (openCard == 0) -1 else 0 },
+        ) { AppLookPicker() }
+        CollapsibleCard(
+            stringResource(R.string.settings_section_widget), "widget_compat",
+            expanded = openCard == 1, onToggle = { openCard = if (openCard == 1) -1 else 1 },
+        ) {
+            WidgetThemeSetting(settings, onChange)
+            SwitchRow(stringResource(R.string.settings_live_countdown), settings.liveCountdown) { on -> onChange { it.copy(liveCountdown = on) } }
+            Text(
+                stringResource(R.string.settings_live_desc),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
         SectionCard(stringResource(R.string.tabbar_title)) {
             SwitchRow(stringResource(R.string.tabbar_floating), settings.floatingTabBar) { on -> onChange { it.copy(floatingTabBar = on) } }
             Text(
@@ -124,15 +141,6 @@ fun PersonalizationSection(settings: AppSettings, onChange: ((AppSettings) -> Ap
         }
         SectionCard(stringResource(R.string.settings_language)) {
             LanguageSetting()
-        }
-        SectionCard(stringResource(R.string.settings_section_widget)) {
-            WidgetThemeSetting(settings, onChange)
-            SwitchRow(stringResource(R.string.settings_live_countdown), settings.liveCountdown) { on -> onChange { it.copy(liveCountdown = on) } }
-            Text(
-                stringResource(R.string.settings_live_desc),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
         }
     }
 }
@@ -603,49 +611,51 @@ private fun chooseLanguage(context: Context, tag: String) {
     }
 }
 
+/** Widget theme: a list like the app look, each with three colour dots. A theme picked here is for every widget. */
 @Composable
 private fun WidgetThemeSetting(settings: AppSettings, onChange: ((AppSettings) -> AppSettings) -> Unit) {
     val context = LocalContext.current
-    var open by rememberSaveable { mutableStateOf(false) }
+    val dynamic = if (android.os.Build.VERSION.SDK_INT >= 31) {
+        if (androidx.compose.foundation.isSystemInDarkTheme()) androidx.compose.material3.dynamicDarkColorScheme(context)
+        else androidx.compose.material3.dynamicLightColorScheme(context)
+    } else MaterialTheme.colorScheme
+    val you = listOf(dynamic.primary, dynamic.secondaryContainer, dynamic.tertiary)
     val themes = listOf(
-        "material_you" to stringResource(R.string.widget_theme_material_you),
-        "clash" to stringResource(R.string.widget_theme_clash),
-        "dark" to stringResource(R.string.widget_theme_dark),
-        "black" to stringResource(R.string.widget_theme_black),
-        "light" to stringResource(R.string.widget_theme_light),
+        Triple("material_you", R.string.widget_theme_material_you, you),
+        Triple("clash", R.string.widget_theme_clash, listOf(Color(0xFF3D2B1F), Color(0xFFFFD24A), Color(0xFF6FD36A))),
+        Triple("dark", R.string.widget_theme_dark, listOf(Color(0xFF101418), Color(0xFF2A2F37), Color(0xFFFFD24A))),
+        Triple("black", R.string.widget_theme_black, listOf(Color(0xFF000000), dynamic.primary, dynamic.tertiary)),
+        Triple("light", R.string.widget_theme_light, listOf(Color(0xFFF2F2F2), Color(0xFFD0D5DD), Color(0xFFFFB35C))),
     )
-    val currentLabel = themes.firstOrNull { it.first == settings.widgetTheme }?.second ?: stringResource(R.string.widget_theme_material_you)
-
-    SettingRow(stringResource(R.string.widget_theme), currentLabel, null) { open = true }
-    if (open) {
-        AlertDialog(
-            onDismissRequest = { open = false },
-            title = { Text(stringResource(R.string.widget_theme)) },
-            text = {
-                Column {
-                    themes.forEach { (key, name) ->
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
-                                .clickable(role = Role.RadioButton) {
-                                    open = false
-                                    onChange { it.copy(widgetTheme = key) }
-                                    CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
-                                        delay(300)
-                                        // A theme picked here is for every widget; each widget's own choice (from its settings) is dropped.
-                                        runCatching { com.killersparrow1.clashtrackers.data.StateRepository(context).clearWidgetThemes() }
-                                        runCatching { SyncRunner.refreshWidgets(context, "theme") }
-                                    }
-                                },
-                        ) {
-                            RadioButton(selected = settings.widgetTheme == key, onClick = null)
-                            Text(name, modifier = Modifier.padding(start = 12.dp))
+    Text(stringResource(R.string.widget_theme), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
+    Column(Modifier.selectableGroup()) {
+        for ((key, label, dots) in themes) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp)
+                    .selectable(selected = settings.widgetTheme == key, role = Role.RadioButton) {
+                        onChange { it.copy(widgetTheme = key) }
+                        CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
+                            delay(300)
+                            // A theme picked here is for every widget; each widget's own choice (from its settings) is dropped.
+                            runCatching { com.killersparrow1.clashtrackers.data.StateRepository(context).clearWidgetThemes() }
+                            runCatching { SyncRunner.refreshWidgets(context, "theme") }
                         }
+                    },
+            ) {
+                RadioButton(selected = settings.widgetTheme == key, onClick = null)
+                Text(stringResource(label), modifier = Modifier.padding(start = 12.dp).weight(1f), style = MaterialTheme.typography.bodyLarge)
+                Row(horizontalArrangement = Arrangement.spacedBy((-6).dp)) {
+                    for (c in dots) {
+                        androidx.compose.foundation.layout.Box(
+                            Modifier.size(22.dp)
+                                .background(c, androidx.compose.foundation.shape.CircleShape)
+                                .border(1.dp, MaterialTheme.colorScheme.outline, androidx.compose.foundation.shape.CircleShape),
+                        )
                     }
                 }
-            },
-            confirmButton = { TextButton(onClick = { open = false }) { Text(stringResource(R.string.action_cancel)) } },
-        )
+            }
+        }
     }
 }
 
