@@ -86,11 +86,21 @@ jobs:
       - name: Build debug APK
         run: ./gradlew assembleDebug --stacktrace -PdevBuild=${{ github.ref != 'refs/heads/main' }} -PappVersionName=${{ steps.version.outputs.version }} -PappVersionCode=${{ steps.version.outputs.code }}
 
+      # Main keeps the zipped artifact: the release job downloads it by name as a fallback.
       - name: Upload APK
+        if: github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v4
         with:
           name: ClashTrackers-debug-apk
           path: app/build/outputs/apk/debug/*.apk
+
+      # Other branches (dev): the APK itself, not a zip, so it can be downloaded and installed directly.
+      - name: Upload APK (not zipped)
+        if: github.ref != 'refs/heads/main'
+        uses: actions/upload-artifact@v7
+        with:
+          path: app/build/outputs/apk/debug/*.apk
+          archive: false
 
       # Main only: the file that gets released is a RELEASE build (not debuggable). It is signed with the key in the
       # RELEASE_KEYSTORE_BASE64 / RELEASE_KEYSTORE_PASSWORD / RELEASE_KEY_ALIAS / RELEASE_KEY_PASSWORD secrets when
