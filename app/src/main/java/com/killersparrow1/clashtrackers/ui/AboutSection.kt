@@ -162,6 +162,10 @@ fun AboutSection(reportProvider: () -> String = { "" }) {
                 onClick = { openUrl(context, ISSUES_LIST_URL) },
                 modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
             ) { Text(stringResource(R.string.about_view_issues)) }
+            androidx.compose.material3.OutlinedButton(
+                onClick = { openUrl(context, TELEGRAM_URL) },
+                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+            ) { Text(stringResource(R.string.community_telegram)) }
         }
         var creditsOpen by remember { mutableStateOf(false) }
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -247,6 +251,7 @@ private fun reportIssue(context: Context, report: String) {
 private const val RELEASES_URL = "https://github.com/Killersparrow1/clash-trackers/releases/latest"
 private const val ISSUES_LIST_URL = "https://github.com/Killersparrow1/clash-Trackers/issues/"
 private const val ISSUES_URL = "https://github.com/Killersparrow1/clash-Trackers/issues/new"
+private const val TELEGRAM_URL = "https://t.me/+KRUnoSeOBTpiMzQ9"
 private const val FEATURE_URL = "https://github.com/Killersparrow1/clash-Trackers/issues/new?title=Feature+request%3A+&labels=enhancement"
 
 /** Every credit in one plain text block, shown in a monospace font like a file. */
