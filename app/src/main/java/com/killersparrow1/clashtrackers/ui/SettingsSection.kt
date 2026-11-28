@@ -1,5 +1,6 @@
 package com.killersparrow1.clashtrackers.ui
 
+import kotlin.math.roundToInt
 import android.app.Activity
 import android.content.ContextWrapper
 import androidx.compose.material3.RadioButton
@@ -90,21 +91,32 @@ fun PersonalizationSection(settings: AppSettings, onChange: ((AppSettings) -> Ap
             )
         }
         if (ScrollBlurSetting.supported) {
-            // Optional, off by default (needs Android 13).
+            // On at High by default (needs Android 13).
             SectionCard(stringResource(R.string.scroll_blur_title)) {
                 val context = LocalContext.current
                 Text(stringResource(R.string.scroll_blur_desc), style = MaterialTheme.typography.bodyMedium)
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf(
-                        ScrollBlurSetting.OFF to R.string.scroll_blur_off,
-                        ScrollBlurSetting.LOW to R.string.scroll_blur_low,
-                        ScrollBlurSetting.HIGH to R.string.scroll_blur_high,
-                    ).forEach { (value, label) ->
-                        FilterChip(
-                            selected = ScrollBlurSetting.level == value,
-                            onClick = { ScrollBlurSetting.set(context, value) },
-                            label = { Text(stringResource(label)) },
-                            modifier = Modifier.heightIn(min = 48.dp),
+                // Three stops: Off, Low, High. The stop labels sit under the track and the chosen one is highlighted.
+                val stops = listOf(
+                    ScrollBlurSetting.OFF to R.string.scroll_blur_off,
+                    ScrollBlurSetting.LOW to R.string.scroll_blur_low,
+                    ScrollBlurSetting.HIGH to R.string.scroll_blur_high,
+                )
+                androidx.compose.material3.Slider(
+                    value = ScrollBlurSetting.level.toFloat(),
+                    onValueChange = { v ->
+                        val level = v.roundToInt().coerceIn(ScrollBlurSetting.OFF, ScrollBlurSetting.HIGH)
+                        if (level != ScrollBlurSetting.level) ScrollBlurSetting.set(context, level)
+                    },
+                    valueRange = ScrollBlurSetting.OFF.toFloat()..ScrollBlurSetting.HIGH.toFloat(),
+                    steps = 1,
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                )
+                Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                    stops.forEach { (value, label) ->
+                        Text(
+                            stringResource(label),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = if (ScrollBlurSetting.level == value) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
