@@ -26,7 +26,7 @@ import kotlinx.coroutines.launch
 import kotlin.math.abs
 
 /**
- * Optional motion blur while a list scrolls (Settings > Personalization). Off by default. It softens the list vertically,
+ * Optional motion blur while a list scrolls or the pages are swiped (Settings > Personalization). Off by default. It softens the list in the direction it moves,
  * more the faster it moves, and fades out as soon as it stops. Needs Android 13 (a small shader); on older phones the
  * option is hidden and nothing is drawn.
  */
@@ -62,13 +62,19 @@ object ScrollBlurSetting {
 }
 
 /** One list's blur state: the current radius (read only when drawing) and the scroll listener that drives it. */
-class ScrollBlur internal constructor(scope: CoroutineScope) {
+class ScrollBlur internal constructor(scope: CoroutineScope, internal val horizontal: Boolean = false) {
     internal val radius = Animatable(0f)
+    /** This list's own shader (a RuntimeShader on Android 13+), so lists drawn in the same frame do not share settings. */
+    internal var shader: Any? = null
     private var job: Job? = null
 
     internal val connection = object : NestedScrollConnection {
         override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-            val target = ScrollBlurSetting.radiusFor(abs(available.y), ScrollBlurSetting.level)
+            // A list listens to up and down movement only, the page swipe to sideways movement only, so a list inside the
+            // pager is not blurred twice.
+            val step = if (horizontal) abs(available.x) else abs(available.y)
+            if (step == 0f) return Offset.Zero
+            val target = ScrollBlurSetting.radiusFor(step, ScrollBlurSetting.level)
             job?.cancel()
             job = scope.launch {
                 // Follow the speed, then relax to zero when no new scroll step arrives.
@@ -82,9 +88,9 @@ class ScrollBlur internal constructor(scope: CoroutineScope) {
 }
 
 @Composable
-fun rememberScrollBlur(): ScrollBlur {
+fun rememberScrollBlur(horizontal: Boolean = false): ScrollBlur {
     val scope = rememberCoroutineScope()
-    return remember { ScrollBlur(scope) }
+    return remember { ScrollBlur(scope, horizontal) }
 }
 
 /** Adds the blur to a scrolling list. Does nothing while the option is off or the phone is older than Android 13. */
@@ -92,7 +98,7 @@ fun Modifier.scrollBlur(blur: ScrollBlur): Modifier =
     if (!ScrollBlurSetting.supported || ScrollBlurSetting.level == ScrollBlurSetting.OFF) this
     else this.nestedScroll(blur.connection).graphicsLayer {
         val r = blur.radius.value
-        renderEffect = if (r > 0.5f) BlurShader.effect(r) else null
+        renderEffect = if (r > 0.5f) BlurShader.effect(blur, r) else null
     }
 
 @RequiresApi(33)
@@ -100,22 +106,23 @@ private object BlurShader {
     private const val SOURCE = """
         uniform shader content;
         uniform float radius;
+        uniform float2 dir;
         half4 main(float2 coord) {
             half4 sum = half4(0.0);
             float total = 0.0;
             for (int i = -4; i <= 4; i++) {
                 float w = 1.0 - abs(float(i)) / 5.0;
-                sum += content.eval(coord + float2(0.0, float(i) * radius / 4.0)) * half(w);
+                sum += content.eval(coord + dir * (float(i) * radius / 4.0)) * half(w);
                 total += w;
             }
             return sum / half(total);
         }
     """
 
-    private val shader by lazy { RuntimeShader(SOURCE) }
-
-    fun effect(radius: Float): androidx.compose.ui.graphics.RenderEffect {
+    fun effect(blur: ScrollBlur, radius: Float): androidx.compose.ui.graphics.RenderEffect {
+        val shader = (blur.shader as? RuntimeShader) ?: RuntimeShader(SOURCE).also { blur.shader = it }
         shader.setFloatUniform("radius", radius)
+        shader.setFloatUniform("dir", if (blur.horizontal) 1f else 0f, if (blur.horizontal) 0f else 1f)
         return android.graphics.RenderEffect.createRuntimeShaderEffect(shader, "content").asComposeRenderEffect()
     }
 }

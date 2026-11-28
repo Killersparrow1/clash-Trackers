@@ -135,6 +135,7 @@ fun ClashTrackersContent(
     // One pager holds every page, so swiping follows the finger and tabs and sub-tabs share the same motion.
     val pager = androidx.compose.foundation.pager.rememberPagerState { Page.entries.size }
     val pagerFade = remember { Animatable(1f) }
+    val pagerBlur = rememberScrollBlur(horizontal = true)
     // The clock ticks every second and rebuilds the model; each tick would recompose every page that is on screen or next to it.
     // While a swipe or a slide is running the pages keep the last model and time, and catch up the moment it stops.
     val tabsMoving = pager.isScrollInProgress
@@ -261,7 +262,7 @@ fun ClashTrackersContent(
                         Box(Modifier.weight(1f).fillMaxWidth()) {
                         androidx.compose.foundation.pager.HorizontalPager(
                             state = pager,
-                            modifier = Modifier.fillMaxSize().graphicsLayer { alpha = pagerFade.value },
+                            modifier = Modifier.fillMaxSize().graphicsLayer { alpha = pagerFade.value }.scrollBlur(pagerBlur),
                             // The page you are on plus one each side stay composed, so a swipe or a skip never shows a blank page.
                             beyondViewportPageCount = 1,
                             flingBehavior = PagerDefaults.flingBehavior(

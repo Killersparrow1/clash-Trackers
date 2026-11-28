@@ -8,7 +8,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ### Added
 
-- Optional **scroll motion blur** (Settings > Personalization, Android 13+, off by default) for the Timers, Plan and Clash lists.
+- Optional **scroll motion blur** (Settings > Personalization, Android 13+, off by default) for the Timers, Plan and Clash lists and the swipe between pages.
 - Road to max lists show items you have not unlocked yet in **black and white**.
 - A free **Star Laboratory** now has a row like the Laboratory does (timer list, widget list), with the picture of its level.
 - Accessibility reminder: **Remind me later** (one week) and **Don't ask again**; Settings has a button to turn the reminder back on.
