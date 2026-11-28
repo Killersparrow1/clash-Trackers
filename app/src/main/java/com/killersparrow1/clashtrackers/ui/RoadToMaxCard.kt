@@ -319,8 +319,8 @@ private fun ItemGrid(items: List<RoadItem>, onItem: (RoadItem) -> Unit) {
             val picture = remember(item.id, item.lowest, tile) {
                 WidgetIcons.get(context).bitmapForLevel(item.id, item.lowest.coerceAtLeast(1), with(density) { tile.roundToPx() })?.asImageBitmap()
             }
-            // Not unlocked yet (no copy at level 1 or more): shown in black and white when the option is on.
-            val locked = LockedLook.greyLocked && item.levels.all { it == 0 }
+            // Not unlocked yet (no copy at level 1 or more): shown in black and white.
+            val locked = item.levels.all { it == 0 }
             val edge = if (item.maxed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
             Box(
                 Modifier.size(tile).border(1.5.dp, edge, RoundedCornerShape(12.dp))

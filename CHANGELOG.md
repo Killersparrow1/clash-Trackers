@@ -8,7 +8,7 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ### Added
 
-- Road to max lists show items you have not unlocked yet in **black and white** (Settings > Personalization > Road to max turns it off).
+- Road to max lists show items you have not unlocked yet in **black and white**.
 - A free **Star Laboratory** now has a row like the Laboratory does (timer list, widget list), with the picture of its level.
 - Accessibility reminder: **Remind me later** (one week) and **Don't ask again**; Settings has a button to turn the reminder back on.
 - Every release gets a **VirusTotal scan** and a `security-report.txt` (version, SHA-256, status, detections, report link) attached next to the APK. A scan that did not finish is reported as not finished, never as clean.
