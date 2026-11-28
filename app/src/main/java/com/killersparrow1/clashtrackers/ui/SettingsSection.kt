@@ -89,6 +89,14 @@ fun PersonalizationSection(settings: AppSettings, onChange: ((AppSettings) -> Ap
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+        SectionCard(stringResource(R.string.road_look_title)) {
+            val context = LocalContext.current
+            CheckRow(
+                title = stringResource(R.string.road_grey_locked),
+                detail = stringResource(R.string.road_grey_locked_desc),
+                checked = LockedLook.greyLocked,
+            ) { on -> LockedLook.set(context, on) }
+        }
         SectionCard(stringResource(R.string.settings_language)) {
             LanguageSetting()
         }

@@ -49,6 +49,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -317,13 +319,20 @@ private fun ItemGrid(items: List<RoadItem>, onItem: (RoadItem) -> Unit) {
             val picture = remember(item.id, item.lowest, tile) {
                 WidgetIcons.get(context).bitmapForLevel(item.id, item.lowest.coerceAtLeast(1), with(density) { tile.roundToPx() })?.asImageBitmap()
             }
+            // Not unlocked yet (no copy at level 1 or more): shown in black and white when the option is on.
+            val locked = LockedLook.greyLocked && item.levels.all { it == 0 }
             val edge = if (item.maxed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
             Box(
                 Modifier.size(tile).border(1.5.dp, edge, RoundedCornerShape(12.dp))
                     .background(MaterialTheme.colorScheme.surfaceContainerHighest, RoundedCornerShape(12.dp))
                     .clip(RoundedCornerShape(12.dp)).clickable { onItem(item) },
             ) {
-                if (picture != null) Image(picture, contentDescription = null, modifier = Modifier.fillMaxSize().padding(4.dp))
+                if (picture != null) Image(
+                    picture, contentDescription = null,
+                    modifier = Modifier.fillMaxSize().padding(4.dp),
+                    alpha = if (locked) 0.7f else 1f,
+                    colorFilter = if (locked) ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0f) }) else null,
+                )
                 // Crafted Defense modules share their defense's picture, so the module's initials tell them apart.
                 if (item.group == 'c') item.name?.let { n ->
                     Text(
