@@ -45,6 +45,7 @@ import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.animation.core.Spring
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.layout
 import androidx.compose.animation.core.spring
@@ -143,6 +144,25 @@ fun ClashTrackersContent(
     val pager = androidx.compose.foundation.pager.rememberPagerState { Page.entries.size }
     val pagerFade = remember { Animatable(1f) }
     val pagerBlur = rememberScrollBlur(pager)
+    // A small tick when the page changes, by tap or swipe: a firmer one for another tab, a lighter one for a sub-tab.
+    // It follows the phone's own touch feedback setting.
+    val hapticView = androidx.compose.ui.platform.LocalView.current
+    LaunchedEffect(pager) {
+        var last = pager.settledPage
+        snapshotFlow { pager.settledPage }.collect { page ->
+            if (page == last) return@collect
+            val otherTab = Page.entries[page].dest != Page.entries[last].dest
+            last = page
+            val modern = android.os.Build.VERSION.SDK_INT >= 34
+            hapticView.performHapticFeedback(
+                when {
+                    !modern -> android.view.HapticFeedbackConstants.CLOCK_TICK
+                    otherTab -> android.view.HapticFeedbackConstants.SEGMENT_TICK
+                    else -> android.view.HapticFeedbackConstants.SEGMENT_FREQUENT_TICK
+                },
+            )
+        }
+    }
     var adviceTest by remember { mutableStateOf(false) }
     if (ScrollBlurAdvice.suggest || adviceTest) {
         val adviceContext = LocalContext.current
