@@ -439,7 +439,7 @@
     <string name="perm_intro">Some settings are off, so timers and alerts may be late or stop. Android only lets you switch these on yourself.</string>
     <string name="perm_fix">Open setting</string>
     <string name="perm_app_info">App info</string>
-    <string name="perm_later">Later</string>
+    <string name="perm_later">Close</string>
     <string name="perm_remind_later">Remind me later</string>
     <string name="perm_dont_show">Do not show this again</string>
     <string name="access_reminder_off">The accessibility reminder is turned off.</string>
