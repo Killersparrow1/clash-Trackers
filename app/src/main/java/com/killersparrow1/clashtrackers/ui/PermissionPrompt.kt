@@ -13,11 +13,16 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -103,8 +108,15 @@ fun PermissionPrompt(enabled: Boolean = true) {
         ask.launch(Manifest.permission.POST_NOTIFICATIONS)
     }
 
+    var dontShow by remember { mutableStateOf(false) }
+    // Closing the pop-up with the tick set means the accessibility reminder is not shown again.
+    fun close() {
+        if (dontShow && needs.any { it == Need.ACCESSIBILITY }) AccessibilityReminder.neverAsk(context)
+        later = true
+    }
+
     AlertDialog(
-        onDismissRequest = { later = true },
+        onDismissRequest = { close() },
         title = { Text(stringResource(R.string.perm_title)) },
         text = {
             Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -113,30 +125,41 @@ fun PermissionPrompt(enabled: Boolean = true) {
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text(stringResource(need.title), style = MaterialTheme.typography.titleSmall)
                         Text(stringResource(need.why), style = MaterialTheme.typography.bodySmall)
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            OutlinedButton(onClick = { fix(need) }) { Text(stringResource(R.string.perm_fix)) }
-                            // The accessibility switch can be greyed out until "Allow restricted settings" is chosen in App info.
-                            if (need == Need.ACCESSIBILITY) {
-                                OutlinedButton(onClick = {
-                                    open(context, Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}")))
-                                }) { Text(stringResource(R.string.perm_app_info)) }
-                            }
-                        }
                         if (need == Need.ACCESSIBILITY) {
+                            // Optional permission: "Do not show this again" tick, a postpone button, and the action.
+                            Row(
+                                Modifier.fillMaxWidth().toggleable(dontShow, role = Role.Checkbox) { dontShow = it },
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            ) {
+                                Checkbox(checked = dontShow, onCheckedChange = null)
+                                Text(stringResource(R.string.perm_dont_show), style = MaterialTheme.typography.bodyMedium)
+                            }
+                            OutlinedButton(
+                                onClick = {
+                                    if (dontShow) AccessibilityReminder.neverAsk(context) else AccessibilityReminder.remindLater(context)
+                                    tick++
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                            ) { Text(stringResource(R.string.perm_remind_later)) }
+                            Button(onClick = { fix(need) }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.perm_fix)) }
+                            // The accessibility switch can be greyed out until "Allow restricted settings" is chosen in App info.
+                            TextButton(
+                                onClick = {
+                                    open(context, Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}")))
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                            ) { Text(stringResource(R.string.perm_app_info)) }
+                        } else {
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                TextButton(onClick = { AccessibilityReminder.remindLater(context); tick++ }) {
-                                    Text(stringResource(R.string.perm_remind_later))
-                                }
-                                TextButton(onClick = { AccessibilityReminder.neverAsk(context); tick++ }) {
-                                    Text(stringResource(R.string.perm_dont_ask))
-                                }
+                                OutlinedButton(onClick = { fix(need) }) { Text(stringResource(R.string.perm_fix)) }
                             }
                         }
                     }
                 }
             }
         },
-        confirmButton = { TextButton(onClick = { later = true }) { Text(stringResource(R.string.perm_later)) } },
+        confirmButton = { TextButton(onClick = { close() }) { Text(stringResource(R.string.perm_later)) } },
     )
 }
 
