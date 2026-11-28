@@ -89,6 +89,27 @@ fun PersonalizationSection(settings: AppSettings, onChange: ((AppSettings) -> Ap
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+        if (ScrollBlurSetting.supported) {
+            // Optional, off by default (needs Android 13).
+            SectionCard(stringResource(R.string.scroll_blur_title)) {
+                val context = LocalContext.current
+                Text(stringResource(R.string.scroll_blur_desc), style = MaterialTheme.typography.bodyMedium)
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf(
+                        ScrollBlurSetting.OFF to R.string.scroll_blur_off,
+                        ScrollBlurSetting.LOW to R.string.scroll_blur_low,
+                        ScrollBlurSetting.HIGH to R.string.scroll_blur_high,
+                    ).forEach { (value, label) ->
+                        FilterChip(
+                            selected = ScrollBlurSetting.level == value,
+                            onClick = { ScrollBlurSetting.set(context, value) },
+                            label = { Text(stringResource(label)) },
+                            modifier = Modifier.heightIn(min = 48.dp),
+                        )
+                    }
+                }
+            }
+        }
         SectionCard(stringResource(R.string.settings_language)) {
             LanguageSetting()
         }

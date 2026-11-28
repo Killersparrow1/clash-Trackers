@@ -112,6 +112,7 @@ fun TimerDashboard(
     var showHelp by rememberSaveable { mutableStateOf(false) }
     var calendar by rememberSaveable { mutableStateOf(false) }
     val gridState = rememberLazyGridState()
+    val scrollBlur = rememberScrollBlur()
     // The clock ticks every second and hands this screen a new model; while the list is being scrolled or flung it keeps
     // the last one and catches up the moment it stops, so scrolling is not interrupted by a recomposition of every card.
     val scrolling = gridState.isScrollInProgress
@@ -152,7 +153,7 @@ fun TimerDashboard(
         LazyVerticalGrid(
             columns = GridCells.Fixed(if (wide) 2 else 1),
             state = gridState,
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().scrollBlur(scrollBlur),
             contentPadding = listPadding(),
             verticalArrangement = Arrangement.spacedBy(12.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),

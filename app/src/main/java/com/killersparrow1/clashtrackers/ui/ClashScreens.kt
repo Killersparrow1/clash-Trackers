@@ -59,7 +59,7 @@ internal fun EventsPage(now: Long) {
     val format = remember { DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT) }
     fun local(epoch: Long) = format.format(Instant.ofEpochSecond(epoch).atZone(zone))
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().scrollBlur(rememberScrollBlur()),
         contentPadding = listPadding(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {

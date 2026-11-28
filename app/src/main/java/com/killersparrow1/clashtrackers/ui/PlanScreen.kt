@@ -82,7 +82,7 @@ internal fun PlanPage(export: VillageExport?, model: WidgetModel, now: Long, pag
     var filter by remember { mutableStateOf(PlanFilter()) }
 
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().scrollBlur(rememberScrollBlur()),
             contentPadding = listPadding(),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
