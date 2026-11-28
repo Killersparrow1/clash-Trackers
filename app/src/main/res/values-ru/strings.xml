@@ -214,7 +214,6 @@
     <string name="widget_style_minimal">Минимализм</string>
     <string name="about_version">Clash Trackers %1$s</string>
     <string name="about_check_updates">Проверить обновления</string>
-    <string name="about_updates_note">Открывает последний релиз на GitHub в браузере. Само приложение остаётся офлайн.</string>
     <string name="about_no_browser">На этом телефоне не найден браузер.</string>
     <string name="about_feedback_title">Ошибки и предложения</string>
     <string name="about_feedback_note">Нашли ошибку или есть идея? Напишите на GitHub (откроется в браузере, для публикации нужен бесплатный аккаунт GitHub).</string>

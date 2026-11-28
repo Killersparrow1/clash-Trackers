@@ -206,7 +206,6 @@
     <string name="widget_style_minimal">न्यूनतम</string>
     <string name="about_version">Clash Trackers %1$s</string>
     <string name="about_check_updates">अपडेट जांचें</string>
-    <string name="about_updates_note">आपके ब्राउज़र में GitHub पर नवीनतम रिलीज़ खोलता है। ऐप खुद ऑफ़लाइन रहता है।</string>
     <string name="about_no_browser">इस फोन पर कोई ब्राउज़र नहीं मिला।</string>
     <string name="about_feedback_title">समस्याएं और फीचर अनुरोध</string>
     <string name="about_feedback_note">बग मिला या कोई विचार है? GitHub पर खोलें (आपके ब्राउज़र में खुलता है, पोस्ट करने के लिए मुफ़्त GitHub खाता चाहिए)।</string>
