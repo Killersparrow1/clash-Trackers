@@ -20,6 +20,144 @@ A few rules keep the project working:
 - **Upload to `dev`, not `main`.** Pull requests and GitHub web uploads go to `dev`; `main` only receives merges from it.
 - **Network use stays small and visible.** The app uses the internet only for GitHub updates and ClashKing data (game data, pictures, event dates). Never send the player tag, village data or anything personal, and keep a cached copy so the app still works offline.
 
+## Project map
+
+A one-page picture of how the app is put together. Everything below is explained in the sections that follow.
+
+```mermaid
+mindmap
+  root((Clash Trackers))
+    Data in
+      Village export JSON from the game
+        Copied by hand
+        Import button from the Companion
+        Shizuku clipboard watcher
+      ClashKing
+        Game data and item levels
+        Pictures
+        Event dates
+      GitHub releases
+        Update check
+    Core logic
+      ExportParser reads the export
+      SyncLogic updates the stored state
+      TimerEngine and BoostEngine
+        Helpers and boosts
+        Clock Tower and potions
+      WidgetModel builds the rows
+      RoadToMax and BobPlan
+      EventEngine and EventAlertPlanner
+    Storage
+      StateRepository
+        One DataStore for all accounts
+      AppState and AppSettings
+      Small SharedPreferences objects
+    Screens
+      Timers
+      Plan
+        Road to max
+        Bedtime
+      Clash events
+      Settings
+        Personalization
+        Support
+      Quick setup and permission pop-up
+    Outputs
+      Home-screen widgets
+        Timers widget
+        Road to max widget
+      Notifications
+        Finish alerts
+        Event alerts
+        Live builder status
+      In-app update installer
+    Optional helpers
+      Clash Companion accessibility service
+      Shizuku auto-import
+    Build and release
+      Unit tests
+      GitHub Actions
+      dev branch to main branch
+```
+
+## How the app works
+
+The whole app is one loop: **get a village export, turn it into timers, show the timers, and wake up when one ends.**
+
+1. **Get the export.** The game's *Settings > Data Export > Copy* puts a JSON text on the clipboard. It reaches the app in one of three ways: you paste or tap Sync (`sync/SyncRunner.kt`), the Companion's floating button (`companion/`), or the optional Shizuku watcher (`shizuku/`, `sync/ClipboardAutoSync.kt`). All three end in `SyncRunner.sync`, so there is one import path.
+2. **Parse it.** `core/ExportParser.kt` checks that the text is really a village export and fills a `VillageExport` (`core/Model.kt`): Town Hall, builders, running upgrades (jobs), levels you own, boosts, helpers.
+3. **Update the stored state.** `core/SyncLogic.kt` merges the new export into the account's `AppState` (`core/AppState.kt`), applies boosts and the Clock Tower window, and keeps your own settings. `data/StateRepository.kt` saves it. Each player tag is its own account.
+4. **Build rows.** `core/WidgetModel.kt` turns the state into rows: running, completed or idle, with a remaining time, a progress value and a picture id. `ui/TimerDashboardModel.kt` sorts and filters them for the Timers screen. The widget, the notifications and the alarms all read the same rows, so they agree with each other.
+5. **Show them.** Screens are Jetpack Compose (`ui/`). Widgets are plain `RemoteViews` (`widget/`), because widgets cannot use Compose.
+6. **Wake up.** When something finishes, an exact alarm (`WidgetAlarm`, `notify/`) redraws the widgets and posts the finish notification. After a reboot or an update the alarms are set again.
+
+**Pictures.** `widget/WidgetRenderer.kt` (`WidgetIcons`) finds a picture by item id and level. It looks in the downloaded copies first, then in `assets/icons`. Buildings and traps have one picture per level, fetched on demand by `update/RemoteIcons.kt`.
+
+**Game data.** `assets/max_data.json` (what each level costs, how long it takes, which Town Hall allows it) and `assets/names.json` (names) are generated from ClashKing's data by the scripts in `tools/`. `data/MaxDataStore.kt` can swap in a newer downloaded copy.
+
+## Where things live
+
+All paths are under `app/src/main/java/com/killersparrow1/clashtrackers/` unless stated.
+
+| Folder | What is in it |
+|---|---|
+| `core/` | The logic that decides things. No Android screens. Most of it is plain Kotlin that unit tests can run: `ExportParser`, `SyncLogic`, `TimerEngine`, `BoostEngine`, `WidgetModel`, `RoadToMax`, `BobPlan`, `EventEngine`, `Countdown`, `GameIds`. |
+| `data/` | Saving and loading: `StateRepository` (DataStore), `MaxDataStore` (game data), `WidgetTexts` (localised text for the rows). |
+| `sync/` | Getting an export in (`SyncRunner`, `SyncActivity`, `ClipboardAutoSync`) and small stored choices (`GoldPassStore`, `SleepStore`, `IdleAlert`, `ClockTowerTracking`, `AppIcon`). |
+| `ui/` | Compose screens and dialogs. `ClashTrackersContent.kt` is the shell: the four bottom tabs and their swipeable pages. |
+| `widget/` | The home-screen widgets (`ClashWidget`, `RoadWidget`), their list service and the renderer that fills the layouts. |
+| `notify/` | Notifications and alarms: `Notifier` (finish alerts), `EventAlerts`, `LiveStatus`, their receivers. |
+| `update/` | Everything that touches the network: app updates, game data, event dates, pictures. |
+| `companion/` | The accessibility service (the floating import button). Decisions are in `CompanionLogic` and `CompanionSession`. |
+| `shizuku/` | The optional clipboard watcher that runs in the Shizuku service process. |
+| `crash/`, `locale/` | The crash catcher and the language switch. |
+| `app/src/main/res/` | Strings (`values/`, `values-ru/`, `values-hi/`), layouts for the widgets, drawables, fonts, sounds (`raw/`), `xml/` (widget info, shortcuts, accessibility, locales). |
+| `app/src/main/assets/` | `max_data.json`, `names.json`, `upgrade_times.json`, `icon_paths.json`, `icons/`. |
+| `app/src/test/` | Unit tests. Fixtures (anonymised exports) are in `resources/fixtures`. |
+| `tools/` | Node scripts that regenerate the game data files from ClashKing. |
+| `.github/workflows/` | The Build APK workflow. |
+
+The four bottom tabs are Timers, Plan (Road to max, Bedtime), Clash (events) and Settings (Settings, Personalization, Support). Do not add a fifth.
+
+## Recipes
+
+**Add a setting.** Put the text in `res/values/strings.xml`. Add the control to the right card in `ui/SettingsSection.kt` (`SectionCard`, `SwitchRow`, `CheckRow`). If a widget or the timer logic needs the value, add a field with a default to `AppSettings` in `core/AppState.kt` and change it through `onChange { it.copy(...) }`. If only a screen or a notification needs it, use a small object over `SharedPreferences` like `ui/AccessibilityReminder.kt` and, if the screen has to redraw when it changes, hold the value in a Compose state.
+
+**Add a screen or a page.** Add the composable in `ui/`. For a new page inside an existing tab, add an entry to the `Page` enum in `ClashTrackersContent.kt` and show it in the `when` that draws the pages. Strings go in `values/strings.xml`.
+
+**Add a new item (a new building, troop, spell and so on).** Regenerate the data with the scripts in `tools/` (see "Game data converters stay identical" above), check that unrelated items did not change, and add the picture at `assets/icons/<id>.webp` if it is not downloaded. Special rules that need the raw id (for example siege machines in `RoadToMaxCalc`, or `GameIds`) are edited by hand.
+
+**Change how a timer is calculated.** Look in `core/TimerEngine.kt` (helpers and sessions), `core/BoostEngine.kt` and `core/SyncLogic.kt` (boosts, potions, Clock Tower window) and `core/WidgetModel.kt` (rows). Add or update a test in the matching `*Test.kt` before you touch the logic, and use a copy of a real export from `app/src/test/resources/fixtures` to check it.
+
+**Add a row or a label to the timer list.** Rows are made in `core/WidgetModel.kt`. Put the user-facing text in `core/WidgetText.kt` and fill it in `data/WidgetTexts.kt` from a string resource. The screen reads rows through `ui/TimerDashboardModel.kt`; a widget draws them in `widget/WidgetRenderer.kt` with the `widget_row*.xml` layouts.
+
+**Add a notification.** Create the channel in `notify/` with a new id (a channel's sound and importance cannot be changed once it exists), schedule it with an exact alarm and make a receiver that also re-plans after a reboot, an app update and a time change. Look at `EventAlerts.kt` and `EventAlertReceiver.kt` as the model. Register the receiver in `AndroidManifest.xml`; `ManifestClassesTest` checks that the classes named there exist.
+
+**Add a new Compose style or motion.** Colours and type are in `ui/theme/`. Shared touch effects and the card animations are in `ui/UiComponents.kt` and `ui/Motion.kt`; reuse them instead of writing a new one.
+
+**Add or change a string.** English goes in `values/strings.xml`. A language you leave out falls back to English. If you do translate it, keep the placeholders (`StringsConsistencyTest` checks).
+
+## Build, run and test
+
+- **Needs:** Android SDK (Platform 37, Build-Tools 36) and JDK 21 or newer. CI uses a newer JDK; Node 22 is only for the scripts in `tools/`.
+- **Run the unit tests:** `./gradlew :app:testDebugUnitTest`. Run them before every upload; the CI build runs them first and stops if one fails.
+- **Build a phone app:** `./gradlew assembleDebug -PdevBuild=true` builds "Clash Trackers Dev", which installs next to the real app. Without `-PdevBuild=true` the package is the real one.
+- **Cloud build:** *Actions > Build APK > Run workflow* on the branch, then download `ClashTrackers-debug-apk` from the run.
+- **Look at your change on a phone.** The unit tests only check logic. Screens, widgets, notifications and permissions can only be checked by installing the app.
+
+## Branches and releases
+
+- All work goes to `dev`. `main` only receives merges from `dev`.
+- A push to `main` runs the workflow: unit tests, a debug build, a release build, and then the release job (after the production approval) publishes a GitHub release. The in-app updater reads the latest release and installs its APK.
+- Releases are numbered `CT<major>.<minor>`; the workflow picks the next number itself.
+- Keep `CHANGELOG.md` up to date for anything a player can notice.
+
+## Keeping things safe
+
+- Do not change the signing key unless you plan for every user to uninstall once: Android refuses an update signed with another key.
+- Do not commit passwords, keystores or real village exports.
+- Keep the accessibility service as small as it is now (see the rules above) and keep it optional. Nothing in the app should need it to work.
+
 ## Adding a language
 
 The app is translated through normal Android string resources, so the core of a language takes three small steps and no Kotlin code. A full translation adds one optional JSON file.
