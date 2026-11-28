@@ -455,7 +455,7 @@
     <string name="community_star">Star on GitHub</string>
     <string name="community_share">Share app</string>
     <string name="community_reddit">Discuss on Reddit</string>
-    <string name="community_share_text">%1$s\nOffline Clash of Clans upgrade tracker with timers and widgets.\n%2$s</string>
+    <string name="community_share_text">%1$s\nClash of Clans upgrade tracker with timers and widgets.\n%2$s</string>
     <string name="perm_dont_show">Do not show this again</string>
     <string name="access_reminder_off">The accessibility reminder is turned off.</string>
     <string name="access_reminder_paused">The accessibility reminder is paused for now.</string>
