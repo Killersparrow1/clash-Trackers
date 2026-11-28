@@ -196,3 +196,37 @@ jobs:
           fi
           gh release create "$TAG" "apk/ClashTrackers-$TAG.apk" \
             --target "$GITHUB_SHA" --title "$TAG" --generate-notes
+
+      # VirusTotal scan of the released APK (tools/virustotal-scan.sh). It runs after the release is out, so a slow queue
+      # never holds the release up, and its result is added to the release description. Nothing is added when the scan
+      # could not finish (no key, upload failure, rate limit, timeout): an unfinished scan is never described as clean.
+      - name: Scan the APK with VirusTotal
+        continue-on-error: true
+        timeout-minutes: 40
+        env:
+          VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
+          TAG: ${{ needs.build.outputs.tag }}
+        run: bash tools/virustotal-scan.sh "apk/ClashTrackers-$TAG.apk" "$TAG" security-report.txt
+
+      - name: Add the scan result to the release description
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.build.outputs.tag }}
+        run: |
+          [ -s security-report.txt ] || { echo "No scan report; the description is left as it is."; exit 0; }
+          cat security-report.txt
+          status=$(sed -n 's/^SCAN STATUS : //p' security-report.txt | head -1)
+          counts=$(sed -n 's/^Detections  : //p' security-report.txt | head -1)
+          flagged=${counts%% /*}
+          engines=${counts##*/ }
+          url=$(sed -n 's/^Report URL  : //p' security-report.txt | head -1)
+          case "$status" in
+            COMPLETED_CLEAN)
+              line="VirusTotal scan: clean. None of the ${engines} security engines flagged this file. [View the full report](${url})" ;;
+            COMPLETED_DETECTIONS)
+              line="VirusTotal scan: ${flagged} of ${engines} security engines flagged this file. [View the full report](${url})" ;;
+            *) echo "The scan did not finish; nothing is added to the description."; exit 0 ;;
+          esac
+          body=$(gh release view "$TAG" --json body -q .body)
+          gh release edit "$TAG" --notes "${body}"$'\n\n'"${line}"
