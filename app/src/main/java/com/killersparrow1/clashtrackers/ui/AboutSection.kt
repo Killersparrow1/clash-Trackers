@@ -56,7 +56,6 @@ const val FAN_CONTENT_DISCLAIMER =
 fun AboutSection(reportProvider: () -> String = { "" }) {
     val context = LocalContext.current
     val version = remember { appVersion(context) }
-    var showLicence by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     var update by remember { mutableStateOf<UpdateState>(UpdateState.Idle) }
     val installedVersion = remember { runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull().orEmpty() }
@@ -187,15 +186,6 @@ fun AboutSection(reportProvider: () -> String = { "" }) {
                     )
                 }
             }
-            TextButton(
-                onClick = { showLicence = !showLicence },
-                modifier = Modifier.heightIn(min = 48.dp),
-                contentPadding = PaddingValues(0.dp),
-            ) { Text(if (showLicence) "Hide font licence" else "Show font licence") }
-            if (showLicence) {
-                val licence = remember { readAsset(context, "licenses/LilitaOne-OFL.txt") }
-                Text(licence, style = MaterialTheme.typography.bodySmall)
-            }
             }
         }
     }
@@ -305,5 +295,3 @@ internal fun appVersion(context: Context): String = runCatching {
     "CT${info.versionName} ($code)"
 }.getOrDefault("")
 
-private fun readAsset(context: Context, path: String): String =
-    runCatching { context.assets.open(path).bufferedReader().use { it.readText() } }.getOrDefault("Licence file missing.")
