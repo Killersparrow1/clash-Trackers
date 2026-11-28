@@ -58,8 +58,10 @@ internal fun EventsPage(now: Long) {
     val zone = remember { ZoneId.systemDefault() }
     val format = remember { DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT) }
     fun local(epoch: Long) = format.format(Instant.ofEpochSecond(epoch).atZone(zone))
+    val listState = androidx.compose.foundation.lazy.rememberLazyListState()
     LazyColumn(
-        modifier = Modifier.fillMaxSize().scrollBlur(rememberScrollBlur()),
+        state = listState,
+        modifier = Modifier.fillMaxSize().scrollBlur(rememberScrollBlur(listState)),
         contentPadding = listPadding(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {

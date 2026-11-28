@@ -112,7 +112,7 @@ fun TimerDashboard(
     var showHelp by rememberSaveable { mutableStateOf(false) }
     var calendar by rememberSaveable { mutableStateOf(false) }
     val gridState = rememberLazyGridState()
-    val scrollBlur = rememberScrollBlur()
+    val scrollBlur = rememberScrollBlur(gridState)
     // The clock ticks every second and hands this screen a new model; while the list is being scrolled or flung it keeps
     // the last one and catches up the moment it stops, so scrolling is not interrupted by a recomposition of every card.
     val scrolling = gridState.isScrollInProgress

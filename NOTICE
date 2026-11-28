@@ -69,6 +69,11 @@ https://github.com/memehammad/clash-timers). No code from that project is used:
 the implementation here is written separately, which is why this project stays
 under the MIT License.
 
+The optional scroll motion blur (ui/ScrollBlur.kt) is modelled on the scroll motion blur
+of Essentials by Sameera Sandakelum (https://github.com/sameerasw/essentials), MIT
+License, Copyright (c) 2025 Sameera Sandakelum: the directional blur shader and the way
+its length follows the scroll speed. It is a separate implementation.
+
 The README buttons in docs/ show the Shizuku app icon (Rikka, Apache License 2.0)
 and the Obtainium logo (ImranR98, GPL-3.0). Both belong to their projects and are
 used only as links to them. They are not covered by the MIT License.

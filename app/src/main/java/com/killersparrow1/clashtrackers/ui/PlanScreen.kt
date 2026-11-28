@@ -81,8 +81,10 @@ internal fun PlanPage(export: VillageExport?, model: WidgetModel, now: Long, pag
 
     var filter by remember { mutableStateOf(PlanFilter()) }
 
+        val listState = androidx.compose.foundation.lazy.rememberLazyListState()
         LazyColumn(
-            modifier = Modifier.fillMaxSize().scrollBlur(rememberScrollBlur()),
+            state = listState,
+            modifier = Modifier.fillMaxSize().scrollBlur(rememberScrollBlur(listState)),
             contentPadding = listPadding(),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
