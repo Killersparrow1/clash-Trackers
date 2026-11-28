@@ -185,8 +185,23 @@ jobs:
           fi
           mv apk/*.apk "apk/ClashTrackers-$TAG.apk"
 
-      # VirusTotal scan of the exact file that is released (tools/virustotal-scan.sh). It never blocks the release:
-      # when the scan cannot finish (no key, upload failure, rate limit, timeout) the report says INCOMPLETE, not clean.
+      # The release is published first, so a slow VirusTotal queue never holds it up. The scan runs afterwards and its
+      # report is attached to the same release (see below); until then the notes say the scan is still running.
+      - name: Create tag and GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.build.outputs.tag }}
+        run: |
+          if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            echo "::error::$TAG already exists (another release was published after this build). Re-run the build on main."
+            exit 1
+          fi
+          gh release create "$TAG" "apk/ClashTrackers-$TAG.apk" \
+            --target "$GITHUB_SHA" --title "$TAG" --generate-notes \
+            --notes "VirusTotal: scan running, the report (security-report.txt) will be attached to this release when it finishes."
+
+      # VirusTotal scan of the exact file that was released (tools/virustotal-scan.sh). When the scan cannot finish
+      # (no key, upload failure, rate limit, timeout) the report says INCOMPLETE, never clean.
       - name: Scan the APK with VirusTotal
         continue-on-error: true
         timeout-minutes: 40
@@ -195,9 +210,10 @@ jobs:
           TAG: ${{ needs.build.outputs.tag }}
         run: bash tools/virustotal-scan.sh "apk/ClashTrackers-$TAG.apk" "$TAG" security-report.txt
 
-      - name: Make sure there is a security report
+      - name: Attach the security report to the release
         if: always()
         env:
+          GH_TOKEN: ${{ github.token }}
           TAG: ${{ needs.build.outputs.tag }}
         run: |
           if [ ! -s security-report.txt ]; then
@@ -215,21 +231,13 @@ jobs:
           fi
           cat security-report.txt
           { echo '```'; cat security-report.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Create tag and GitHub Release
-        env:
-          GH_TOKEN: ${{ github.token }}
-          TAG: ${{ needs.build.outputs.tag }}
-        run: |
-          if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
-            echo "::error::$TAG already exists (another release was published after this build). Re-run the build on main."
-            exit 1
-          fi
           scan=$(sed -n 's/^SCAN STATUS : //p' security-report.txt | head -1)
           case "$scan" in
-            COMPLETED_CLEAN) line="VirusTotal: scan finished, no detections." ;;
-            COMPLETED_DETECTIONS) line="VirusTotal: scan finished WITH detections, see security-report.txt." ;;
-            *) line="VirusTotal: scan did not finish, see security-report.txt." ;;
+            COMPLETED_CLEAN) line="VirusTotal: scan finished, no detections. See security-report.txt." ;;
+            COMPLETED_DETECTIONS) line="VirusTotal: scan finished WITH detections. See security-report.txt." ;;
+            *) line="VirusTotal: scan did not finish. See security-report.txt; do not treat this file as scanned." ;;
           esac
-          gh release create "$TAG" "apk/ClashTrackers-$TAG.apk" security-report.txt \
-            --target "$GITHUB_SHA" --title "$TAG" --generate-notes --notes "$line"
+          gh release upload "$TAG" security-report.txt --clobber
+          body=$(gh release view "$TAG" --json body -q .body)
+          pending="VirusTotal: scan running, the report (security-report.txt) will be attached to this release when it finishes."
+          gh release edit "$TAG" --notes "${body/"$pending"/"$line"}"

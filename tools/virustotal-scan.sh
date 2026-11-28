@@ -98,15 +98,18 @@ if [ "$size" -gt 33554432 ]; then
   [ -n "$upload_to" ] || { reason="VirusTotal returned no upload address"; write_report; exit 0; }
 fi
 
+echo "VirusTotal: uploading $(basename "$apk") (${size} bytes, SHA-256 ${sha})"
 code=$(vt POST "$work/upload.json" "$upload_to" --form "file=@${apk}") || { reason="upload failed (HTTP $code)"; write_report; exit 0; }
 analysis=$(jq -r '.data.id // empty' "$work/upload.json")
 [ -n "$analysis" ] || { reason="upload answered without an analysis id"; write_report; exit 0; }
 
+echo "VirusTotal: uploaded, analysis id ${analysis}"
 waited=0
 while :; do
   code=$(vt GET "$work/analysis.json" "$base/analyses/$analysis") || { reason="could not read the analysis (HTTP $code)"; write_report; exit 0; }
   state=$(jq -r '.data.attributes.status // empty' "$work/analysis.json")
   if [ "$state" = "completed" ]; then break; fi
+  echo "VirusTotal: analysis ${state:-unknown} after ${waited}s"
   if [ "$waited" -ge "$limit" ]; then
     reason="timed out after ${limit}s while VirusTotal was still analysing (last state: ${state:-unknown})"; write_report; exit 0
   fi
