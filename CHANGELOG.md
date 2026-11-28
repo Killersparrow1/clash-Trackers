@@ -11,7 +11,6 @@ All notable changes to this project are listed here. The format is based on [Kee
 - Road to max lists show items you have not unlocked yet in **black and white**.
 - A free **Star Laboratory** now has a row like the Laboratory does (timer list, widget list), with the picture of its level.
 - Accessibility reminder: **Remind me later** (one week) and **Don't ask again**; Settings has a button to turn the reminder back on.
-- Every release gets a **VirusTotal scan** and a `security-report.txt` (version, SHA-256, status, detections, report link) attached next to the APK. A scan that did not finish is reported as not finished, never as clean.
 - Upgrades of buildings and traps show the picture of the level being upgraded to, not the highest level.
 - Optional **Shizuku auto-import** (Settings > Shizuku auto-import): with Shizuku running through wireless debugging, tapping Copy in Clash of Clans imports the village by itself, using the normal import. It reads the clipboard only while the game is open and keeps only village data. While it works, the Clash Companion import button is hidden; it returns if Shizuku stops.
 - A tappable **Clock Tower potion** chip on the widget (Builder Base heading, next to the Clock Tower cooldown): tap for one more hour of 10x, − to undo. It speeds up the Builder Base builders and the Star Laboratory in the widget's finish times.
