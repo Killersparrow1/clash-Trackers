@@ -174,24 +174,19 @@ fun AboutSection(reportProvider: () -> String = { "" }) {
                 Text(if (creditsOpen) "\u2212" else "+", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
             }
             if (creditsOpen) {
-            Text(FAN_CONTENT_DISCLAIMER, style = MaterialTheme.typography.bodyMedium)
-            Text(
-                "Game data, pictures and event dates are provided by ClashKing. Thank you to the ClashKing team.",
-                style = MaterialTheme.typography.bodyMedium,
-            )
-            CREDIT_LINKS.forEach { (label, url) ->
-                TextButton(
-                    onClick = { openUrl(context, url) },
-                    modifier = Modifier.heightIn(min = 48.dp),
-                    contentPadding = PaddingValues(0.dp),
-                ) { Text(label) }
+            androidx.compose.material3.Surface(
+                shape = MaterialTheme.shapes.medium,
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            ) {
+                androidx.compose.foundation.text.selection.SelectionContainer {
+                    Text(
+                        CREDITS_FILE,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                        modifier = Modifier.padding(12.dp),
+                    )
+                }
             }
-            Text(
-                "Built-in icons: clash-of-clans-data by Christopher Pezza (MIT). " +
-                    "Fonts: Lilita One and Doto (SIL Open Font License 1.1).",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
             TextButton(
                 onClick = { showLicence = !showLicence },
                 modifier = Modifier.heightIn(min = 48.dp),
@@ -264,11 +259,44 @@ private const val ISSUES_LIST_URL = "https://github.com/Killersparrow1/clash-Tra
 private const val ISSUES_URL = "https://github.com/Killersparrow1/clash-Trackers/issues/new"
 private const val FEATURE_URL = "https://github.com/Killersparrow1/clash-Trackers/issues/new?title=Feature+request%3A+&labels=enhancement"
 
-private val CREDIT_LINKS = listOf(
-    "ClashKing" to "https://clashk.ing",
-    "ClashKingAssets on GitHub" to "https://github.com/ClashKingInc/ClashKingAssets",
-    "ClashKing API documentation" to "https://api.clashk.ing/swagger/index.html",
-)
+/** Every credit in one plain text block, shown in a monospace font like a file. */
+private val CREDITS_FILE = """
+CLASH TRACKERS
+By Killersparrow1. MIT License (original source code only).
+
+$FAN_CONTENT_DISCLAIMER
+
+CLASHKING
+Game data, names, upgrade times, pictures and event dates.
+Thank you to the ClashKing team.
+  https://clashk.ing
+  https://github.com/ClashKingInc/ClashKingAssets
+  https://api.clashk.ing/swagger/index.html
+
+CLASH-OF-CLANS-DATA
+Built-in icons and names, by Christopher Pezza (MIT).
+  https://github.com/chiefpansancolt/clash-of-clans-data
+
+SCROLL MOTION BLUR
+Modelled on Essentials by Sameera Sandakelum (MIT).
+  https://github.com/sameerasw/essentials
+
+SHIZUKU AUTO-IMPORT
+Shizuku API and provider by Rikka (Apache 2.0).
+HiddenApiBypass by LSPosed (Apache 2.0).
+The idea of reading the clipboard through Shizuku
+comes from Clash Timers by memehammad (GPL-3.0).
+No code from it is used.
+  https://github.com/memehammad/clash-timers
+
+FONTS
+Lilita One by Juan Montoreano and Doto by The Doto
+Project Authors (SIL Open Font License 1.1).
+
+LIBRARIES
+AndroidX, Jetpack Compose, Kotlin and
+kotlinx.serialization (Apache 2.0).
+""".trimIndent()
 
 /** `CT2.2 (4)` from the installed package (releases are named CT + versionName). */
 internal fun appVersion(context: Context): String = runCatching {
