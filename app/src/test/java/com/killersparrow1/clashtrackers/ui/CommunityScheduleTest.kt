@@ -44,6 +44,12 @@ class CommunityScheduleTest {
         assertFalse(s.due(planned, LocalDate.of(2026, 11, 30)))
     }
 
+    @Test fun neverAgainOnceEveryButtonWasUsed() {
+        val st = s.plan(CommunityState(), LocalDate.of(2026, 11, 1)) { 0 }
+        assertTrue(s.due(st.copy(clicked = CLICK_ALL - 1), LocalDate.of(2026, 11, 5)))
+        assertFalse(s.due(st.copy(clicked = CLICK_ALL), LocalDate.of(2026, 11, 5)))
+    }
+
     @Test fun chosenDayIsKeptForTheMonth() {
         val st = s.plan(CommunityState(), LocalDate.of(2026, 11, 2)) { 5 }
         assertEquals(st, s.plan(st, LocalDate.of(2026, 11, 9)) { 0 })
