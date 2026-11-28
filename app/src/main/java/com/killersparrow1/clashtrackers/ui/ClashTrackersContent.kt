@@ -132,6 +132,12 @@ fun ClashTrackersContent(
     EventsAutoRefresh()
     GameDataAutoRefresh()
     var developerOpen by rememberSaveable { mutableStateOf(false) }
+    var communityTest by remember { mutableStateOf(false) }
+    CommunityPrompt(
+        blocked = setupOpen || developerOpen || ScrollBlurAdvice.suggest,
+        test = communityTest,
+        onTestDone = { communityTest = false },
+    )
     val tapScope = androidx.compose.runtime.rememberCoroutineScope()
     // One pager holds every page, so swiping follows the finger and tabs and sub-tabs share the same motion.
     val pager = androidx.compose.foundation.pager.rememberPagerState { Page.entries.size }
@@ -370,6 +376,6 @@ fun ClashTrackersContent(
                 modifier = Modifier.align(Alignment.BottomCenter),
             )
         }
-        if (developerOpen) DeveloperOptionsScreen(selectedTag, log, onClose = { developerOpen = false })
+        if (developerOpen) DeveloperOptionsScreen(selectedTag, log, onClose = { developerOpen = false }, onTestCommunity = { communityTest = true })
     }
 }
