@@ -46,7 +46,7 @@ import com.killersparrow1.clashtrackers.sync.GoldPassStore
 
 /** Hidden developer options. Opened by tapping the Support tab 11 times in 4 seconds; leaving the page hides it again. */
 @Composable
-fun DeveloperOptionsScreen(selectedTag: String?, log: SyncLog, onClose: () -> Unit, onTestCommunity: () -> Unit = {}) {
+fun DeveloperOptionsScreen(selectedTag: String?, log: SyncLog, onClose: () -> Unit, onTestCommunity: () -> Unit = {}, onTestBlurAdvice: () -> Unit = {}) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     BackHandler(onBack = onClose)
@@ -202,6 +202,10 @@ fun DeveloperOptionsScreen(selectedTag: String?, log: SyncLog, onClose: () -> Un
                 Text("Community popup (monthly)", style = MaterialTheme.typography.titleSmall)
                 Text("Shows it now, whatever the schedule says. The saved schedule is not changed.", style = MaterialTheme.typography.bodySmall)
                 OutlinedButton(onClick = onTestCommunity, modifier = Modifier.fillMaxWidth()) { Text("Show community popup") }
+
+                Text("Scroll blur suggestion", style = MaterialTheme.typography.titleSmall)
+                Text("Shows the popup a weak phone would get. Look only: the blur setting is not changed.", style = MaterialTheme.typography.bodySmall)
+                OutlinedButton(onClick = onTestBlurAdvice, modifier = Modifier.fillMaxWidth()) { Text("Show blur suggestion popup") }
 
                 Button(onClick = onClose, modifier = Modifier.fillMaxWidth()) { Text("Hide developer options") }
             }

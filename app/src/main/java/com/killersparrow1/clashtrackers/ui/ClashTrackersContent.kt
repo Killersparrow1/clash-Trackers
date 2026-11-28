@@ -143,20 +143,23 @@ fun ClashTrackersContent(
     val pager = androidx.compose.foundation.pager.rememberPagerState { Page.entries.size }
     val pagerFade = remember { Animatable(1f) }
     val pagerBlur = rememberScrollBlur(pager)
-    if (ScrollBlurAdvice.suggest) {
+    var adviceTest by remember { mutableStateOf(false) }
+    if (ScrollBlurAdvice.suggest || adviceTest) {
         val adviceContext = LocalContext.current
+        // Developer test: look only, nothing is changed or saved.
+        val answer = { if (adviceTest) adviceTest = false else ScrollBlurAdvice.answered(adviceContext) }
         androidx.compose.material3.AlertDialog(
-            onDismissRequest = { ScrollBlurAdvice.answered(adviceContext) },
+            onDismissRequest = { answer() },
             title = { Text(stringResource(R.string.scroll_blur_advice_title)) },
             text = { Text(stringResource(R.string.scroll_blur_advice_text)) },
             confirmButton = {
                 androidx.compose.material3.TextButton(onClick = {
-                    ScrollBlurSetting.set(adviceContext, ScrollBlurSetting.OFF)
-                    ScrollBlurAdvice.answered(adviceContext)
+                    if (!adviceTest) ScrollBlurSetting.set(adviceContext, ScrollBlurSetting.OFF)
+                    answer()
                 }) { Text(stringResource(R.string.scroll_blur_advice_off)) }
             },
             dismissButton = {
-                androidx.compose.material3.TextButton(onClick = { ScrollBlurAdvice.answered(adviceContext) }) {
+                androidx.compose.material3.TextButton(onClick = { answer() }) {
                     Text(stringResource(R.string.scroll_blur_advice_keep))
                 }
             },
@@ -376,6 +379,6 @@ fun ClashTrackersContent(
                 modifier = Modifier.align(Alignment.BottomCenter),
             )
         }
-        if (developerOpen) DeveloperOptionsScreen(selectedTag, log, onClose = { developerOpen = false }, onTestCommunity = { communityTest = true })
+        if (developerOpen) DeveloperOptionsScreen(selectedTag, log, onClose = { developerOpen = false }, onTestCommunity = { communityTest = true }, onTestBlurAdvice = { adviceTest = true })
     }
 }
