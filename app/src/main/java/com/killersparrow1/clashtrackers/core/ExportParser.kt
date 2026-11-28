@@ -89,6 +89,8 @@ object ExportParser {
             ?.takeIf { it > 0 }
 
         // Clock Tower (Builder Base): only trusted when the building is in `buildings2`; zero / missing / negative = none.
+        val starLab = root.array("buildings2").objects().firstOrNull { it.int("data") == GameIds.STAR_LABORATORY }
+        val homeLab = buildings.objects().firstOrNull { it.int("data") == GameIds.LABORATORY }
         val clockTower = root.array("buildings2").objects().firstOrNull { it.int("data") == GameIds.CLOCK_TOWER }
         val clockTowerBoost = boostsObj?.long("clocktower_boost")?.takeIf { clockTower != null && it > 0 }
         val clockTowerCooldown = boostsObj?.long("clocktower_cooldown")?.takeIf { clockTower != null && it > 0 }
@@ -124,6 +126,9 @@ object ExportParser {
                 clockTowerCooldownRemaining = clockTowerCooldown,
                 ownedLevels = ownedLevels(root),
                 upgradingLevels = upgradingLevels(root),
+                hasStarLab = starLab != null || root.array("units2").objects().isNotEmpty(),
+                starLabLevel = starLab?.int("lvl"),
+                labLevel = homeLab?.int("lvl"),
                 gearedUp = root.array("buildings").objects().filter { (it.int("gear_up") ?: 0) > 0 }.mapNotNull { it.int("data") }.toSet(),
             )
         )

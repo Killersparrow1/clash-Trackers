@@ -48,7 +48,7 @@ data class WidgetModel(
     val nextChangeAt: Long?,
     /** Builder Base builder jobs (empty when none are running, which hides the section). */
     val bbRows: List<WidgetRow> = emptyList(),
-    /** Star Laboratory row; null when no Star Lab upgrade is running (free builders/labs get no rows). */
+    /** Star Laboratory row: the running upgrade, or an idle row (like the Laboratory's) when the village has one and it is free; null without a Star Laboratory. */
     val starLabRow: WidgetRow? = null,
     val accountTag: String = "",
     val widgetTheme: String = "material_you",
@@ -62,7 +62,7 @@ data class WidgetModel(
     val clockTower: ClockTowerPill? = null,
 ) {
     /** Show the Builder Base section only when there is something running or just finished there. */
-    val showBuilderBase: Boolean get() = bbRows.isNotEmpty() || starLabRow != null
+    val showBuilderBase: Boolean get() = bbRows.isNotEmpty() || (starLabRow != null && starLabRow.kind != RowKind.IDLE)
     val buildersLabel: String get() = "${text.builders} $buildersBusy/$buildersTotal"
     val title: String get() = townHall?.let { "$playerName ${text.formatTownHall(it)}" } ?: playerName
     /** Every lab row, soonest finish first (just [labRow] unless the Goblin researcher is also working). */
@@ -262,12 +262,14 @@ object WidgetModelBuilder {
         val builderRows = sorted(export.builderJobs).filter { !it.isGoblin || running(it) }.map(::row)
         // Two lab jobs can run at once (regular research + the Goblin researcher): show all of them.
         val labRowsSorted = sorted(export.labJobs).map(::row)
-        val labRow = labRowsSorted.firstOrNull() ?: idleRow(text.laboratory, LABORATORY, text)
+        val labRow = labRowsSorted.firstOrNull() ?: idleRow(text.laboratory, LABORATORY, text, export.labLevel)
         val petRow = sorted(export.petJobs).firstOrNull()?.let(::row) ?: idleRow(text.petHouse, PET_HOUSE, text)
 
         // Builder Base: plain countdowns (no helpers or potions there). Free builders get no rows.
         val bbRows = sorted(export.bbBuilderJobs).map(::row)
+        // Like the Laboratory: a free Star Laboratory still gets a row (picture of its current level), as long as the village has one.
         val starLabRow = sorted(export.starLabJobs).firstOrNull()?.let(::row)
+            ?: if (export.hasStarLab) idleRow(text.starLab, GameIds.STAR_LABORATORY, text, export.starLabLevel) else null
 
         val footerLeft = if (state.syncFailed) {
             listOf(FooterPart(text.syncFailed, FooterTone.ERROR))
@@ -334,13 +336,13 @@ object WidgetModelBuilder {
         )
     }
 
-    const val LABORATORY = 1000007
+    const val LABORATORY = GameIds.LABORATORY
     const val PET_HOUSE = 1000068
 
-    private fun idleRow(name: String, iconId: Int, text: WidgetText = WidgetText.EN) = WidgetRow(
+    private fun idleRow(name: String, iconId: Int, text: WidgetText = WidgetText.EN, iconLevel: Int? = null) = WidgetRow(
         kind = RowKind.IDLE, name = name, levelText = null, showArrow = false, iconIds = listOf(iconId),
         initials = initials(name), finishAt = null, remaining = 0, progress = 1f, button = RowButton.NONE,
-        text = text,
+        iconLevel = iconLevel, text = text,
     )
 
     private fun runningJob(key: String?, export: VillageExport, running: (Job) -> Boolean): Job? =

@@ -92,6 +92,12 @@ data class VillageExport(
     val upgradingLevels: Map<Int, List<Int>> = emptyMap(),
     /** Home-village buildings that carry a `gear_up` field in the export (Cannon, Archer Tower, Mortar once geared up). */
     val gearedUp: Set<Int> = emptySet(),
+    /** The village has a Star Laboratory (it is listed in `buildings2`, or the export has Builder Base troops). */
+    val hasStarLab: Boolean = false,
+    /** Star Laboratory level when `buildings2` lists it. */
+    val starLabLevel: Int? = null,
+    /** Home village Laboratory level when `buildings` lists it. */
+    val labLevel: Int? = null,
 ) {
     /** Builders derived from the export: huts + B.O.B. Null if no huts were found. */
     val derivedTotalBuilders: Int?

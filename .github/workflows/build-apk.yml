@@ -92,6 +92,41 @@ jobs:
           name: ClashTrackers-debug-apk
           path: app/build/outputs/apk/debug/*.apk
 
+      # Main only: the file that gets released is a RELEASE build (not debuggable). It is signed with the key in the
+      # RELEASE_KEYSTORE_BASE64 / RELEASE_KEYSTORE_PASSWORD / RELEASE_KEY_ALIAS / RELEASE_KEY_PASSWORD secrets when
+      # they exist; otherwise with the key earlier releases used, so it still installs over them. If this step fails the
+      # release job falls back to the debug APK above, so a release is never blocked by it.
+      - name: Build release APK (main only)
+        if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        env:
+          KEYSTORE_B64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+        run: |
+          extra="-PreleaseWithDebugKey=true"
+          if [ -n "$KEYSTORE_B64" ] && [ -n "$KEYSTORE_PASSWORD" ] && [ -n "$KEY_ALIAS" ] && [ -n "$KEY_PASSWORD" ]; then
+            dir="$RUNNER_TEMP/signing"; mkdir -p "$dir"
+            echo "$KEYSTORE_B64" | base64 -d > "$dir/release.keystore"
+            printf 'storeFile=%s\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\n' \
+              "$dir/release.keystore" "$KEYSTORE_PASSWORD" "$KEY_ALIAS" "$KEY_PASSWORD" > "$dir/keystore.properties"
+            extra="-PclashtimersSigning=$dir/keystore.properties"
+            echo "Signing the release APK with the configured release key."
+          else
+            echo "No release key secrets; signing with the key earlier releases used."
+          fi
+          ./gradlew assembleRelease --stacktrace $extra -PdevBuild=false -PappVersionName=${{ steps.version.outputs.version }} -PappVersionCode=${{ steps.version.outputs.code }}
+
+      - name: Upload release APK
+        if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: ClashTrackers-release-apk
+          path: app/build/outputs/apk/release/*.apk
+          if-no-files-found: ignore
+
       - name: Upload test report (on failure)
         if: failure()
         uses: actions/upload-artifact@v4
@@ -127,9 +162,59 @@ jobs:
           fetch-depth: 0
 
       - uses: actions/download-artifact@v4
+        id: release_apk
+        continue-on-error: true
+        with:
+          name: ClashTrackers-release-apk
+          path: apk
+
+      # Falls back to the debug APK when the release build did not produce a file.
+      - uses: actions/download-artifact@v4
+        if: steps.release_apk.outcome != 'success' || hashFiles('apk/*.apk') == ''
         with:
           name: ClashTrackers-debug-apk
           path: apk
+
+      - name: Name the APK
+        env:
+          TAG: ${{ needs.build.outputs.tag }}
+        run: |
+          ls -l apk
+          if ls apk/*unsigned*.apk >/dev/null 2>&1; then
+            echo "::error::The release APK is unsigned and cannot be installed."; exit 1
+          fi
+          mv apk/*.apk "apk/ClashTrackers-$TAG.apk"
+
+      # VirusTotal scan of the exact file that is released (tools/virustotal-scan.sh). It never blocks the release:
+      # when the scan cannot finish (no key, upload failure, rate limit, timeout) the report says INCOMPLETE, not clean.
+      - name: Scan the APK with VirusTotal
+        continue-on-error: true
+        timeout-minutes: 40
+        env:
+          VIRUSTOTAL_API_KEY: ${{ secrets.VIRUSTOTAL_API_KEY }}
+          TAG: ${{ needs.build.outputs.tag }}
+        run: bash tools/virustotal-scan.sh "apk/ClashTrackers-$TAG.apk" "$TAG" security-report.txt
+
+      - name: Make sure there is a security report
+        if: always()
+        env:
+          TAG: ${{ needs.build.outputs.tag }}
+        run: |
+          if [ ! -s security-report.txt ]; then
+            {
+              echo "Clash Trackers security report"
+              echo "=============================="
+              echo "App version : ${TAG#CT} (release $TAG)"
+              echo "SHA-256     : $(sha256sum "apk/ClashTrackers-$TAG.apk" | cut -d' ' -f1)"
+              echo
+              echo "SCAN STATUS : INCOMPLETE"
+              echo "Details     : the scan step stopped before it could write a report"
+              echo
+              echo "The scan did NOT finish. Do not treat this file as scanned or clean."
+            } > security-report.txt
+          fi
+          cat security-report.txt
+          { echo '```'; cat security-report.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Create tag and GitHub Release
         env:
@@ -140,6 +225,11 @@ jobs:
             echo "::error::$TAG already exists (another release was published after this build). Re-run the build on main."
             exit 1
           fi
-          mv apk/*.apk "apk/ClashTrackers-$TAG.apk"
-          gh release create "$TAG" "apk/ClashTrackers-$TAG.apk" \
-            --target "$GITHUB_SHA" --title "$TAG" --generate-notes
+          scan=$(sed -n 's/^SCAN STATUS : //p' security-report.txt | head -1)
+          case "$scan" in
+            COMPLETED_CLEAN) line="VirusTotal: scan finished, no detections." ;;
+            COMPLETED_DETECTIONS) line="VirusTotal: scan finished WITH detections, see security-report.txt." ;;
+            *) line="VirusTotal: scan did not finish, see security-report.txt." ;;
+          esac
+          gh release create "$TAG" "apk/ClashTrackers-$TAG.apk" security-report.txt \
+            --target "$GITHUB_SHA" --title "$TAG" --generate-notes --notes "$line"

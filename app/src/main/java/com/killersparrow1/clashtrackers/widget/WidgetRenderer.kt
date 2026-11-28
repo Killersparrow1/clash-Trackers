@@ -775,6 +775,7 @@ class WidgetIcons private constructor(private val context: Context) {
     /** Call after icons were downloaded, so they are picked up. */
     fun refreshRemote() {
         remote = null
+        levelIds = null
         cache.evictAll()
     }
 
@@ -821,10 +822,22 @@ class WidgetIcons private constructor(private val context: Context) {
      */
     fun bitmapForLevel(id: Int, level: Int?, sizePx: Int): Bitmap? {
         if (level != null) {
-            for (l in level downTo 1) bitmap("${id}_$l", sizePx)?.let { return it }
+            // The picture of exactly this level is fetched in the background if it is not here yet (buildings and traps only).
+            val exact = EXTENSIONS.any { "${id}_$level.$it".let { f -> f in bundled || f in remoteNames() } }
+            if (!exact) com.killersparrow1.clashtrackers.update.RemoteIcons.ensureLevel(context, id, level)
+            // Only items that have per-level files are searched level by level (heroes and troops go straight to their icon).
+            if (id in idsWithLevels()) {
+                for (l in level downTo 1) bitmap("${id}_$l", sizePx)?.let { return it }
+            }
         }
         return bitmap(id.toString(), sizePx)
     }
+
+    /** Ids that have at least one `<id>_<level>` file, bundled or downloaded. Rebuilt when icons are downloaded. */
+    @Volatile private var levelIds: Set<Int>? = null
+    private fun idsWithLevels(): Set<Int> = levelIds ?: (bundled + remoteNames())
+        .mapNotNullTo(HashSet()) { name -> LEVEL_NAME.matchEntire(name)?.groupValues?.get(1)?.toIntOrNull() }
+        .also { levelIds = it }
 
     /** Big, sharp Town Hall art for the app (`assets/townhall/th_<level>.webp`, 384 px); the nearest lower level if one is missing. */
     fun townHall(level: Int?, sizePx: Int): Bitmap? {
@@ -857,6 +870,7 @@ class WidgetIcons private constructor(private val context: Context) {
 
     companion object {
         private val EXTENSIONS = listOf("webp", "png")
+        private val LEVEL_NAME = Regex("^(\\d+)_\\d+\\.(?:webp|png)$")
 
         @Volatile private var instance: WidgetIcons? = null
 

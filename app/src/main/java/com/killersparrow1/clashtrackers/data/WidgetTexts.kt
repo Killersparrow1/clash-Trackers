@@ -30,6 +30,7 @@ object WidgetTexts {
             assistantIdle = r.getString(R.string.widget_assistant_idle),
             laboratory = r.getString(R.string.widget_laboratory),
             petHouse = r.getString(R.string.widget_pet_house),
+            starLab = r.getString(R.string.plan_star_lab),
             newSuffix = r.getString(R.string.widget_new),
             unknownName = r.getString(R.string.widget_unknown_name),
             craftedDefense = r.getString(R.string.widget_crafted_defense),

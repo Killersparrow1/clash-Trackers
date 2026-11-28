@@ -8,6 +8,11 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ### Added
 
+- Road to max lists show items you have not unlocked yet in **black and white**.
+- A free **Star Laboratory** now has a row like the Laboratory does (timer list, widget list), with the picture of its level.
+- Accessibility reminder: **Remind me later** (one week) and **Don't ask again**; Settings has a button to turn the reminder back on.
+- Every release gets a **VirusTotal scan** and a `security-report.txt` (version, SHA-256, status, detections, report link) attached next to the APK. A scan that did not finish is reported as not finished, never as clean.
+- Upgrades of buildings and traps show the picture of the level being upgraded to, not the highest level.
 - Optional **Shizuku auto-import** (Settings > Shizuku auto-import): with Shizuku running through wireless debugging, tapping Copy in Clash of Clans imports the village by itself, using the normal import. It reads the clipboard only while the game is open and keeps only village data. While it works, the Clash Companion import button is hidden; it returns if Shizuku stops.
 - A tappable **Clock Tower potion** chip on the widget (Builder Base heading, next to the Clock Tower cooldown): tap for one more hour of 10x, − to undo. It speeds up the Builder Base builders and the Star Laboratory in the widget's finish times.
 - Separate finish alerts for the Town Hall village and the Builder Base (Settings > Notifications). A village you switch off is not replayed when you switch it on again.
@@ -20,6 +25,8 @@ All notable changes to this project are listed here. The format is based on [Kee
 
 ### Changed
 
+- The timer list no longer redraws every second while you scroll it, and icon lookups are cheaper.
+- Releases from `main` are a non-debuggable release build (signed with the release key secrets when they exist, otherwise with the key earlier releases used).
 - Road to max percentages are now weighted by upgrade time (walls by cost) instead of counting levels (heroes still show levels done, as ClashKing does), Traps are their own card, upgrades in progress are not counted as done, and the overall figure is the time done across the timed groups, so they line up with ClashKing.
 - The Plan tab is now **Progress**.
 

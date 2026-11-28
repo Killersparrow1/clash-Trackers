@@ -71,7 +71,10 @@ android {
         }
         release {
             // Without keystore.properties Gradle builds app-release-unsigned.apk, which phones refuse to install.
+            // CI passes -PreleaseWithDebugKey=true when no real key is configured, so the release build is still signed with the
+            // key existing installs were signed with (a new APK installs over the old one) but is NOT debuggable.
             signingConfig = signingConfigs.findByName("release")
+                ?: if (findProperty("releaseWithDebugKey") == "true") signingConfigs.getByName("fixedDebug") else null
             // R8 is OFF on purpose: 1.0.1's R8 build crashed at start-up on Android 10
             // with IllegalAccessError (a merged Kotlin class could no longer reach a package-private
             // one). The app goes to many different phones, so no code shrinking or renaming.
@@ -80,6 +83,10 @@ android {
                 enable = false
             }
         }
+    }
+    lint {
+        // Lint runs in its own checks; a lint finding must not stop the release APK from being built.
+        checkReleaseBuilds = false
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11

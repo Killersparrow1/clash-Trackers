@@ -262,6 +262,18 @@ fun SettingsSection(
                 cOn = on; CompanionPrefs.setEnabled(context, on); CompanionService.refresh()
             }
             Text(stringResource(R.string.companion_enable_desc), style = MaterialTheme.typography.bodyMedium)
+            // The accessibility reminder can be paused ("Remind me later") or stopped ("Don't ask again") from its pop-up; this brings it back.
+            var reminderTick by remember { mutableIntStateOf(0) }
+            val reminderPaused = remember(reminderTick, cTick) { !AccessibilityReminder.shouldAsk(context) }
+            if (!serviceOn && reminderPaused) {
+                Text(
+                    stringResource(if (AccessibilityReminder.never(context)) R.string.access_reminder_off else R.string.access_reminder_paused),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                OutlinedButton(onClick = { AccessibilityReminder.reset(context); reminderTick++ }) {
+                    Text(stringResource(R.string.access_reminder_on))
+                }
+            }
             if (cOn) {
                 SwitchRow(stringResource(R.string.companion_bar), cBar) { on -> cBar = on; CompanionPrefs.setBar(context, on); CompanionService.refresh() }
                 if (cBar) Text(stringResource(R.string.companion_bar_hint), style = MaterialTheme.typography.bodySmall)
