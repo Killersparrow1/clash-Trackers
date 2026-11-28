@@ -48,10 +48,12 @@ object ScrollBlurSetting {
 
     fun init(context: Context) {
         level = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getInt(KEY, HIGH).coerceIn(OFF, HIGH)
+        ScrollBlurAdvice.init(context)
     }
 
     fun set(context: Context, value: Int) {
         level = value.coerceIn(OFF, HIGH)
+        ScrollBlurAdvice.reset()
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putInt(KEY, level).apply()
     }
 
@@ -103,12 +105,17 @@ private fun rememberScrollBlur(
     moving: () -> Boolean,
 ): ScrollBlur {
     val blur = remember(horizontal) { ScrollBlur(horizontal) }
+    val view = androidx.compose.ui.platform.LocalView.current
+    // How long one screen refresh lasts (16.7 ms at 60 Hz); a slow frame is judged against it.
+    val refreshMs = remember(view) { 1000f / (view.display?.refreshRate?.takeIf { it > 0f } ?: 60f) }
     val enabled = ScrollBlurSetting.supported && ScrollBlurSetting.level != ScrollBlurSetting.OFF
     LaunchedEffect(blur, enabled) {
         if (!enabled) { blur.speed = 0f; return@LaunchedEffect }
         // A frame loop runs only while the content moves or the blur is still fading out; at rest nothing is scheduled.
         @OptIn(ExperimentalCoroutinesApi::class)
         snapshotFlow { moving() }.collectLatest { isMoving ->
+            // The list has just stopped: a moment to look at how the last scrolls went.
+            if (!isMoving) ScrollBlurAdvice.onScrollEnd()
             var previousPosition = position()
             var previousTime = 0L
             while (isActive) {
@@ -117,6 +124,7 @@ private fun rememberScrollBlur(
                     if (previousTime != 0L) {
                         val dtMs = (time - previousTime) / 1_000_000f
                         blur.speed = ScrollBlurMath.nextSpeed(blur.speed, now - previousPosition, dtMs, isMoving)
+                        if (isMoving) ScrollBlurAdvice.onFrame(dtMs, refreshMs)
                     }
                     previousPosition = now
                     previousTime = time
